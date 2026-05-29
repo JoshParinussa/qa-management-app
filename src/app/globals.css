@@ -3,6 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --radius: 0.625rem;
   --background: #ffffff;
   --foreground: #020617;
   --card: #ffffff;
@@ -60,9 +61,15 @@
   --color-sidebar-border: var(--sidebar-border);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
 }
 
 .dark {

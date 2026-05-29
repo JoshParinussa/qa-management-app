@@ -1242,6 +1242,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Forms | React Hook Form + Zod | Server Actions + Zod | YAGNI untuk MVP, RHF nanti per kebutuhan |
 | Auth | Belum diputuskan | HMAC signed cookie + bcrypt | Sederhana, cukup internal |
 | Test runner | Tidak ditentukan | Vitest unit | Cepat untuk lib helpers |
+| Table UI | Tidak ditentukan | Reusable `DataTable` (TanStack Table) | Sorting + pagination konsisten di semua tabel |
 | Default password | Tidak ada | `DEFAULT_USER_PASSWORD` env, default `password123` | Wajib ganti di login pertama |
 
 ---

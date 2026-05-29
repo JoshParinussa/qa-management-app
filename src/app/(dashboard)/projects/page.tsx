@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProjectTable } from "@/components/projects/project-table";
+import { DataTable } from "@/components/ui/data-table";
+import { PageHeader } from "@/components/layout/page-header";
+import { projectColumns } from "@/components/projects/project-columns";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import { listProjects } from "@/lib/projects/queries";
@@ -13,23 +15,23 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-          <p className="text-slate-500">Kelola project QA yang aktif.</p>
-        </div>
-        {canManage ? (
-          <Link href="/projects/new">
-            <Button>New project</Button>
-          </Link>
-        ) : null}
-      </div>
+      <PageHeader
+        title="Projects"
+        description="Kelola project QA yang aktif."
+        action={
+          canManage ? (
+            <Link href="/projects/new">
+              <Button>New project</Button>
+            </Link>
+          ) : null
+        }
+      />
       <Card>
         <CardHeader>
           <CardTitle>All projects</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProjectTable projects={projects} />
+          <DataTable columns={projectColumns} data={projects} emptyLabel="Belum ada project. Buat project pertama." />
         </CardContent>
       </Card>
     </div>

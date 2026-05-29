@@ -42,6 +42,8 @@
 | ORM | Drizzle only |
 | DB | Homeserver PostgreSQL, Tailscale first, LAN fallback |
 | Primary keys | UUID v7 (app-generated via `uuidv7`), sortable by timestamp |
+| Tables | All list tables use reusable `DataTable` (TanStack Table) with sorting + pagination |
+| Dashboard | Role-aware (Lead/Admin vs Member); no dummy chart/data, only QA-relevant stats |
 
 ---
 
