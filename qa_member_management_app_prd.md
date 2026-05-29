@@ -1219,7 +1219,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Status badge | Done | Format title case |
 | Vitest unit tests | Partial | flow, profile, status |
 | Project CRUD | Done | Phase 2: list/create/edit/archive, dedicated routes |
-| User CRUD lanjutan | Pending | Phase 3 |
+| User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru |
 | Project member assignment | Pending | Phase 4 |
 | Weekly report CRUD | Pending | Phase 5 |
 | Submit flow | Pending | Phase 6 |

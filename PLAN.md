@@ -52,7 +52,7 @@
 | 0 | DB ready | DONE | 5 |
 | 1 | Auth + admin create user + first-login change password | DONE | 6 |
 | 2 | Project CRUD | DONE | 5 |
-| 3 | User CRUD lanjutan | TO DO | 5 |
+| 3 | User CRUD lanjutan | DONE | 5 |
 | 4 | Project member assignment | TO DO | 5 |
 | 5 | Weekly report CRUD | TO DO | 8 |
 | 6 | Submit flow | TO DO | 4 |
@@ -215,7 +215,7 @@
 
 ## Phase 3 — User CRUD Lanjutan
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 5
 
 ### Files
@@ -233,17 +233,17 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 3.1 | Create `getUserById(id)` query | TO DO | 2 |
-| 3.2 | Create `updateUserAction` for name/email/role/isActive | TO DO | 4 |
-| 3.3 | Create `deactivateUserAction` | TO DO | 3 |
-| 3.4 | Create `generateRandomPassword()` helper | TO DO | 3 |
-| 3.5 | Create `resetPasswordAction` that generates a new password | TO DO | 5 |
-| 3.6 | Set `must_change_password=true` on reset | TO DO | 2 |
-| 3.7 | Show generated password once to admin after reset | TO DO | 5 |
-| 3.8 | Prevent self-deactivate if user is last active admin | TO DO | 4 |
-| 3.9 | Build user table with actions | TO DO | 4 |
-| 3.10 | Build dedicated edit user route | TO DO | 4 |
-| 3.11 | Build dedicated reset password route | TO DO | 4 |
+| 3.1 | Create `getUserById(id)` query | DONE | 2 |
+| 3.2 | Create `updateUserAction` for name/email/role/isActive | DONE | 4 |
+| 3.3 | Create `deactivateUserAction` | DONE | 3 |
+| 3.4 | Create `generateRandomPassword()` helper | DONE | 3 |
+| 3.5 | Create `resetPasswordAction` that generates a new password | DONE | 5 |
+| 3.6 | Set `must_change_password=true` on reset | DONE | 2 |
+| 3.7 | Show generated password once to admin after reset | DONE | 5 |
+| 3.8 | Prevent self-deactivate if user is last active admin | DONE | 4 |
+| 3.9 | Build user table with actions | DONE | 4 |
+| 3.10 | Build dedicated edit user route | DONE | 4 |
+| 3.11 | Build reset password panel (in edit route) | DONE | 4 |
 | 3.12 | Add filter by role/status | TO DO | 3 |
 
 ### Testing Tasks
@@ -251,9 +251,9 @@
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
 | 3.T1 | Unit test user schema valid/invalid payloads | TO DO | 2 |
-| 3.T2 | Unit test random generated password length and entropy format | TO DO | 3 |
+| 3.T2 | Unit test random generated password length and entropy format | DONE | 3 |
 | 3.T3 | Unit test reset password sets `must_change_password=true` | TO DO | 4 |
-| 3.T4 | Unit test reset password does not equal default password | TO DO | 3 |
+| 3.T4 | Unit test reset password does not equal default password | DONE | 3 |
 | 3.T5 | Unit test last-admin deactivation rule | TO DO | 4 |
 | 3.T6 | E2E edit user happy path | TO DO | 6 |
 | 3.T7 | E2E reset password happy path | TO DO | 7 |

@@ -1,10 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { hashPassword } from "@/lib/auth/password";
+import { eq } from "drizzle-orm";
+import { generateRandomPassword, hashPassword } from "@/lib/auth/password";
 import { requireAdmin } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
+import { countActiveAdmins, getUserById } from "@/lib/users/queries";
 import { userSchema } from "@/lib/validations/user";
 import type { ActionState } from "@/types";
 
@@ -37,4 +39,70 @@ export async function createUserAction(_state: ActionState, formData: FormData):
   }
 
   redirect("/users");
+}
+
+export async function updateUserAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = userSchema.safeParse({
+    name: formData.get("name"),
+    email: String(formData.get("email") ?? "").toLowerCase(),
+    role: formData.get("role"),
+    isActive: formData.get("isActive") === "on",
+  });
+
+  if (!parsed.success) {
+    return { error: "Data user tidak valid." };
+  }
+
+  try {
+    await db
+      .update(users)
+      .set({ ...parsed.data, updatedAt: new Date() })
+      .where(eq(users.id, id));
+  } catch {
+    return { error: "Email sudah dipakai." };
+  }
+
+  redirect(`/users`);
+}
+
+export async function deactivateUserAction(id: string): Promise<ActionState> {
+  await requireAdmin();
+
+  const target = await getUserById(id);
+
+  if (!target) {
+    return { error: "User tidak ditemukan." };
+  }
+
+  if (target.role === "ADMIN" && target.isActive) {
+    const activeAdmins = await countActiveAdmins();
+    if (activeAdmins <= 1) {
+      return { error: "Tidak bisa menonaktifkan admin terakhir." };
+    }
+  }
+
+  await db.update(users).set({ isActive: false, updatedAt: new Date() }).where(eq(users.id, id));
+
+  redirect("/users");
+}
+
+export async function resetPasswordAction(id: string): Promise<ActionState> {
+  await requireAdmin();
+
+  const target = await getUserById(id);
+
+  if (!target) {
+    return { error: "User tidak ditemukan." };
+  }
+
+  const newPassword = generateRandomPassword();
+
+  await db
+    .update(users)
+    .set({ passwordHash: await hashPassword(newPassword), mustChangePassword: true, updatedAt: new Date() })
+    .where(eq(users.id, id));
+
+  return { success: newPassword };
 }
