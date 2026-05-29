@@ -54,7 +54,7 @@
 | 2 | Project CRUD | DONE | 5 |
 | 3 | User CRUD lanjutan | DONE | 5 |
 | 4 | Project member assignment | DONE | 5 |
-| 5 | Weekly report CRUD | TO DO | 8 |
+| 5 | Weekly report CRUD | DONE | 8 |
 | 6 | Submit flow | TO DO | 4 |
 | 7 | Review flow | TO DO | 6 |
 | 8 | Dashboard summary | TO DO | 6 |
@@ -315,7 +315,7 @@
 
 ## Phase 5 — Weekly Report CRUD
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 8
 
 ### Files
@@ -336,28 +336,28 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 5.1 | Finalize coverage calculator formulas | TO DO | 3 |
-| 5.2 | Expand weekly report Zod schema | TO DO | 4 |
-| 5.3 | Query reports by current user | TO DO | 3 |
-| 5.4 | Query reports for lead/admin | TO DO | 4 |
-| 5.5 | Query single report detail | TO DO | 3 |
-| 5.6 | Create draft action | TO DO | 5 |
-| 5.7 | Update draft action | TO DO | 5 |
-| 5.8 | Compute coverage server-side on save | TO DO | 4 |
-| 5.9 | Enforce unique project/user/week | TO DO | 3 |
-| 5.10 | Block editing approved report | TO DO | 3 |
-| 5.11 | Block creating reports for removed assignment | TO DO | 4 |
-| 5.12 | Build multi-section weekly report form | TO DO | 7 |
-| 5.13 | Build report list table | TO DO | 4 |
-| 5.14 | Build report detail page | TO DO | 5 |
-| 5.15 | Add inline validation messages | TO DO | 4 |
+| 5.1 | Finalize coverage calculator formulas | DONE | 3 |
+| 5.2 | Expand weekly report Zod schema | DONE | 4 |
+| 5.3 | Query reports by current user | DONE | 3 |
+| 5.4 | Query reports for lead/admin | DONE | 4 |
+| 5.5 | Query single report detail | DONE | 3 |
+| 5.6 | Create draft action | DONE | 5 |
+| 5.7 | Update draft action | DONE | 5 |
+| 5.8 | Compute coverage server-side on save | DONE | 4 |
+| 5.9 | Enforce unique project/user/week | DONE | 3 |
+| 5.10 | Block editing approved report | DONE | 3 |
+| 5.11 | Block creating reports for removed assignment | DONE | 4 |
+| 5.12 | Build multi-section weekly report form | DONE | 7 |
+| 5.13 | Build report list table | DONE | 4 |
+| 5.14 | Build report detail page | DONE | 5 |
+| 5.15 | Add inline validation messages | DONE | 4 |
 
 ### Testing Tasks
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 5.T1 | Unit test coverage calculator with normal values | TO DO | 3 |
-| 5.T2 | Unit test coverage calculator when total test case is 0 | TO DO | 3 |
+| 5.T1 | Unit test coverage calculator with normal values | DONE | 3 |
+| 5.T2 | Unit test coverage calculator when total test case is 0 | DONE | 3 |
 | 5.T3 | Unit test weekly report schema invalid dates | TO DO | 3 |
 | 5.T4 | Unit test executed cannot exceed total | TO DO | 3 |
 | 5.T5 | Unit test automation cannot exceed total test cases | TO DO | 3 |

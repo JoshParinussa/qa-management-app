@@ -1,0 +1,75 @@
+import { notFound, redirect } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WeeklyReportForm } from "@/components/reports/weekly-report-form";
+import { updateDraftAction } from "@/lib/weekly-reports/actions";
+import { requireUser } from "@/lib/auth/session";
+import { getReportById } from "@/lib/weekly-reports/queries";
+import { listAssignedProjects } from "@/lib/project-members/queries";
+import type { ActionState } from "@/types";
+
+function toDateInput(value: Date) {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+export default async function EditWeeklyReportPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const user = await requireUser();
+  const report = await getReportById(id);
+
+  if (!report || report.userId !== user.id) {
+    notFound();
+  }
+
+  if (report.status === "APPROVED") {
+    redirect(`/weekly-reports/${id}`);
+  }
+
+  const projects = await listAssignedProjects(user.id);
+
+  async function action(state: ActionState, formData: FormData) {
+    "use server";
+    return updateDraftAction(id, state, formData);
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Edit weekly report</h2>
+        <p className="text-muted-foreground">Perbarui draft report kamu.</p>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Report detail</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <WeeklyReportForm
+            action={action}
+            projects={projects}
+            submitLabel="Save changes"
+            lockProject
+            defaultValues={{
+              projectId: report.projectId,
+              weekStartDate: toDateInput(report.weekStartDate),
+              weekEndDate: toDateInput(report.weekEndDate),
+              summary: report.summary,
+              productionIncidentCount: report.productionIncidentCount,
+              productionIncidentNotes: report.productionIncidentNotes,
+              bugDocumentUrl: report.bugDocumentUrl,
+              testCaseBeTotal: report.testCaseBeTotal,
+              testCaseBeExecuted: report.testCaseBeExecuted,
+              testCaseFeTotal: report.testCaseFeTotal,
+              testCaseFeExecuted: report.testCaseFeExecuted,
+              automationBeTotal: report.automationBeTotal,
+              automationFeTotal: report.automationFeTotal,
+              automationPassed: report.automationPassed,
+              automationFailed: report.automationFailed,
+              blocker: report.blocker,
+              nextWeekPlan: report.nextWeekPlan,
+              notes: report.notes,
+            }}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

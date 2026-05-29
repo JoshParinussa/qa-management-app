@@ -1221,7 +1221,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Project CRUD | Done | Phase 2: list/create/edit/archive, dedicated routes |
 | User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru |
 | Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
-| Weekly report CRUD | Pending | Phase 5 |
+| Weekly report CRUD | Done | Phase 5: draft create/edit, server-side coverage, unique week guard, approved lock |
 | Submit flow | Pending | Phase 6 |
 | Review flow | Pending | Phase 7 |
 | Dashboard summary | Pending | Phase 8 |

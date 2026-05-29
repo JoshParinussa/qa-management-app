@@ -1,6 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db/client";
-import { projectMembers, users } from "@/db/schema";
+import { projectMembers, projects, users } from "@/db/schema";
 
 export function listProjectMembers(projectId: string) {
   return db
@@ -38,4 +38,18 @@ export function listAssignableUsers() {
     .select({ id: users.id, name: users.name, email: users.email, role: users.role })
     .from(users)
     .where(eq(users.isActive, true));
+}
+
+export function listAssignedProjects(userId: string) {
+  return db
+    .select({ id: projects.id, name: projects.name })
+    .from(projectMembers)
+    .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+    .where(
+      and(
+        eq(projectMembers.userId, userId),
+        isNull(projectMembers.removedAt),
+        eq(projects.status, "ACTIVE"),
+      ),
+    );
 }
