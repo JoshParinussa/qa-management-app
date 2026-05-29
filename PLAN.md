@@ -55,7 +55,7 @@
 | 3 | User CRUD lanjutan | DONE | 5 |
 | 4 | Project member assignment | DONE | 5 |
 | 5 | Weekly report CRUD | DONE | 8 |
-| 6 | Submit flow | TO DO | 4 |
+| 6 | Submit flow | DONE | 4 |
 | 7 | Review flow | TO DO | 6 |
 | 8 | Dashboard summary | TO DO | 6 |
 | 9 | Monthly summary | TO DO | 6 |
@@ -377,7 +377,7 @@
 
 ## Phase 6 — Submit Flow
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 4
 
 ### Files
@@ -390,17 +390,17 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 6.1 | Create `submitReportAction` | TO DO | 4 |
-| 6.2 | Validate required submit fields | TO DO | 3 |
-| 6.3 | Set status `SUBMITTED` | TO DO | 2 |
-| 6.4 | Set `submitted_at` | TO DO | 2 |
-| 6.5 | Add submit button with confirmation | TO DO | 3 |
+| 6.1 | Create `submitReportAction` | DONE | 4 |
+| 6.2 | Validate required submit fields | DONE | 3 |
+| 6.3 | Set status `SUBMITTED` | DONE | 2 |
+| 6.4 | Set `submitted_at` | DONE | 2 |
+| 6.5 | Add submit button with confirmation | DONE | 3 |
 
 ### Testing Tasks
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 6.T1 | Unit test draft → submitted transition | TO DO | 2 |
+| 6.T1 | Unit test draft → submitted transition | DONE | 2 |
 | 6.T2 | Unit test submit rejects missing summary | TO DO | 3 |
 | 6.T3 | Unit test submit rejects missing next week plan | TO DO | 3 |
 | 6.T4 | E2E submit report happy path | TO DO | 6 |

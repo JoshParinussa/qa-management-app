@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/session";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
 import { findActiveAssignment } from "@/lib/project-members/queries";
 import { findReportForWeek, getReportById } from "@/lib/weekly-reports/queries";
+import { canSubmitReport } from "@/lib/weekly-reports/transitions";
 import { weeklyReportSchema, type WeeklyReportInput } from "@/lib/validations/weekly-report";
 import type { ActionState } from "@/types";
 
@@ -110,6 +111,30 @@ export async function updateDraftAction(id: string, _state: ActionState, formDat
       ...coverage,
       updatedAt: new Date(),
     })
+    .where(eq(weeklyReports.id, id));
+
+  redirect(`/weekly-reports/${id}`);
+}
+
+export async function submitReportAction(id: string): Promise<ActionState> {
+  const user = await requireUser();
+  const report = await getReportById(id);
+
+  if (!report || report.userId !== user.id) {
+    return { error: "Report tidak ditemukan." };
+  }
+
+  if (!canSubmitReport(report.status)) {
+    return { error: "Report ini tidak bisa disubmit dari status sekarang." };
+  }
+
+  if (!report.summary.trim() || !report.nextWeekPlan.trim()) {
+    return { error: "Summary dan next week plan wajib diisi sebelum submit." };
+  }
+
+  await db
+    .update(weeklyReports)
+    .set({ status: "SUBMITTED", submittedAt: new Date(), updatedAt: new Date() })
     .where(eq(weeklyReports.id, id));
 
   redirect(`/weekly-reports/${id}`);

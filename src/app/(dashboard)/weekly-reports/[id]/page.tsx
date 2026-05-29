@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { SubmitReportButton } from "@/components/reports/submit-report-button";
 import { requireUser } from "@/lib/auth/session";
 import { getReportById } from "@/lib/weekly-reports/queries";
+import { submitReportAction } from "@/lib/weekly-reports/actions";
+import { canSubmitReport } from "@/lib/weekly-reports/transitions";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
 
 function formatDate(value: Date) {
@@ -23,6 +26,12 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
   const metrics = calculateReportMetrics(report);
   const isOwner = report.userId === user.id;
   const canEdit = isOwner && report.status !== "APPROVED";
+  const canSubmit = isOwner && canSubmitReport(report.status);
+
+  async function submit() {
+    "use server";
+    return submitReportAction(id);
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -40,6 +49,7 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
               <Button variant="outline">Edit</Button>
             </Link>
           ) : null}
+          {canSubmit ? <SubmitReportButton action={submit} /> : null}
         </div>
       </div>
 
