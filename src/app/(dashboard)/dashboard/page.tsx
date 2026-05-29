@@ -1,15 +1,18 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
+import { getDashboardSummary } from "@/lib/dashboard/queries";
 
 import data from "./data.json";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const summary = await getDashboardSummary();
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <SectionCards />
+          <SectionCards summary={summary} />
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive />
           </div>
