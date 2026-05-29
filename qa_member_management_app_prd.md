@@ -1220,7 +1220,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Vitest unit tests | Partial | flow, profile, status |
 | Project CRUD | Done | Phase 2: list/create/edit/archive, dedicated routes |
 | User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru |
-| Project member assignment | Pending | Phase 4 |
+| Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
 | Weekly report CRUD | Pending | Phase 5 |
 | Submit flow | Pending | Phase 6 |
 | Review flow | Pending | Phase 7 |

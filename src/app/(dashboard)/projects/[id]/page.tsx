@@ -5,8 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { archiveProjectAction } from "@/lib/projects/actions";
 import { getProjectById } from "@/lib/projects/queries";
+import { assignMemberAction, removeMemberAction } from "@/lib/project-members/actions";
+import { listAssignableUsers, listProjectMembers } from "@/lib/project-members/queries";
+import { ProjectMemberForm } from "@/components/projects/project-member-form";
+import { ProjectMemberTable } from "@/components/projects/project-member-table";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
+import type { ActionState } from "@/types";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,10 +23,22 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   }
 
   const canManage = canManageProjects(user.role);
+  const members = await listProjectMembers(id);
+  const assignableUsers = canManage ? await listAssignableUsers() : [];
 
   async function archive() {
     "use server";
     await archiveProjectAction(id);
+  }
+
+  async function assign(state: ActionState, formData: FormData) {
+    "use server";
+    return assignMemberAction(id, state, formData);
+  }
+
+  async function remove(formData: FormData) {
+    "use server";
+    await removeMemberAction(id, String(formData.get("userId")));
   }
 
   return (
@@ -55,6 +72,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </Badge>
           </div>
           <p className="text-sm text-slate-600">{project.description ?? "Tidak ada deskripsi."}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Assigned members</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {canManage ? <ProjectMemberForm action={assign} users={assignableUsers} /> : null}
+          <ProjectMemberTable members={members} canManage={canManage} removeAction={remove} />
         </CardContent>
       </Card>
     </div>

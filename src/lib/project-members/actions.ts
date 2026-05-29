@@ -1,0 +1,65 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { and, eq, isNull } from "drizzle-orm";
+import { db } from "@/db/client";
+import { projectMembers } from "@/db/schema";
+import { requireUser } from "@/lib/auth/session";
+import { canManageProjects } from "@/lib/permissions/roles";
+import { findActiveAssignment } from "@/lib/project-members/queries";
+import { assignMemberSchema } from "@/lib/validations/project-member";
+import type { ActionState } from "@/types";
+
+async function requireProjectManager() {
+  const user = await requireUser();
+
+  if (!canManageProjects(user.role)) {
+    redirect("/dashboard");
+  }
+
+  return user;
+}
+
+export async function assignMemberAction(projectId: string, _state: ActionState, formData: FormData): Promise<ActionState> {
+  await requireProjectManager();
+
+  const parsed = assignMemberSchema.safeParse({
+    userId: formData.get("userId"),
+    assignmentRole: formData.get("assignmentRole") || "QA_MEMBER",
+  });
+
+  if (!parsed.success) {
+    return { error: "Data assignment tidak valid." };
+  }
+
+  const existing = await findActiveAssignment(projectId, parsed.data.userId);
+
+  if (existing) {
+    return { error: "User sudah ter-assign di project ini." };
+  }
+
+  await db.insert(projectMembers).values({
+    projectId,
+    userId: parsed.data.userId,
+    assignmentRole: parsed.data.assignmentRole,
+  });
+
+  redirect(`/projects/${projectId}`);
+}
+
+export async function removeMemberAction(projectId: string, userId: string): Promise<ActionState> {
+  await requireProjectManager();
+
+  await db
+    .update(projectMembers)
+    .set({ removedAt: new Date() })
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, userId),
+        isNull(projectMembers.removedAt),
+      ),
+    );
+
+  redirect(`/projects/${projectId}`);
+}

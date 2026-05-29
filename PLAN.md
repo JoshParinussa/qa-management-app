@@ -53,7 +53,7 @@
 | 1 | Auth + admin create user + first-login change password | DONE | 6 |
 | 2 | Project CRUD | DONE | 5 |
 | 3 | User CRUD lanjutan | DONE | 5 |
-| 4 | Project member assignment | TO DO | 5 |
+| 4 | Project member assignment | DONE | 5 |
 | 5 | Weekly report CRUD | TO DO | 8 |
 | 6 | Submit flow | TO DO | 4 |
 | 7 | Review flow | TO DO | 6 |
@@ -270,7 +270,7 @@
 
 ## Phase 4 — Project Member Assignment
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 5
 
 ### Files
@@ -285,15 +285,15 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 4.1 | Query active members by project | TO DO | 2 |
-| 4.2 | Query available QA users for assignment | TO DO | 3 |
-| 4.3 | Create `assignMemberAction` | TO DO | 4 |
-| 4.4 | Create `removeMemberAction` using `removed_at` | TO DO | 3 |
-| 4.5 | Prevent duplicate active assignment | TO DO | 3 |
-| 4.6 | Preserve removed member history | TO DO | 3 |
-| 4.7 | Build assign member form | TO DO | 4 |
-| 4.8 | Build project member table | TO DO | 3 |
-| 4.9 | Add member section to project detail page | TO DO | 3 |
+| 4.1 | Query active members by project | DONE | 2 |
+| 4.2 | Query available QA users for assignment | DONE | 3 |
+| 4.3 | Create `assignMemberAction` | DONE | 4 |
+| 4.4 | Create `removeMemberAction` using `removed_at` | DONE | 3 |
+| 4.5 | Prevent duplicate active assignment | DONE | 3 |
+| 4.6 | Preserve removed member history | DONE | 3 |
+| 4.7 | Build assign member form | DONE | 4 |
+| 4.8 | Build project member table | DONE | 3 |
+| 4.9 | Add member section to project detail page | DONE | 3 |
 
 ### Testing Tasks
 
