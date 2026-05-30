@@ -1,4 +1,4 @@
-import { FolderKanban, Clock, RotateCcw, CheckCircle2, Send } from "lucide-react";
+import { FolderKanban, Clock, RotateCcw, CheckCircle2, Send, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCards } from "@/components/dashboard/stat-cards";
@@ -7,10 +7,12 @@ import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import {
   getDashboardSummary,
+  getIncidentTotal,
   getMemberSummary,
   listCoverageByProject,
   listPendingReviewReports,
   listRecentReportsByUser,
+  listTopBlockers,
 } from "@/lib/dashboard/queries";
 
 function formatPercent(value: string | null) {
@@ -26,6 +28,8 @@ export default async function DashboardPage() {
     const summary = await getDashboardSummary();
     const pending = await listPendingReviewReports();
     const coverage = await listCoverageByProject();
+    const incidentTotal = await getIncidentTotal();
+    const topBlockers = await listTopBlockers();
 
     return (
       <div className="space-y-6">
@@ -67,6 +71,39 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="size-4 text-muted-foreground" />
+                Production incidents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold tabular-nums">{incidentTotal}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Total dari semua report.</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Top blockers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {topBlockers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Tidak ada blocker.</p>
+              ) : (
+                <div className="space-y-2">
+                  {topBlockers.map((row) => (
+                    <div key={row.blocker} className="flex items-center justify-between gap-2 border-b pb-2 last:border-0 last:pb-0">
+                      <span className="truncate text-sm">{row.blocker}</span>
+                      <span className="text-sm text-muted-foreground">{row.value}×</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

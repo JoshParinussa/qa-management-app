@@ -1,4 +1,4 @@
-import { and, avg, count, desc, eq, isNull } from "drizzle-orm";
+import { and, avg, count, desc, eq, isNull, sum } from "drizzle-orm";
 import { db } from "@/db/client";
 import { projectMembers, projects, weeklyReports } from "@/db/schema";
 
@@ -62,6 +62,31 @@ export function listCoverageByProject() {
     .where(eq(weeklyReports.status, "APPROVED"))
     .groupBy(projects.name)
     .orderBy(projects.name);
+}
+
+export async function getIncidentTotal() {
+  const [row] = await db
+    .select({ value: sum(weeklyReports.productionIncidentCount) })
+    .from(weeklyReports);
+  return Number(row?.value ?? 0);
+}
+
+export async function listTopBlockers(limit = 5) {
+  const rows = await db
+    .select({ blocker: weeklyReports.blocker })
+    .from(weeklyReports);
+
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const text = row.blocker?.trim();
+    if (!text) continue;
+    counts.set(text, (counts.get(text) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .map(([blocker, value]) => ({ blocker, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, limit);
 }
 
 export async function getMemberSummary(userId: string) {

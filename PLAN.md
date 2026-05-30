@@ -59,7 +59,7 @@
 | 5 | Weekly report CRUD | DONE | 8 |
 | 6 | Submit flow | DONE | 4 |
 | 7 | Review flow | DONE | 6 |
-| 8 | Dashboard summary | TO DO | 6 |
+| 8 | Dashboard summary | DONE | 6 |
 | 9 | Monthly summary | TO DO | 6 |
 | 10 | Markdown export | TO DO | 4 |
 | 11 | Hardening | TO DO | 5 |
@@ -465,7 +465,7 @@
 
 ## Phase 8 — Dashboard Summary
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 6
 
 ### Files
@@ -479,16 +479,16 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 8.1 | Query member dashboard summary | TO DO | 4 |
-| 8.2 | Query lead dashboard summary | TO DO | 6 |
-| 8.3 | Count reports by status | TO DO | 4 |
-| 8.4 | Aggregate production incidents | TO DO | 3 |
-| 8.5 | Aggregate blockers | TO DO | 4 |
-| 8.6 | Aggregate coverage by project | TO DO | 5 |
-| 8.7 | Build member dashboard | TO DO | 4 |
-| 8.8 | Build lead dashboard | TO DO | 5 |
-| 8.9 | Build pending review table | TO DO | 4 |
-| 8.10 | Build need revision table | TO DO | 3 |
+| 8.1 | Query member dashboard summary | DONE | 4 |
+| 8.2 | Query lead dashboard summary | DONE | 6 |
+| 8.3 | Count reports by status | DONE | 4 |
+| 8.4 | Aggregate production incidents | DONE | 3 |
+| 8.5 | Aggregate blockers | DONE | 4 |
+| 8.6 | Aggregate coverage by project | DONE | 5 |
+| 8.7 | Build member dashboard | DONE | 4 |
+| 8.8 | Build lead dashboard | DONE | 5 |
+| 8.9 | Build pending review table | DONE | 4 |
+| 8.10 | Build need revision table | DONE | 3 |
 
 ### Testing Tasks
 
