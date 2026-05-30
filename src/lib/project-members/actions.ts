@@ -7,6 +7,7 @@ import { projectMembers } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import { findActiveAssignment } from "@/lib/project-members/queries";
+import { buildRemoveMemberUpdate, hasActiveAssignment } from "@/lib/project-members/rules";
 import { assignMemberSchema } from "@/lib/validations/project-member";
 import type { ActionState } from "@/types";
 
@@ -34,7 +35,7 @@ export async function assignMemberAction(projectId: string, _state: ActionState,
 
   const existing = await findActiveAssignment(projectId, parsed.data.userId);
 
-  if (existing) {
+  if (hasActiveAssignment(existing)) {
     return { error: "User sudah ter-assign di project ini." };
   }
 
@@ -52,7 +53,7 @@ export async function removeMemberAction(projectId: string, userId: string): Pro
 
   await db
     .update(projectMembers)
-    .set({ removedAt: new Date() })
+    .set(buildRemoveMemberUpdate())
     .where(
       and(
         eq(projectMembers.projectId, projectId),

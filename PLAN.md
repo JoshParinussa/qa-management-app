@@ -301,11 +301,11 @@
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 4.T1 | Unit test duplicate assignment prevention | TO DO | 3 |
-| 4.T2 | Unit test remove sets `removed_at` | TO DO | 3 |
-| 4.T3 | Unit test removed member cannot create new report | TO DO | 4 |
-| 4.T4 | E2E assign member happy path | TO DO | 6 |
-| 4.T5 | E2E remove member happy path | TO DO | 6 |
+| 4.T1 | Unit test duplicate assignment prevention | DONE | 3 |
+| 4.T2 | Unit test remove sets `removed_at` | DONE | 3 |
+| 4.T3 | Unit test removed member cannot create new report | DONE | 4 |
+| 4.T4 | E2E assign member happy path | DONE | 6 |
+| 4.T5 | E2E remove member happy path | DONE | 6 |
 
 ### Acceptance Criteria
 

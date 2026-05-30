@@ -7,6 +7,7 @@ import { weeklyReports } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
 import { findActiveAssignment } from "@/lib/project-members/queries";
+import { hasActiveAssignment } from "@/lib/project-members/rules";
 import { findReportForWeek, getReportById } from "@/lib/weekly-reports/queries";
 import { canSubmitReport } from "@/lib/weekly-reports/transitions";
 import { weeklyReportSchema, type WeeklyReportInput } from "@/lib/validations/weekly-report";
@@ -55,7 +56,7 @@ export async function createDraftAction(_state: ActionState, formData: FormData)
 
   const assignment = await findActiveAssignment(parsed.data.projectId, user.id);
 
-  if (!assignment) {
+  if (!hasActiveAssignment(assignment)) {
     return { error: "Kamu tidak ter-assign di project ini." };
   }
 
