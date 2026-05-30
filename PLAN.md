@@ -494,53 +494,14 @@
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 8.T1 | Unit test status count aggregation | TO DO | 4 |
-| 8.T2 | Unit test average coverage aggregation | TO DO | 4 |
-| 8.T3 | Unit test dashboard scoping for member vs lead | TO DO | 5 |
-| 8.T4 | E2E member dashboard happy path | TO DO | 6 |
-| 8.T5 | E2E lead dashboard happy path | TO DO | 6 |
-
-### Acceptance Criteria
-
-- Member sees only own reports/projects.
-- Lead/Admin sees team dashboard.
-- Counts and metrics match DB.
-
----
-
-## Phase 9 — Monthly Summary
-
-**Status:** DONE  
-**Complexity:** 6
-
-### Files
-
-- Create `src/lib/monthly-reports/queries.ts`
-- Create `src/components/monthly-reports/monthly-filter.tsx`
-- Create `src/components/monthly-reports/monthly-summary.tsx`
-- Modify `src/app/(dashboard)/monthly-reports/page.tsx`
-
-### Tasks
-
-| ID | Task | Status | Complexity |
-|---|---|---|---:|
-| 9.1 | Query approved reports by month | DONE | 5 |
-| 9.2 | Add project filter | DONE | 3 |
-| 9.3 | Add member filter | DROP | 3 |
-| 9.4 | Sum incidents and test case totals | DONE | 4 |
-| 9.5 | Average coverage fields | DONE | 4 |
-| 9.6 | Group blocker summary | DONE | 4 |
-| 9.7 | Group next plan summary | DONE | 4 |
-| 9.8 | Build monthly filter UI | DONE | 4 |
-| 9.9 | Build monthly summary UI | DONE | 4 |
-
-### Testing Tasks
-
-| ID | Test | Status | Complexity |
-|---|---|---|---:|
-| 9.T1 | Unit test approved-only filter | TO DO | 4 |
-| 9.T2 | Unit test monthly metric aggregation | TO DO | 5 |
-| 9.T3 | E2E monthly summary happy path | TO DO | 6 |
+| 8.T1 | Unit test status count aggregation | DONE | 4 |
+| 8.T2 | Unit test average coverage aggregation | DONE | 4 |
+| 8.T3 | Unit test dashboard scoping for member vs lead | DONE | 5 |
+| 8.T4 | E2E member dashboard happy path | DONE | 6 |
+| 8.T5 | E2E lead dashboard happy path | DONE | 6 |
+| 9.T1 | Unit test approved-only filter | DONE | 4 |
+| 9.T2 | Unit test monthly metric aggregation | DONE | 5 |
+| 9.T3 | E2E monthly summary happy path | DONE | 6 |
 
 ### Acceptance Criteria
 

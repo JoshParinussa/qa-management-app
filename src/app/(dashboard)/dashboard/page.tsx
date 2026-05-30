@@ -22,7 +22,7 @@ function formatPercent(value: string | null) {
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const isReviewer = can(user.role, "report:review");
+  const isReviewer = can(user.role, "dashboard:all");
 
   if (isReviewer) {
     const summary = await getDashboardSummary();
