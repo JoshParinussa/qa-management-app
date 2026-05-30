@@ -1197,7 +1197,7 @@ Saat implementasi, prioritaskan:
 
 ## 28. Implementation Status (snapshot)
 
-PRD versi: `v1.1 — 2026-05-29`.
+PRD versi: `v1.2 — 2026-05-30`.
 
 | Item | Status | Catatan |
 |---|---|---|
@@ -1217,9 +1217,9 @@ PRD versi: `v1.1 — 2026-05-29`.
 | App shell sidebar + topbar | Done | Style shadcn sidebar-07 |
 | Sidebar collapse | Done | Trigger di topbar, persist via localStorage |
 | Status badge | Done | Format title case |
-| Vitest unit tests | Partial | flow, profile, status |
+| Vitest unit tests | Done | 84 tests: flow, profile, status, calculator, transitions, permissions, schemas, action-result, rules, aggregates |
 | Project CRUD | Done | Phase 2: list/create/edit/archive, dedicated routes |
-| User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru |
+| User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru, filter role/status |
 | Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
 | Weekly report CRUD | Done | Phase 5: draft create/edit, server-side coverage, unique week guard, approved lock |
 | Submit flow | Done | Phase 6: submit draft/need-revision, status guard, required fields check |
@@ -1228,7 +1228,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Monthly report summary | Done | Phase 9: approved-only aggregation, month/project filter, metrics, blockers, next plan |
 | Markdown export | Done | Phase 10: `/api/monthly-reports/export`, PRD-format markdown, filter-aware |
 | Hardening | Done | Phase 11: ActionResult helpers, DB error mapper, permission audit, mapped catches |
-| Test baseline | Done | Phase 12: Vitest 44 tests (calculator, transitions, schemas, action-result), Playwright auth E2E |
+| Test baseline | Done | Phase 12: 84 Vitest unit tests + 24 Playwright E2E (auth, users, projects, members, reports, review, dashboard, monthly, export, access-control) |
 
 ---
 
@@ -1360,7 +1360,7 @@ Skrip utama:
 
 ```bash
 npm run db:resolve         # tampilkan URL aktif (Tailscale/LAN)
-npm run db:reset:home      # drop + recreate public schema
+npm run db:reset:home      # drop + recreate public & drizzle schemas
 npm run db:generate        # generate Drizzle migration
 npm run db:migrate         # apply migration
 npm run db:seed            # seed user + project
@@ -1370,7 +1370,8 @@ npm run dev                # next dev (resolved DATABASE_URL)
 npm run build              # next build (resolved DATABASE_URL)
 npm run typecheck
 npm run lint
-npm run test
+npm run test               # vitest unit
+npm run e2e                # playwright E2E
 ```
 
 Seed accounts:
@@ -1378,6 +1379,7 @@ Seed accounts:
 | Email | Role | Password | Must Change |
 |---|---|---|---|
 | `jopa@example.com` | `ADMIN` | `password123` | No |
+| `lead@example.com` | `QA_LEAD` | `password123` | No |
 | `qa1@example.com` | `QA_MEMBER` | `password123` | Yes |
 | `qa2@example.com` | `QA_MEMBER` | `password123` | Yes |
 
