@@ -5,6 +5,7 @@ config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
 const targets = [
+  { name: "explicit", url: process.env.DATABASE_URL },
   { name: "tailscale", url: process.env.DATABASE_URL_TAILSCALE },
   { name: "lan", url: process.env.DATABASE_URL_LAN },
 ];

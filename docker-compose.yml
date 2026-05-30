@@ -4,13 +4,36 @@ services:
     container_name: qa-management-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: qa_management
-      POSTGRES_USER: qa_user
-      POSTGRES_PASSWORD: qa_password
+      POSTGRES_DB: ${POSTGRES_DB:-qa_management}
+      POSTGRES_USER: ${POSTGRES_USER:-qa_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qa_password}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - qa_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qa_user} -d ${POSTGRES_DB:-qa_management}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qa-management-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-qa_user}:${POSTGRES_PASSWORD:-qa_password}@postgres:5432/${POSTGRES_DB:-qa_management}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD:-password123}
+      SEED_ON_START: ${SEED_ON_START:-false}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
 
 volumes:
   qa_postgres_data:

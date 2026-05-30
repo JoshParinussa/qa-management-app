@@ -12,6 +12,38 @@ Boilerplate MVP untuk mengelola QA member, project assignment, weekly report, re
 - Zod
 - Docker Compose
 
+## Run with Docker
+
+Full stack (PostgreSQL + app) via Docker Compose:
+
+```bash
+# Build and start (migrations run automatically on boot)
+docker compose up -d --build
+
+# First run: also seed initial users/projects
+SEED_ON_START=true docker compose up -d --build
+
+# App: http://localhost:3000
+# Stop + remove volumes
+docker compose down -v
+```
+
+Environment overrides (optional, via shell or `.env` next to compose):
+
+| Var | Default | Notes |
+|---|---|---|
+| `POSTGRES_DB` | `qa_management` | Database name |
+| `POSTGRES_USER` | `qa_user` | DB user |
+| `POSTGRES_PASSWORD` | `qa_password` | DB password |
+| `POSTGRES_PORT` | `5433` | Host port mapped to container 5432 |
+| `SESSION_SECRET` | `change-me-in-production` | Set a strong value in prod |
+| `DEFAULT_USER_PASSWORD` | `password123` | Default password for new users |
+| `SEED_ON_START` | `false` | Seed DB on container start |
+
+The image uses Next.js standalone output (multi-stage build). The entrypoint
+(`docker-entrypoint.sh`) runs `drizzle-kit migrate` before starting the server,
+and seeds when `SEED_ON_START=true`.
+
 ## Setup Local
 
 1. Install dependencies:
