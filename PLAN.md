@@ -61,7 +61,7 @@
 | 7 | Review flow | DONE | 6 |
 | 8 | Dashboard summary | DONE | 6 |
 | 9 | Monthly summary | DONE | 6 |
-| 10 | Markdown export | TO DO | 4 |
+| 10 | Markdown export | DONE | 4 |
 | 11 | Hardening | TO DO | 5 |
 | 12 | Test baseline | IN PROGRESS | 5 |
 
@@ -552,7 +552,7 @@
 
 ## Phase 10 — Markdown Export
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 4
 
 ### Files
@@ -565,18 +565,18 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 10.1 | Create Markdown formatter | TO DO | 4 |
-| 10.2 | Create export route handler | TO DO | 4 |
-| 10.3 | Add filename format `<project>-<month>.md` | TO DO | 2 |
-| 10.4 | Add export button | TO DO | 2 |
-| 10.5 | Ensure export respects filters | TO DO | 3 |
+| 10.1 | Create Markdown formatter | DONE | 4 |
+| 10.2 | Create export route handler | DONE | 4 |
+| 10.3 | Add filename format `<project>-<month>.md` | DONE | 2 |
+| 10.4 | Add export button | DONE | 2 |
+| 10.5 | Ensure export respects filters | DONE | 3 |
 
 ### Testing Tasks
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 10.T1 | Unit test markdown formatter snapshot | TO DO | 4 |
-| 10.T2 | Unit test export filename | TO DO | 2 |
+| 10.T1 | Unit test markdown formatter snapshot | DONE | 4 |
+| 10.T2 | Unit test export filename | DONE | 2 |
 | 10.T3 | E2E markdown export download | TO DO | 6 |
 
 ### Acceptance Criteria
