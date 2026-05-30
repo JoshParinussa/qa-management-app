@@ -63,7 +63,7 @@
 | 9 | Monthly summary | DONE | 6 |
 | 10 | Markdown export | DONE | 4 |
 | 11 | Hardening | DONE | 5 |
-| 12 | Test baseline | IN PROGRESS | 5 |
+| 12 | Test baseline | DONE | 5 |
 
 ---
 
@@ -630,7 +630,7 @@
 
 ## Phase 12 — Test Baseline
 
-**Status:** IN PROGRESS  
+**Status:** DONE  
 **Complexity:** 5
 
 ### Tasks
@@ -641,11 +641,11 @@
 | 12.2 | Add auth flow tests | DONE | 2 |
 | 12.3 | Add profile helper tests | DONE | 2 |
 | 12.4 | Add report status formatter tests | DONE | 2 |
-| 12.5 | Add report calculator tests | TO DO | 3 |
-| 12.6 | Add permission matrix tests | TO DO | 3 |
-| 12.7 | Add Zod schema tests | TO DO | 4 |
-| 12.8 | Install Playwright | TO DO | 4 |
-| 12.9 | Add Playwright auth fixture | TO DO | 5 |
+| 12.5 | Add report calculator tests | DONE | 3 |
+| 12.6 | Add permission matrix tests | DONE | 3 |
+| 12.7 | Add Zod schema tests | DONE | 4 |
+| 12.8 | Install Playwright | DONE | 4 |
+| 12.9 | Add Playwright auth fixture | DONE | 5 |
 | 12.10 | Add per-phase E2E specs | TO DO | 7 |
 
 ### Testing Tasks
@@ -653,8 +653,8 @@
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
 | 12.T1 | Run all Vitest tests | DONE | 1 |
-| 12.T2 | Run Playwright smoke test | TO DO | 5 |
-| 12.T3 | Add CI-ready command list to README | TO DO | 2 |
+| 12.T2 | Run Playwright smoke test | DONE | 5 |
+| 12.T3 | Add CI-ready command list to README | DONE | 2 |
 
 ### Acceptance Criteria
 

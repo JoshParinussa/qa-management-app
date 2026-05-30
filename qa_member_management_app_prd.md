@@ -1228,7 +1228,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Monthly report summary | Done | Phase 9: approved-only aggregation, month/project filter, metrics, blockers, next plan |
 | Markdown export | Done | Phase 10: `/api/monthly-reports/export`, PRD-format markdown, filter-aware |
 | Hardening | Done | Phase 11: ActionResult helpers, DB error mapper, permission audit, mapped catches |
-| Test baseline | Pending | Phase 12 |
+| Test baseline | Done | Phase 12: Vitest 44 tests (calculator, transitions, schemas, action-result), Playwright auth E2E |
 
 ---
 
@@ -1241,7 +1241,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | UI library | Shadcn UI (CLI) | Shadcn-style custom component | Hindari setup CLI penuh, Tailwind v4 native |
 | Forms | React Hook Form + Zod | Server Actions + Zod | YAGNI untuk MVP, RHF nanti per kebutuhan |
 | Auth | Belum diputuskan | HMAC signed cookie + bcrypt | Sederhana, cukup internal |
-| Test runner | Tidak ditentukan | Vitest unit | Cepat untuk lib helpers |
+| Test runner | Tidak ditentukan | Vitest unit + Playwright E2E | Cepat untuk lib helpers, browser smoke per phase |
 | Table UI | Tidak ditentukan | Reusable `DataTable` (TanStack Table) | Sorting + pagination konsisten di semua tabel |
 | Default password | Tidak ada | `DEFAULT_USER_PASSWORD` env, default `password123` | Wajib ganti di login pertama |
 

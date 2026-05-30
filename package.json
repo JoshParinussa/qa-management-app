@@ -8,6 +8,7 @@
     "start": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) next start",
     "lint": "eslint",
     "test": "vitest run",
+    "e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "db:generate": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) drizzle-kit generate",
     "db:migrate": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) drizzle-kit migrate",
@@ -45,6 +46,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
