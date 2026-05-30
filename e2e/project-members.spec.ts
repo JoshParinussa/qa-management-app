@@ -20,7 +20,7 @@ async function createMemberUser(page: import("@playwright/test").Page, name: str
   await page.goto("/users");
   await page.getByLabel("Nama").fill(name);
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Role").selectOption("QA_MEMBER");
+  await page.getByLabel("Role", { exact: true }).selectOption("QA_MEMBER");
   await page.getByRole("button", { name: /create user/i }).click();
   await expect(page.getByRole("cell", { name })).toBeVisible({ timeout: 15_000 });
 }

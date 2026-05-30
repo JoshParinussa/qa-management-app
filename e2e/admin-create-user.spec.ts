@@ -20,7 +20,7 @@ test("admin can create a new user and the user shows up in users list", async ({
 
   await page.getByLabel("Nama").fill(name);
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Role").selectOption("QA_MEMBER");
+  await page.getByLabel("Role", { exact: true }).selectOption("QA_MEMBER");
   await page.getByRole("button", { name: /create user/i }).click();
 
   await expect(page.getByRole("cell", { name })).toBeVisible({ timeout: 15_000 });
@@ -39,7 +39,7 @@ test("new user with default password is forced to change password on first login
   await page.goto("/users");
   await page.getByLabel("Nama").fill(name);
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Role").selectOption("QA_MEMBER");
+  await page.getByLabel("Role", { exact: true }).selectOption("QA_MEMBER");
   await page.getByRole("button", { name: /create user/i }).click();
   await expect(page.getByRole("cell", { name })).toBeVisible({ timeout: 15_000 });
 

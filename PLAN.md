@@ -246,7 +246,7 @@
 | 3.9 | Build user table with actions | DONE | 4 |
 | 3.10 | Build dedicated edit user route | DONE | 4 |
 | 3.11 | Build reset password panel (in edit route) | DONE | 4 |
-| 3.12 | Add filter by role/status | TO DO | 3 |
+| 3.12 | Add filter by role/status | DONE | 3 |
 
 ### Testing Tasks
 
@@ -538,7 +538,7 @@
 |---|---|---|---:|
 | 10.T1 | Unit test markdown formatter snapshot | DONE | 4 |
 | 10.T2 | Unit test export filename | DONE | 2 |
-| 10.T3 | E2E markdown export download | TO DO | 6 |
+| 10.T3 | E2E markdown export download | DONE | 6 |
 
 ### Acceptance Criteria
 
@@ -579,7 +579,7 @@
 | 11.T1 | Unit test permission matrix | DONE | 4 |
 | 11.T2 | Unit test DB error mapping | DONE | 3 |
 | 11.T3 | Unit test `ActionResult` helpers | DONE | 2 |
-| 11.T4 | E2E unauthorized user blocked from admin pages | TO DO | 6 |
+| 11.T4 | E2E unauthorized user blocked from admin pages | DONE | 6 |
 
 ### Acceptance Criteria
 
@@ -607,7 +607,7 @@
 | 12.7 | Add Zod schema tests | DONE | 4 |
 | 12.8 | Install Playwright | DONE | 4 |
 | 12.9 | Add Playwright auth fixture | DONE | 5 |
-| 12.10 | Add per-phase E2E specs | TO DO | 7 |
+| 12.10 | Add per-phase E2E specs | DONE | 7 |
 
 ### Testing Tasks
 
