@@ -360,12 +360,12 @@
 |---|---|---|---:|
 | 5.T1 | Unit test coverage calculator with normal values | DONE | 3 |
 | 5.T2 | Unit test coverage calculator when total test case is 0 | DONE | 3 |
-| 5.T3 | Unit test weekly report schema invalid dates | TO DO | 3 |
-| 5.T4 | Unit test executed cannot exceed total | TO DO | 3 |
-| 5.T5 | Unit test automation cannot exceed total test cases | TO DO | 3 |
-| 5.T6 | Unit test approved report cannot edit | TO DO | 3 |
-| 5.T7 | E2E create draft weekly report happy path | TO DO | 8 |
-| 5.T8 | E2E edit draft weekly report happy path | TO DO | 7 |
+| 5.T3 | Unit test weekly report schema invalid dates | DONE | 3 |
+| 5.T4 | Unit test executed cannot exceed total | DONE | 3 |
+| 5.T5 | Unit test automation cannot exceed total test cases | DONE | 3 |
+| 5.T6 | Unit test approved report cannot edit | DONE | 3 |
+| 5.T7 | E2E create draft weekly report happy path | DONE | 8 |
+| 5.T8 | E2E edit draft weekly report happy path | DONE | 7 |
 
 ### Acceptance Criteria
 
@@ -403,9 +403,9 @@
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
 | 6.T1 | Unit test draft → submitted transition | DONE | 2 |
-| 6.T2 | Unit test submit rejects missing summary | TO DO | 3 |
-| 6.T3 | Unit test submit rejects missing next week plan | TO DO | 3 |
-| 6.T4 | E2E submit report happy path | TO DO | 6 |
+| 6.T2 | Unit test submit rejects missing summary | DONE | 3 |
+| 6.T3 | Unit test submit rejects missing next week plan | DONE | 3 |
+| 6.T4 | E2E submit report happy path | DONE | 6 |
 
 ### Acceptance Criteria
 

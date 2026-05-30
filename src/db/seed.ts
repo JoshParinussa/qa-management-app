@@ -39,6 +39,7 @@ async function main() {
   const passwordHash = await hashPassword("password123");
 
   const jopa = await upsertUser({ name: "Jopa", email: "jopa@example.com", role: "ADMIN", passwordHash, mustChangePassword: false });
+  const lead = await upsertUser({ name: "QA Lead", email: "lead@example.com", role: "QA_LEAD", passwordHash, mustChangePassword: false });
   const qa1 = await upsertUser({ name: "QA Member 1", email: "qa1@example.com", role: "QA_MEMBER", passwordHash });
   const qa2 = await upsertUser({ name: "QA Member 2", email: "qa2@example.com", role: "QA_MEMBER", passwordHash });
 
@@ -46,9 +47,9 @@ async function main() {
   const uhb = await upsertProject({ name: "UHealth Backend", code: "UHB", description: "Backend QA coverage" });
   const autopipe = await upsertProject({ name: "Automation Pipeline", code: "AUTOPIPE", description: "Automation pipeline coverage" });
 
-  await upsertProjectMember({ projectId: uhf.id, userId: jopa.id, assignmentRole: "QA_PIC" });
-  await upsertProjectMember({ projectId: uhb.id, userId: jopa.id, assignmentRole: "QA_PIC" });
-  await upsertProjectMember({ projectId: autopipe.id, userId: jopa.id, assignmentRole: "QA_PIC" });
+  await upsertProjectMember({ projectId: uhf.id, userId: lead.id, assignmentRole: "QA_PIC" });
+  await upsertProjectMember({ projectId: uhb.id, userId: lead.id, assignmentRole: "QA_PIC" });
+  await upsertProjectMember({ projectId: autopipe.id, userId: lead.id, assignmentRole: "QA_PIC" });
   await upsertProjectMember({ projectId: uhf.id, userId: qa1.id });
   await upsertProjectMember({ projectId: uhb.id, userId: qa2.id });
 }

@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/session";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
 import { findActiveAssignment } from "@/lib/project-members/queries";
 import { hasActiveAssignment } from "@/lib/project-members/rules";
+import { canEditReport, validateSubmitReadiness } from "@/lib/weekly-reports/rules";
 import { findReportForWeek, getReportById } from "@/lib/weekly-reports/queries";
 import { canSubmitReport } from "@/lib/weekly-reports/transitions";
 import { weeklyReportSchema, type WeeklyReportInput } from "@/lib/validations/weekly-report";
@@ -92,7 +93,7 @@ export async function updateDraftAction(id: string, _state: ActionState, formDat
     return { error: "Report tidak ditemukan." };
   }
 
-  if (report.status === "APPROVED") {
+  if (!canEditReport(report.status)) {
     return { error: "Report yang sudah approved tidak bisa diedit." };
   }
 
@@ -129,8 +130,13 @@ export async function submitReportAction(id: string): Promise<ActionState> {
     return { error: "Report ini tidak bisa disubmit dari status sekarang." };
   }
 
-  if (!report.summary.trim() || !report.nextWeekPlan.trim()) {
-    return { error: "Summary dan next week plan wajib diisi sebelum submit." };
+  const readiness = validateSubmitReadiness({
+    summary: report.summary,
+    nextWeekPlan: report.nextWeekPlan,
+  });
+
+  if (!readiness.ok) {
+    return { error: readiness.error };
   }
 
   await db

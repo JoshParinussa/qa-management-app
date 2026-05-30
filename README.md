@@ -71,6 +71,7 @@ npm run dev
 ## Seed Accounts
 
 - `jopa@example.com` / `password123` / `ADMIN`
+- `lead@example.com` / `password123` / `QA_LEAD`
 - `qa1@example.com` / `password123` / `QA_MEMBER` (must change password)
 - `qa2@example.com` / `password123` / `QA_MEMBER` (must change password)
 
