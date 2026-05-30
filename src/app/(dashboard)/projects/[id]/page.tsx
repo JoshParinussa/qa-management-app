@@ -8,8 +8,7 @@ import { getProjectById } from "@/lib/projects/queries";
 import { assignMemberAction, removeMemberAction } from "@/lib/project-members/actions";
 import { listAssignableUsers, listProjectMembers } from "@/lib/project-members/queries";
 import { ProjectMemberForm } from "@/components/projects/project-member-form";
-import { DataTable } from "@/components/ui/data-table";
-import { buildMemberColumns } from "@/components/projects/project-member-columns";
+import { ProjectMemberDataTable } from "@/components/projects/project-member-data-table";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import type { ActionState } from "@/types";
@@ -81,11 +80,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </CardHeader>
         <CardContent className="space-y-4">
           {canManage ? <ProjectMemberForm action={assign} users={assignableUsers} /> : null}
-          <DataTable
-            columns={buildMemberColumns({ canManage, removeAction: remove })}
-            data={members}
-            emptyLabel="Belum ada member ter-assign."
-          />
+          <ProjectMemberDataTable members={members} canManage={canManage} removeAction={remove} />
         </CardContent>
       </Card>
     </div>

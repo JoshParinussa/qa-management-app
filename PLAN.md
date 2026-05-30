@@ -202,9 +202,9 @@
 | 2.T2 | Unit test `projectSchema` rejects invalid code | DONE | 2 |
 | 2.T3 | Unit test `canManageProjects` allows ADMIN/QA_LEAD | DONE | 3 |
 | 2.T4 | Unit test `canManageProjects` blocks QA_MEMBER | DONE | 3 |
-| 2.T5 | E2E create project happy path | TO DO | 6 |
-| 2.T6 | E2E edit project happy path | TO DO | 6 |
-| 2.T7 | E2E archive project happy path | TO DO | 5 |
+| 2.T5 | E2E create project happy path | DONE | 6 |
+| 2.T6 | E2E edit project happy path | DONE | 6 |
+| 2.T7 | E2E archive project happy path | DONE | 5 |
 
 ### Acceptance Criteria
 
@@ -252,13 +252,13 @@
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 3.T1 | Unit test user schema valid/invalid payloads | TO DO | 2 |
+| 3.T1 | Unit test user schema valid/invalid payloads | DONE | 2 |
 | 3.T2 | Unit test random generated password length and entropy format | DONE | 3 |
-| 3.T3 | Unit test reset password sets `must_change_password=true` | TO DO | 4 |
+| 3.T3 | Unit test reset password sets `must_change_password=true` | DONE | 4 |
 | 3.T4 | Unit test reset password does not equal default password | DONE | 3 |
-| 3.T5 | Unit test last-admin deactivation rule | TO DO | 4 |
-| 3.T6 | E2E edit user happy path | TO DO | 6 |
-| 3.T7 | E2E reset password happy path | TO DO | 7 |
+| 3.T5 | Unit test last-admin deactivation rule | DONE | 4 |
+| 3.T6 | E2E edit user happy path | DONE | 6 |
+| 3.T7 | E2E reset password happy path | DONE | 7 |
 
 ### Acceptance Criteria
 

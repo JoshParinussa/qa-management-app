@@ -1,3 +1,5 @@
+"use client";
+
 import { DataTable } from "@/components/ui/data-table";
 import { weeklyReportColumns, type WeeklyReportRow } from "@/components/reports/weekly-report-columns";
 

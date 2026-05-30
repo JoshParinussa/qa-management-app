@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { countActiveAdmins, getUserById } from "@/lib/users/queries";
+import { buildResetPasswordUpdate, canDeactivateUser } from "@/lib/users/rules";
 import { userSchema } from "@/lib/validations/user";
 import { mapDbError } from "@/lib/action-result";
 import type { ActionState } from "@/types";
@@ -77,11 +78,10 @@ export async function deactivateUserAction(id: string): Promise<ActionState> {
     return { error: "User tidak ditemukan." };
   }
 
-  if (target.role === "ADMIN" && target.isActive) {
-    const activeAdmins = await countActiveAdmins();
-    if (activeAdmins <= 1) {
-      return { error: "Tidak bisa menonaktifkan admin terakhir." };
-    }
+  const activeAdmins = await countActiveAdmins();
+  const check = canDeactivateUser(target, activeAdmins);
+  if (!check.ok) {
+    return { error: check.error };
   }
 
   await db.update(users).set({ isActive: false, updatedAt: new Date() }).where(eq(users.id, id));
@@ -99,11 +99,9 @@ export async function resetPasswordAction(id: string): Promise<ActionState> {
   }
 
   const newPassword = generateRandomPassword();
+  const update = buildResetPasswordUpdate(await hashPassword(newPassword));
 
-  await db
-    .update(users)
-    .set({ passwordHash: await hashPassword(newPassword), mustChangePassword: true, updatedAt: new Date() })
-    .where(eq(users.id, id));
+  await db.update(users).set(update).where(eq(users.id, id));
 
   return { success: newPassword };
 }

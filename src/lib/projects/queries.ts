@@ -1,9 +1,9 @@
-import { asc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { projects } from "@/db/schema";
 
 export function listProjects() {
-  return db.select().from(projects).orderBy(asc(projects.createdAt));
+  return db.select().from(projects).orderBy(desc(projects.createdAt));
 }
 
 export async function getProjectById(id: string) {

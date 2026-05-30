@@ -1,9 +1,9 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { users } from "@/db/schema";
 
 export function listUsers() {
-  return db.select().from(users).orderBy(asc(users.createdAt));
+  return db.select().from(users).orderBy(desc(users.createdAt));
 }
 
 export async function getUserById(id: string) {

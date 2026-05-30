@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
+import { WeeklyReportsDataTable } from "@/components/reports/weekly-reports-data-table";
 import { PageHeader } from "@/components/layout/page-header";
-import { weeklyReportColumns } from "@/components/reports/weekly-report-columns";
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import { listAllReports, listReportsByUser } from "@/lib/weekly-reports/queries";
@@ -32,7 +31,7 @@ export default async function WeeklyReportsPage() {
           <CardTitle>{isReviewer ? "All reports" : "My reports"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable columns={weeklyReportColumns} data={reports} emptyLabel="Belum ada report." />
+          <WeeklyReportsDataTable reports={reports} />
         </CardContent>
       </Card>
     </div>

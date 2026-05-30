@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
+import { ProjectsDataTable } from "@/components/projects/projects-data-table";
 import { PageHeader } from "@/components/layout/page-header";
-import { projectColumns } from "@/components/projects/project-columns";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import { listProjects } from "@/lib/projects/queries";
@@ -31,7 +30,7 @@ export default async function ProjectsPage() {
           <CardTitle>All projects</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable columns={projectColumns} data={projects} emptyLabel="Belum ada project. Buat project pertama." />
+          <ProjectsDataTable projects={projects} />
         </CardContent>
       </Card>
     </div>
