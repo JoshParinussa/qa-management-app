@@ -60,7 +60,7 @@
 | 6 | Submit flow | DONE | 4 |
 | 7 | Review flow | DONE | 6 |
 | 8 | Dashboard summary | DONE | 6 |
-| 9 | Monthly summary | TO DO | 6 |
+| 9 | Monthly summary | DONE | 6 |
 | 10 | Markdown export | TO DO | 4 |
 | 11 | Hardening | TO DO | 5 |
 | 12 | Test baseline | IN PROGRESS | 5 |
@@ -510,7 +510,7 @@
 
 ## Phase 9 — Monthly Summary
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 6
 
 ### Files
@@ -524,15 +524,15 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 9.1 | Query approved reports by month | TO DO | 5 |
-| 9.2 | Add project filter | TO DO | 3 |
-| 9.3 | Add member filter | TO DO | 3 |
-| 9.4 | Sum incidents and test case totals | TO DO | 4 |
-| 9.5 | Average coverage fields | TO DO | 4 |
-| 9.6 | Group blocker summary | TO DO | 4 |
-| 9.7 | Group next plan summary | TO DO | 4 |
-| 9.8 | Build monthly filter UI | TO DO | 4 |
-| 9.9 | Build monthly summary UI | TO DO | 4 |
+| 9.1 | Query approved reports by month | DONE | 5 |
+| 9.2 | Add project filter | DONE | 3 |
+| 9.3 | Add member filter | DROP | 3 |
+| 9.4 | Sum incidents and test case totals | DONE | 4 |
+| 9.5 | Average coverage fields | DONE | 4 |
+| 9.6 | Group blocker summary | DONE | 4 |
+| 9.7 | Group next plan summary | DONE | 4 |
+| 9.8 | Build monthly filter UI | DONE | 4 |
+| 9.9 | Build monthly summary UI | DONE | 4 |
 
 ### Testing Tasks
 

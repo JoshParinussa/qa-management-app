@@ -1225,7 +1225,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Submit flow | Done | Phase 6: submit draft/need-revision, status guard, required fields check |
 | Review flow | Done | Phase 7: mark reviewed, request revision (feedback wajib), approve, feedback history |
 | Dashboard summary | Done | Phase 8: role-aware (lead/member), status counts, coverage per project, incidents, top blockers |
-| Monthly report summary | Pending | Phase 9 |
+| Monthly report summary | Done | Phase 9: approved-only aggregation, month/project filter, metrics, blockers, next plan |
 | Markdown export | Pending | Phase 10 |
 | Hardening | Pending | Phase 11 |
 | Test baseline | Pending | Phase 12 |
