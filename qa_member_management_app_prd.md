@@ -1227,7 +1227,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Dashboard summary | Done | Phase 8: role-aware (lead/member), status counts, coverage per project, incidents, top blockers |
 | Monthly report summary | Done | Phase 9: approved-only aggregation, month/project filter, metrics, blockers, next plan |
 | Markdown export | Done | Phase 10: `/api/monthly-reports/export`, PRD-format markdown, filter-aware |
-| Hardening | Pending | Phase 11 |
+| Hardening | Done | Phase 11: ActionResult helpers, DB error mapper, permission audit, mapped catches |
 | Test baseline | Pending | Phase 12 |
 
 ---

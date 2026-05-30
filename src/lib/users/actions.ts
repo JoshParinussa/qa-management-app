@@ -8,6 +8,7 @@ import { db } from "@/db/client";
 import { users } from "@/db/schema";
 import { countActiveAdmins, getUserById } from "@/lib/users/queries";
 import { userSchema } from "@/lib/validations/user";
+import { mapDbError } from "@/lib/action-result";
 import type { ActionState } from "@/types";
 
 function getDefaultPassword() {
@@ -34,8 +35,8 @@ export async function createUserAction(_state: ActionState, formData: FormData):
       passwordHash: await hashPassword(getDefaultPassword()),
       mustChangePassword: true,
     });
-  } catch {
-    return { error: "Email sudah dipakai." };
+  } catch (error) {
+    return { error: mapDbError(error, "Email sudah dipakai.") };
   }
 
   redirect("/users");
@@ -60,8 +61,8 @@ export async function updateUserAction(id: string, _state: ActionState, formData
       .update(users)
       .set({ ...parsed.data, updatedAt: new Date() })
       .where(eq(users.id, id));
-  } catch {
-    return { error: "Email sudah dipakai." };
+  } catch (error) {
+    return { error: mapDbError(error, "Email sudah dipakai.") };
   }
 
   redirect(`/users`);

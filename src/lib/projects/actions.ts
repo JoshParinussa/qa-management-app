@@ -7,6 +7,7 @@ import { projects } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import { projectSchema } from "@/lib/validations/project";
+import { mapDbError } from "@/lib/action-result";
 import type { ActionState } from "@/types";
 
 async function requireProjectManager() {
@@ -41,8 +42,8 @@ export async function createProjectAction(_state: ActionState, formData: FormDat
 
   try {
     await db.insert(projects).values(parsed.data);
-  } catch {
-    return { error: "Kode project sudah dipakai." };
+  } catch (error) {
+    return { error: mapDbError(error, "Kode project sudah dipakai.") };
   }
 
   redirect("/projects");
@@ -62,8 +63,8 @@ export async function updateProjectAction(id: string, _state: ActionState, formD
       .update(projects)
       .set({ ...parsed.data, updatedAt: new Date() })
       .where(eq(projects.id, id));
-  } catch {
-    return { error: "Kode project sudah dipakai." };
+  } catch (error) {
+    return { error: mapDbError(error, "Kode project sudah dipakai.") };
   }
 
   redirect(`/projects/${id}`);

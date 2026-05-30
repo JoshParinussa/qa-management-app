@@ -62,7 +62,7 @@
 | 8 | Dashboard summary | DONE | 6 |
 | 9 | Monthly summary | DONE | 6 |
 | 10 | Markdown export | DONE | 4 |
-| 11 | Hardening | TO DO | 5 |
+| 11 | Hardening | DONE | 5 |
 | 12 | Test baseline | IN PROGRESS | 5 |
 
 ---
@@ -589,7 +589,7 @@
 
 ## Phase 11 — Hardening
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 5
 
 ### Files
@@ -603,21 +603,21 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 11.1 | Create consistent `ActionResult` type | TO DO | 3 |
-| 11.2 | Create DB error mapper | TO DO | 4 |
-| 11.3 | Create permission helper wrappers | TO DO | 4 |
-| 11.4 | Audit all server actions for permission checks | TO DO | 4 |
-| 11.5 | Audit all pages for auth guard | TO DO | 3 |
-| 11.6 | Replace generic catches with mapped errors | TO DO | 4 |
-| 11.7 | Add no-stack user-facing errors | TO DO | 2 |
+| 11.1 | Create consistent `ActionResult` type | DONE | 3 |
+| 11.2 | Create DB error mapper | DONE | 4 |
+| 11.3 | Create permission helper wrappers | DONE | 4 |
+| 11.4 | Audit all server actions for permission checks | DONE | 4 |
+| 11.5 | Audit all pages for auth guard | DONE | 3 |
+| 11.6 | Replace generic catches with mapped errors | DONE | 4 |
+| 11.7 | Add no-stack user-facing errors | DONE | 2 |
 
 ### Testing Tasks
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 11.T1 | Unit test permission matrix | TO DO | 4 |
-| 11.T2 | Unit test DB error mapping | TO DO | 3 |
-| 11.T3 | Unit test `ActionResult` helpers | TO DO | 2 |
+| 11.T1 | Unit test permission matrix | DONE | 4 |
+| 11.T2 | Unit test DB error mapping | DONE | 3 |
+| 11.T3 | Unit test `ActionResult` helpers | DONE | 2 |
 | 11.T4 | E2E unauthorized user blocked from admin pages | TO DO | 6 |
 
 ### Acceptance Criteria
