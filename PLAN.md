@@ -450,9 +450,9 @@
 | 7.T1 | Unit test submitted → reviewed transition | DONE | 3 |
 | 7.T2 | Unit test reviewed → need revision transition | DONE | 4 |
 | 7.T3 | Unit test reviewed → approved transition | DONE | 4 |
-| 7.T4 | Unit test request revision without feedback rejected | TO DO | 3 |
-| 7.T5 | E2E review and approve report happy path | TO DO | 7 |
-| 7.T6 | E2E request revision happy path | TO DO | 7 |
+| 7.T4 | Unit test request revision without feedback rejected | DONE | 3 |
+| 7.T5 | E2E review and approve report happy path | DONE | 7 |
+| 7.T6 | E2E request revision happy path | DONE | 7 |
 
 ### Acceptance Criteria
 

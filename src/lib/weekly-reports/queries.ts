@@ -15,7 +15,7 @@ export function listReportsByUser(userId: string) {
     .from(weeklyReports)
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
     .where(eq(weeklyReports.userId, userId))
-    .orderBy(desc(weeklyReports.weekStartDate));
+    .orderBy(desc(weeklyReports.createdAt));
 }
 
 export function listAllReports() {
@@ -31,7 +31,7 @@ export function listAllReports() {
     })
     .from(weeklyReports)
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
-    .orderBy(desc(weeklyReports.weekStartDate));
+    .orderBy(desc(weeklyReports.createdAt));
 }
 
 export async function getReportById(id: string) {

@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import { getReportById } from "@/lib/weekly-reports/queries";
 import { canReviewReport, nextStatusForAction, type ReviewAction } from "@/lib/weekly-reports/transitions";
+import { validateReviewFeedback } from "@/lib/reviews/review-rules";
 import type { ActionState } from "@/types";
 
 async function requireReviewer() {
@@ -20,7 +21,7 @@ async function requireReviewer() {
   return user;
 }
 
-async function applyReview(id: string, action: ReviewAction, feedback: string, requireFeedback: boolean): Promise<ActionState> {
+async function applyReview(id: string, action: ReviewAction, feedback: string): Promise<ActionState> {
   const reviewer = await requireReviewer();
   const report = await getReportById(id);
 
@@ -34,8 +35,9 @@ async function applyReview(id: string, action: ReviewAction, feedback: string, r
 
   const trimmed = feedback.trim();
 
-  if (requireFeedback && !trimmed) {
-    return { error: "Feedback wajib diisi untuk meminta revisi." };
+  const feedbackCheck = validateReviewFeedback(action, feedback);
+  if (!feedbackCheck.ok) {
+    return { error: feedbackCheck.error };
   }
 
   const now = new Date();
@@ -66,13 +68,13 @@ async function applyReview(id: string, action: ReviewAction, feedback: string, r
 }
 
 export async function markReviewedAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
-  return applyReview(id, "REVIEWED", String(formData.get("feedback") ?? ""), false);
+  return applyReview(id, "REVIEWED", String(formData.get("feedback") ?? ""));
 }
 
 export async function requestRevisionAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
-  return applyReview(id, "NEED_REVISION", String(formData.get("feedback") ?? ""), true);
+  return applyReview(id, "NEED_REVISION", String(formData.get("feedback") ?? ""));
 }
 
 export async function approveReportAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
-  return applyReview(id, "APPROVED", String(formData.get("feedback") ?? ""), false);
+  return applyReview(id, "APPROVED", String(formData.get("feedback") ?? ""));
 }

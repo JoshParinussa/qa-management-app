@@ -86,6 +86,17 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </Card>
       ) : null}
 
+      {feedbacks.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Feedback history</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FeedbackHistory feedbacks={feedbacks} />
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Summary</CardTitle>
