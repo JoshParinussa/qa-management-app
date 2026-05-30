@@ -1223,7 +1223,7 @@ PRD versi: `v1.1 — 2026-05-29`.
 | Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
 | Weekly report CRUD | Done | Phase 5: draft create/edit, server-side coverage, unique week guard, approved lock |
 | Submit flow | Done | Phase 6: submit draft/need-revision, status guard, required fields check |
-| Review flow | Pending | Phase 7 |
+| Review flow | Done | Phase 7: mark reviewed, request revision (feedback wajib), approve, feedback history |
 | Dashboard summary | Pending | Phase 8 |
 | Monthly report summary | Pending | Phase 9 |
 | Markdown export | Pending | Phase 10 |

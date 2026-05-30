@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { projects, weeklyReports } from "@/db/schema";
+import { projects, reportFeedbacks, users, weeklyReports } from "@/db/schema";
 
 export function listReportsByUser(userId: string) {
   return db
@@ -54,4 +54,19 @@ export async function findReportForWeek(projectId: string, userId: string, weekS
     .limit(1);
 
   return report ?? null;
+}
+
+export function listReportFeedbacks(weeklyReportId: string) {
+  return db
+    .select({
+      id: reportFeedbacks.id,
+      feedback: reportFeedbacks.feedback,
+      action: reportFeedbacks.action,
+      createdAt: reportFeedbacks.createdAt,
+      reviewerName: users.name,
+    })
+    .from(reportFeedbacks)
+    .innerJoin(users, eq(reportFeedbacks.reviewerId, users.id))
+    .where(eq(reportFeedbacks.weeklyReportId, weeklyReportId))
+    .orderBy(desc(reportFeedbacks.createdAt));
 }

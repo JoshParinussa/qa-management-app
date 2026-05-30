@@ -4,10 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SubmitReportButton } from "@/components/reports/submit-report-button";
+import { FeedbackHistory } from "@/components/reports/feedback-history";
+import { ReviewActions } from "@/components/reports/review-actions";
 import { requireUser } from "@/lib/auth/session";
-import { getReportById } from "@/lib/weekly-reports/queries";
+import { can } from "@/lib/permissions/roles";
+import { getReportById, listReportFeedbacks } from "@/lib/weekly-reports/queries";
 import { submitReportAction } from "@/lib/weekly-reports/actions";
-import { canSubmitReport } from "@/lib/weekly-reports/transitions";
+import { markReviewedAction, requestRevisionAction, approveReportAction } from "@/lib/reviews/actions";
+import { canReviewReport, canSubmitReport } from "@/lib/weekly-reports/transitions";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
 
 function formatDate(value: Date) {
@@ -27,10 +31,28 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
   const isOwner = report.userId === user.id;
   const canEdit = isOwner && report.status !== "APPROVED";
   const canSubmit = isOwner && canSubmitReport(report.status);
+  const isReviewer = can(user.role, "report:review");
+  const canReview = isReviewer && canReviewReport(report.status);
+  const feedbacks = await listReportFeedbacks(id);
 
   async function submit() {
     "use server";
     return submitReportAction(id);
+  }
+
+  async function markReviewed(formData: FormData) {
+    "use server";
+    await markReviewedAction(id, {}, formData);
+  }
+
+  async function requestRevision(formData: FormData) {
+    "use server";
+    await requestRevisionAction(id, {}, formData);
+  }
+
+  async function approve(formData: FormData) {
+    "use server";
+    await approveReportAction(id, {}, formData);
   }
 
   return (
@@ -52,6 +74,17 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
           {canSubmit ? <SubmitReportButton action={submit} /> : null}
         </div>
       </div>
+
+      {canReview ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Review</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReviewActions markReviewed={markReviewed} requestRevision={requestRevision} approve={approve} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

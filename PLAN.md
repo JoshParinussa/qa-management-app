@@ -58,7 +58,7 @@
 | 4 | Project member assignment | DONE | 5 |
 | 5 | Weekly report CRUD | DONE | 8 |
 | 6 | Submit flow | DONE | 4 |
-| 7 | Review flow | TO DO | 6 |
+| 7 | Review flow | DONE | 6 |
 | 8 | Dashboard summary | TO DO | 6 |
 | 9 | Monthly summary | TO DO | 6 |
 | 10 | Markdown export | TO DO | 4 |
@@ -417,7 +417,7 @@
 
 ## Phase 7 — Review Flow
 
-**Status:** TO DO  
+**Status:** DONE  
 **Complexity:** 6
 
 ### Files
@@ -433,23 +433,23 @@
 
 | ID | Task | Status | Complexity |
 |---|---|---|---:|
-| 7.1 | Create `markReviewedAction` | TO DO | 3 |
-| 7.2 | Create `requestRevisionAction` | TO DO | 4 |
-| 7.3 | Create `approveReportAction` | TO DO | 4 |
-| 7.4 | Insert feedback history records | TO DO | 3 |
-| 7.5 | Enforce review status transitions | TO DO | 5 |
-| 7.6 | Require feedback for revision requests | TO DO | 3 |
-| 7.7 | Build review page | TO DO | 5 |
-| 7.8 | Build feedback history component | TO DO | 4 |
-| 7.9 | Build review actions component | TO DO | 4 |
+| 7.1 | Create `markReviewedAction` | DONE | 3 |
+| 7.2 | Create `requestRevisionAction` | DONE | 4 |
+| 7.3 | Create `approveReportAction` | DONE | 4 |
+| 7.4 | Insert feedback history records | DONE | 3 |
+| 7.5 | Enforce review status transitions | DONE | 5 |
+| 7.6 | Require feedback for revision requests | DONE | 3 |
+| 7.7 | Build review section on report detail | DONE | 5 |
+| 7.8 | Build feedback history component | DONE | 4 |
+| 7.9 | Build review actions component | DONE | 4 |
 
 ### Testing Tasks
 
 | ID | Test | Status | Complexity |
 |---|---|---|---:|
-| 7.T1 | Unit test submitted → reviewed transition | TO DO | 3 |
-| 7.T2 | Unit test reviewed → need revision transition | TO DO | 4 |
-| 7.T3 | Unit test reviewed → approved transition | TO DO | 4 |
+| 7.T1 | Unit test submitted → reviewed transition | DONE | 3 |
+| 7.T2 | Unit test reviewed → need revision transition | DONE | 4 |
+| 7.T3 | Unit test reviewed → approved transition | DONE | 4 |
 | 7.T4 | Unit test request revision without feedback rejected | TO DO | 3 |
 | 7.T5 | E2E review and approve report happy path | TO DO | 7 |
 | 7.T6 | E2E request revision happy path | TO DO | 7 |
