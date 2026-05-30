@@ -144,9 +144,9 @@
 | 1.T2 | Unit test password validation helper | DONE | 2 |
 | 1.T3 | Unit test initials and role label helpers | DONE | 2 |
 | 1.T4 | Unit test report status title-case labels | DONE | 2 |
-| 1.T5 | E2E login admin happy path | TO DO | 5 |
-| 1.T6 | E2E admin create user happy path | TO DO | 6 |
-| 1.T7 | E2E first-login password change happy path | TO DO | 6 |
+| 1.T5 | E2E login admin happy path | DONE | 5 |
+| 1.T6 | E2E admin create user happy path | DONE | 6 |
+| 1.T7 | E2E first-login password change happy path | DONE | 6 |
 
 ### Acceptance Criteria
 
