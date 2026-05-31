@@ -9,6 +9,7 @@ export function ProjectsDataTable({ projects }: { projects: ProjectRow[] }) {
       columns={projectColumns}
       data={projects}
       emptyLabel="Belum ada project. Buat project pertama."
+      searchPlaceholder="Search name or code..."
     />
   );
 }

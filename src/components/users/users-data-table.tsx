@@ -44,7 +44,12 @@ export function UsersDataTable({ users }: { users: UserRow[] }) {
           </select>
         </div>
       </div>
-      <DataTable columns={userColumns} data={filtered} emptyLabel="Tidak ada user yang cocok." />
+      <DataTable
+        columns={userColumns}
+        data={filtered}
+        emptyLabel="Tidak ada user yang cocok."
+        searchPlaceholder="Search name or email..."
+      />
     </div>
   );
 }
