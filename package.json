@@ -16,6 +16,7 @@
     "db:studio": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) drizzle-kit studio --host 127.0.0.1 --port 4983",
     "db:studio:stop": "lsof -tiTCP:4983 -sTCP:LISTEN | xargs -r kill",
     "db:seed": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) tsx src/db/seed.ts",
+    "db:clean-admin": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) tsx src/db/clean-and-seed-admin.ts",
     "db:resolve": "tsx scripts/resolve-database-url.ts",
     "db:reset:home": "DATABASE_URL=$(tsx scripts/resolve-database-url.ts) tsx scripts/reset-database.ts"
   },
