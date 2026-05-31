@@ -1,6 +1,7 @@
 import { and, avg, count, desc, eq, isNull, sum } from "drizzle-orm";
 import { db } from "@/db/client";
 import { projectMembers, projects, weeklyReports } from "@/db/schema";
+import { aggregateTopBlockers } from "@/lib/dashboard/aggregate";
 
 export async function getDashboardSummary() {
   const [activeProjects] = await db
@@ -76,17 +77,7 @@ export async function listTopBlockers(limit = 5) {
     .select({ blocker: weeklyReports.blocker })
     .from(weeklyReports);
 
-  const counts = new Map<string, number>();
-  for (const row of rows) {
-    const text = row.blocker?.trim();
-    if (!text) continue;
-    counts.set(text, (counts.get(text) ?? 0) + 1);
-  }
-
-  return Array.from(counts.entries())
-    .map(([blocker, value]) => ({ blocker, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, limit);
+  return aggregateTopBlockers(rows, limit);
 }
 
 export async function getMemberSummary(userId: string) {

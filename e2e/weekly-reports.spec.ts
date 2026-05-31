@@ -36,7 +36,7 @@ async function fillReportForm(page: import("@playwright/test").Page, projectName
   await page.getByLabel("Project").selectOption({ label: projectName });
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
-  await page.getByLabel("Summary").fill("Weekly QA progress summary.");
+  await page.getByLabel("Summary item 1", { exact: true }).fill("Weekly QA progress summary.");
   await page.getByLabel("Test case BE total").fill("100");
   await page.getByLabel("Test case BE executed").fill("80");
   await page.getByLabel("Test case FE total").fill("100");
@@ -45,7 +45,7 @@ async function fillReportForm(page: import("@playwright/test").Page, projectName
   await page.getByLabel("Automation FE total").fill("50");
   await page.getByLabel("Automation passed").fill("90");
   await page.getByLabel("Automation failed").fill("10");
-  await page.getByLabel("Next week plan").fill("Continue regression suite.");
+  await page.getByLabel("Next week plan item 1", { exact: true }).fill("Continue regression suite.");
 }
 
 test("qa lead can create a draft weekly report", async ({ page }) => {
@@ -91,7 +91,7 @@ test("qa lead can edit a draft report", async ({ page }) => {
   await page.waitForURL(/\/weekly-reports\/[^/]+\/edit$/);
 
   const updatedSummary = `Updated summary ${stamp}`;
-  await page.getByLabel("Summary").fill(updatedSummary);
+  await page.getByLabel("Summary item 1", { exact: true }).fill(updatedSummary);
   await page.getByRole("button", { name: /save changes/i }).click();
 
   await expect(page.getByRole("heading", { name: "Weekly report" })).toBeVisible({ timeout: 15_000 });

@@ -36,7 +36,7 @@ async function createAndSubmitReport(page: import("@playwright/test").Page, proj
   await page.getByLabel("Project").selectOption({ label: projectName });
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
-  await page.getByLabel("Summary").fill("Weekly QA progress summary.");
+  await page.getByLabel("Summary item 1", { exact: true }).fill("Weekly QA progress summary.");
   await page.getByLabel("Test case BE total").fill("100");
   await page.getByLabel("Test case BE executed").fill("80");
   await page.getByLabel("Test case FE total").fill("100");
@@ -45,7 +45,7 @@ async function createAndSubmitReport(page: import("@playwright/test").Page, proj
   await page.getByLabel("Automation FE total").fill("50");
   await page.getByLabel("Automation passed").fill("90");
   await page.getByLabel("Automation failed").fill("10");
-  await page.getByLabel("Next week plan").fill("Continue regression suite.");
+  await page.getByLabel("Next week plan item 1", { exact: true }).fill("Continue regression suite.");
   await page.getByRole("button", { name: /save draft/i }).click();
   await page.waitForURL("**/weekly-reports");
 

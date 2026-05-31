@@ -66,7 +66,7 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
   await page.getByLabel("Project").selectOption({ label: projectName });
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
-  await page.getByLabel("Summary").fill("QA member weekly progress.");
+  await page.getByLabel("Summary item 1", { exact: true }).fill("QA member weekly progress.");
   await page.getByLabel("Test case BE total").fill("60");
   await page.getByLabel("Test case BE executed").fill("50");
   await page.getByLabel("Test case FE total").fill("40");
@@ -75,7 +75,7 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
   await page.getByLabel("Automation FE total").fill("20");
   await page.getByLabel("Automation passed").fill("35");
   await page.getByLabel("Automation failed").fill("5");
-  await page.getByLabel("Next week plan").fill("Finish remaining backend cases.");
+  await page.getByLabel("Next week plan item 1", { exact: true }).fill("Finish remaining backend cases.");
   await page.getByRole("button", { name: /save draft/i }).click();
 
   await page.waitForURL("**/weekly-reports");

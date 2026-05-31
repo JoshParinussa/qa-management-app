@@ -34,6 +34,14 @@ function average(values: number[]): number {
   return Number((sum / values.length).toFixed(2));
 }
 
+function splitLines(value: string | null): string[] {
+  if (!value) return [];
+  return value
+    .split("\n")
+    .map((line) => line.replace(/^[-•]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 export function summarizeMonthlyReports(reports: MonthlyRow[]) {
   const automationValues = reports
     .map((r) => (r.automationCoverage == null ? null : Number(r.automationCoverage)))
@@ -50,8 +58,8 @@ export function summarizeMonthlyReports(reports: MonthlyRow[]) {
     automationFe: reports.reduce((acc, r) => acc + r.automationFeTotal, 0),
     avgAutomation: average(automationValues),
     avgExecution: average(executionValues),
-    blockers: reports.map((r) => r.blocker?.trim()).filter((v): v is string => Boolean(v)),
-    nextPlans: reports.map((r) => r.nextWeekPlan?.trim()).filter((v): v is string => Boolean(v)),
+    blockers: reports.flatMap((r) => splitLines(r.blocker)),
+    nextPlans: reports.flatMap((r) => splitLines(r.nextWeekPlan)),
     reportCount: reports.length,
   };
 }

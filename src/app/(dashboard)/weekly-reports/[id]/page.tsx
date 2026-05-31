@@ -101,8 +101,8 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         <CardHeader>
           <CardTitle>Summary</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          <p className="whitespace-pre-wrap text-foreground">{report.summary}</p>
+        <CardContent className="text-sm">
+          <BulletField label="" value={report.summary} />
         </CardContent>
       </Card>
 
@@ -128,8 +128,8 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <Field label="Production incidents" value={String(report.productionIncidentCount)} />
-          <Field label="Blocker" value={report.blocker ?? "-"} />
-          <Field label="Next week plan" value={report.nextWeekPlan} />
+          <BulletField label="Blocker" value={report.blocker} />
+          <BulletField label="Next week plan" value={report.nextWeekPlan} />
           <Field label="Notes" value={report.notes ?? "-"} />
         </CardContent>
       </Card>
@@ -151,6 +151,28 @@ function Field({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-0.5 whitespace-pre-wrap text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function BulletField({ label, value }: { label: string; value: string | null }) {
+  const items = (value ?? "")
+    .split("\n")
+    .map((line) => line.replace(/^[-•]\s*/, "").trim())
+    .filter(Boolean);
+
+  return (
+    <div>
+      {label ? <p className="text-xs text-muted-foreground">{label}</p> : null}
+      {items.length === 0 ? (
+        <p className="mt-0.5 text-foreground">-</p>
+      ) : (
+        <ul className="mt-1 list-disc space-y-1 pl-5 text-foreground">
+          {items.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

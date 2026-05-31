@@ -20,9 +20,14 @@ export function aggregateTopBlockers(rows: { blocker: string | null }[], limit =
   const counts = new Map<string, number>();
 
   for (const row of rows) {
-    const text = row.blocker?.trim();
-    if (!text) continue;
-    counts.set(text, (counts.get(text) ?? 0) + 1);
+    if (!row.blocker) continue;
+    const lines = row.blocker
+      .split("\n")
+      .map((line) => line.replace(/^[-•]\s*/, "").trim())
+      .filter(Boolean);
+    for (const text of lines) {
+      counts.set(text, (counts.get(text) ?? 0) + 1);
+    }
   }
 
   return Array.from(counts.entries())

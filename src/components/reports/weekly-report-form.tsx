@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { BulletListInput } from "@/components/ui/bullet-list-input";
 import type { ActionState } from "@/types";
 
 type ProjectOption = { id: string; name: string };
@@ -82,10 +83,12 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         </div>
       </section>
 
-      <div className="space-y-2">
-        <Label htmlFor="summary">Summary</Label>
-        <Textarea id="summary" name="summary" defaultValue={defaultValues?.summary ?? ""} required />
-      </div>
+      <BulletListInput
+        name="summary"
+        label="Summary"
+        defaultValue={defaultValues?.summary}
+        placeholder="Satu poin progress per baris"
+      />
 
       <section className="grid gap-4 sm:grid-cols-2">
         <NumberField name="productionIncidentCount" label="Production incidents" defaultValue={defaultValues?.productionIncidentCount} />
@@ -113,14 +116,18 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         <NumberField name="automationFailed" label="Automation failed" defaultValue={defaultValues?.automationFailed} />
       </section>
 
-      <div className="space-y-2">
-        <Label htmlFor="blocker">Blocker</Label>
-        <Textarea id="blocker" name="blocker" defaultValue={defaultValues?.blocker ?? ""} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="nextWeekPlan">Next week plan</Label>
-        <Textarea id="nextWeekPlan" name="nextWeekPlan" defaultValue={defaultValues?.nextWeekPlan ?? ""} required />
-      </div>
+      <BulletListInput
+        name="blocker"
+        label="Blocker"
+        defaultValue={defaultValues?.blocker}
+        placeholder="Satu blocker per baris"
+      />
+      <BulletListInput
+        name="nextWeekPlan"
+        label="Next week plan"
+        defaultValue={defaultValues?.nextWeekPlan}
+        placeholder="Satu rencana per baris"
+      />
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" name="notes" defaultValue={defaultValues?.notes ?? ""} />
