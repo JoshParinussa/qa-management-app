@@ -12,6 +12,7 @@ export default async function WeeklyReportsPage() {
   const isReviewer = can(user.role, "report:review");
   const reports = isReviewer ? await listAllReports() : await listReportsByUser(user.id);
   const canCreate = can(user.role, "report:create");
+  const isAdmin = user.role === "ADMIN";
 
   return (
     <div className="space-y-6">
@@ -26,6 +27,11 @@ export default async function WeeklyReportsPage() {
           ) : null
         }
       />
+      {isAdmin ? (
+        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          Admin tidak membuat weekly report. Login sebagai QA Lead atau QA Member untuk membuat report.
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>{isReviewer ? "All reports" : "My reports"}</CardTitle>
