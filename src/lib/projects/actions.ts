@@ -26,8 +26,6 @@ function parseProjectForm(formData: FormData) {
     code: String(formData.get("code") ?? "").toUpperCase(),
     description: String(formData.get("description") ?? "") || undefined,
     status: formData.get("status") || "ACTIVE",
-    startDate: formData.get("startDate") || undefined,
-    endDate: formData.get("endDate") || undefined,
   });
 }
 

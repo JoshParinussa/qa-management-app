@@ -12,8 +12,6 @@ type ProjectFormValues = {
   code?: string;
   description?: string | null;
   status?: ProjectStatus;
-  startDate?: string;
-  endDate?: string;
 };
 
 type ProjectFormProps = {
@@ -42,27 +40,17 @@ export function ProjectForm({ action, defaultValues, submitLabel }: ProjectFormP
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" name="description" defaultValue={defaultValues?.description ?? ""} />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={defaultValues?.status ?? "ACTIVE"}
-            className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-          >
-            <option value="ACTIVE">Active</option>
-            <option value="ARCHIVED">Archived</option>
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="startDate">Start date</Label>
-          <Input id="startDate" name="startDate" type="date" defaultValue={defaultValues?.startDate} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="endDate">End date</Label>
-          <Input id="endDate" name="endDate" type="date" defaultValue={defaultValues?.endDate} />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="status">Status</Label>
+        <select
+          id="status"
+          name="status"
+          defaultValue={defaultValues?.status ?? "ACTIVE"}
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:max-w-xs"
+        >
+          <option value="ACTIVE">Active</option>
+          <option value="ARCHIVED">Archived</option>
+        </select>
       </div>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving..." : submitLabel}

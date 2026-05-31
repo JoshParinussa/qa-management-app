@@ -22,12 +22,10 @@ describe("projectSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects when end date is before start date", () => {
+  it("rejects a name that is too short", () => {
     const result = projectSchema.safeParse({
-      name: "UHealth Frontend",
+      name: "U",
       code: "UHF",
-      startDate: "2026-05-10",
-      endDate: "2026-05-01",
     });
 
     expect(result.success).toBe(false);

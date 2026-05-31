@@ -5,12 +5,8 @@ import { updateProjectAction } from "@/lib/projects/actions";
 import { getProjectById } from "@/lib/projects/queries";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
+import { PageHeader } from "@/components/layout/page-header";
 import type { ActionState } from "@/types";
-
-function toDateInput(value: Date | null) {
-  if (!value) return undefined;
-  return new Date(value).toISOString().slice(0, 10);
-}
 
 export default async function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -33,10 +29,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Edit project</h2>
-        <p className="text-slate-500">{project.name}</p>
-      </div>
+      <PageHeader title="Edit project" description={project.name} />
       <Card>
         <CardHeader>
           <CardTitle>Project detail</CardTitle>
@@ -50,8 +43,6 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
               code: project.code,
               description: project.description,
               status: project.status,
-              startDate: toDateInput(project.startDate),
-              endDate: toDateInput(project.endDate),
             }}
           />
         </CardContent>
