@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { archiveProjectAction } from "@/lib/projects/actions";
 import { getProjectById } from "@/lib/projects/queries";
-import { assignMemberAction, removeMemberAction } from "@/lib/project-members/actions";
+import { assignMemberAction, removeMemberAction, updateMemberRoleAction } from "@/lib/project-members/actions";
 import { listAssignableUsers, listProjectMembers } from "@/lib/project-members/queries";
 import { ProjectMemberForm } from "@/components/projects/project-member-form";
 import { ProjectMemberDataTable } from "@/components/projects/project-member-data-table";
@@ -39,6 +39,11 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   async function remove(formData: FormData) {
     "use server";
     await removeMemberAction(id, String(formData.get("userId")));
+  }
+
+  async function updateRole(formData: FormData) {
+    "use server";
+    await updateMemberRoleAction(id, formData);
   }
 
   return (
@@ -80,7 +85,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </CardHeader>
         <CardContent className="space-y-4">
           {canManage ? <ProjectMemberForm action={assign} users={assignableUsers} /> : null}
-          <ProjectMemberDataTable members={members} canManage={canManage} removeAction={remove} />
+          <ProjectMemberDataTable members={members} canManage={canManage} removeAction={remove} updateRoleAction={updateRole} />
         </CardContent>
       </Card>
     </div>

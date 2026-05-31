@@ -15,9 +15,10 @@ export type MemberRow = {
 type BuildArgs = {
   canManage: boolean;
   removeAction?: (formData: FormData) => void;
+  updateRoleAction?: (formData: FormData) => void;
 };
 
-export function buildMemberColumns({ canManage, removeAction }: BuildArgs): ColumnDef<MemberRow>[] {
+export function buildMemberColumns({ canManage, removeAction, updateRoleAction }: BuildArgs): ColumnDef<MemberRow>[] {
   const columns: ColumnDef<MemberRow>[] = [
     {
       accessorKey: "name",
@@ -32,9 +33,23 @@ export function buildMemberColumns({ canManage, removeAction }: BuildArgs): Colu
     {
       accessorKey: "assignmentRole",
       header: "Role",
-      cell: ({ row }) => (
-        <Badge variant="secondary">{row.original.assignmentRole === "QA_PIC" ? "QA PIC" : "QA Member"}</Badge>
-      ),
+      cell: ({ row }) =>
+        canManage ? (
+          <form action={updateRoleAction} className="flex items-center gap-2">
+            <input type="hidden" name="userId" value={row.original.userId} />
+            <select
+              name="assignmentRole"
+              defaultValue={row.original.assignmentRole}
+              className="h-8 rounded-md border border-input bg-transparent px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="QA_MEMBER">QA Member</option>
+              <option value="QA_PIC">QA PIC</option>
+            </select>
+            <Button type="submit" variant="ghost" size="sm">Save</Button>
+          </form>
+        ) : (
+          <Badge variant="secondary">{row.original.assignmentRole === "QA_PIC" ? "QA PIC" : "QA Member"}</Badge>
+        ),
     },
   ];
 

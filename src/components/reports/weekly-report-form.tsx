@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BulletListInput } from "@/components/ui/bullet-list-input";
+import { IncidentListInput } from "@/components/ui/incident-list-input";
 import type { ActionState } from "@/types";
 
 type ProjectOption = { id: string; name: string };
@@ -99,7 +100,7 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
       </section>
       <div className="space-y-2">
         <Label htmlFor="productionIncidentNotes">Production incident notes</Label>
-        <Textarea id="productionIncidentNotes" name="productionIncidentNotes" defaultValue={defaultValues?.productionIncidentNotes ?? ""} />
+        <IncidentListInput name="productionIncidentNotes" label="" defaultValue={defaultValues?.productionIncidentNotes} />
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

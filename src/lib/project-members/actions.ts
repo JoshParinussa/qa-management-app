@@ -64,3 +64,27 @@ export async function removeMemberAction(projectId: string, userId: string): Pro
 
   redirect(`/projects/${projectId}`);
 }
+
+export async function updateMemberRoleAction(projectId: string, formData: FormData): Promise<ActionState> {
+  await requireProjectManager();
+
+  const userId = String(formData.get("userId") ?? "");
+  const assignmentRole = String(formData.get("assignmentRole") ?? "");
+
+  if (assignmentRole !== "QA_MEMBER" && assignmentRole !== "QA_PIC") {
+    return { error: "Assignment role tidak valid." };
+  }
+
+  await db
+    .update(projectMembers)
+    .set({ assignmentRole })
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, userId),
+        isNull(projectMembers.removedAt),
+      ),
+    );
+
+  redirect(`/projects/${projectId}`);
+}

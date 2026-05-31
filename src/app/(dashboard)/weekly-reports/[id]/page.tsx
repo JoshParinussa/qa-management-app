@@ -9,6 +9,7 @@ import { ReviewActions } from "@/components/reports/review-actions";
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import { getReportById, listReportFeedbacks } from "@/lib/weekly-reports/queries";
+import { parseIncidents } from "@/lib/reports/incidents";
 import { submitReportAction } from "@/lib/weekly-reports/actions";
 import { markReviewedAction, requestRevisionAction, approveReportAction } from "@/lib/reviews/actions";
 import { canReviewReport, canSubmitReport } from "@/lib/weekly-reports/transitions";
@@ -128,6 +129,7 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <Field label="Production incidents" value={String(report.productionIncidentCount)} />
+          <IncidentsField label="Production incident notes" value={report.productionIncidentNotes} />
           <BulletField label="Blocker" value={report.blocker} />
           <BulletField label="Next week plan" value={report.nextWeekPlan} />
           <Field label="Notes" value={report.notes ?? "-"} />
@@ -170,6 +172,30 @@ function BulletField({ label, value }: { label: string; value: string | null }) 
         <ul className="mt-1 list-disc space-y-1 pl-5 text-foreground">
           {items.map((item, i) => (
             <li key={i}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function IncidentsField({ label, value }: { label: string; value: string | null }) {
+  const incidents = parseIncidents(value);
+
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      {incidents.length === 0 ? (
+        <p className="mt-0.5 text-foreground">-</p>
+      ) : (
+        <ul className="mt-1 space-y-2">
+          {incidents.map((incident, i) => (
+            <li key={i} className="rounded-lg border border-border p-3">
+              {incident.title ? <p className="font-medium text-foreground">{incident.title}</p> : null}
+              {incident.description ? (
+                <p className="mt-0.5 whitespace-pre-wrap text-muted-foreground">{incident.description}</p>
+              ) : null}
+            </li>
           ))}
         </ul>
       )}
