@@ -23,8 +23,10 @@ type DataTableProps<TData, TValue> = {
   data: TData[];
   emptyLabel?: string;
   pageSize?: number;
+  pageSizeOptions?: number[];
   searchable?: boolean;
   searchPlaceholder?: string;
+  showPageSize?: boolean;
 };
 
 export function DataTable<TData, TValue>({
@@ -32,8 +34,10 @@ export function DataTable<TData, TValue>({
   data,
   emptyLabel = "Tidak ada data.",
   pageSize = 10,
+  pageSizeOptions = [10, 20, 50],
   searchable = true,
   searchPlaceholder = "Search...",
+  showPageSize,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -56,6 +60,7 @@ export function DataTable<TData, TValue>({
   const totalPages = table.getPageCount();
   const totalRows = table.getFilteredRowModel().rows.length;
   const pages = getPaginationRange(pageIndex + 1, totalPages);
+  const pageSizeVisible = showPageSize ?? searchable;
 
   return (
     <div className="space-y-4">
@@ -113,50 +118,71 @@ export function DataTable<TData, TValue>({
         </TableBody>
       </Table>
 
-      {totalPages > 1 ? (
+      {totalRows > 0 && (pageSizeVisible || totalPages > 1) ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            {totalRows} row{totalRows === 1 ? "" : "s"} · page {pageIndex + 1} of {totalPages}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Previous page"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            {pages.map((page, idx) =>
-              page === "..." ? (
-                <span key={`dots-${idx}`} className="px-2 text-sm text-muted-foreground">
-                  …
-                </span>
-              ) : (
-                <Button
-                  key={page}
-                  variant={page === pageIndex + 1 ? "default" : "outline"}
-                  size="icon"
-                  aria-label={`Page ${page}`}
-                  aria-current={page === pageIndex + 1 ? "page" : undefined}
-                  className={cn("tabular-nums")}
-                  onClick={() => table.setPageIndex(page - 1)}
+          <div className="flex items-center gap-3">
+            {pageSizeVisible ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rows per page</span>
+                <select
+                  aria-label="Rows per page"
+                  value={table.getState().pagination.pageSize}
+                  onChange={(e) => table.setPageSize(Number(e.target.value))}
+                  className="h-8 rounded-md border border-input bg-transparent px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
-                  {page}
-                </Button>
-              ),
-            )}
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="Next page"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+            <p className="text-sm text-muted-foreground">
+              {totalRows} row{totalRows === 1 ? "" : "s"} · page {pageIndex + 1} of {totalPages}
+            </p>
           </div>
+          {totalPages > 1 ? (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Previous page"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              {pages.map((page, idx) =>
+                page === "..." ? (
+                  <span key={`dots-${idx}`} className="px-2 text-sm text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <Button
+                    key={page}
+                    variant={page === pageIndex + 1 ? "default" : "outline"}
+                    size="icon"
+                    aria-label={`Page ${page}`}
+                    aria-current={page === pageIndex + 1 ? "page" : undefined}
+                    className={cn("tabular-nums")}
+                    onClick={() => table.setPageIndex(page - 1)}
+                  >
+                    {page}
+                  </Button>
+                ),
+              )}
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Next page"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
