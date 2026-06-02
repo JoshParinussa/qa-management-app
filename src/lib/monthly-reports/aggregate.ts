@@ -1,14 +1,20 @@
 import type { ReportStatus } from "@/types";
+import { parseBulletItems } from "@/lib/reports/bullets";
 
 type MonthlyRow = {
   status: ReportStatus;
   weekStartDate: Date;
   productionIncidentCount: number;
+  testCaseTotal?: number | null;
   testCaseBeTotal: number;
   testCaseFeTotal: number;
   automationBeTotal: number;
   automationFeTotal: number;
   automationCoverage: string | null;
+  automationBeCoverage?: string | null;
+  automationFeCoverage?: string | null;
+  automationBePassRate?: string | null;
+  automationFePassRate?: string | null;
   executionCoverage: string | null;
   blocker: string | null;
   nextWeekPlan: string | null;
@@ -34,32 +40,33 @@ function average(values: number[]): number {
   return Number((sum / values.length).toFixed(2));
 }
 
-function splitLines(value: string | null): string[] {
-  if (!value) return [];
-  return value
-    .split("\n")
-    .map((line) => line.replace(/^[-•]\s*/, "").trim())
-    .filter(Boolean);
+function numericValues(reports: MonthlyRow[], key: keyof MonthlyRow): number[] {
+  return reports
+    .map((r) => {
+      const value = r[key];
+      if (value == null) return null;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    })
+    .filter((v): v is number => v != null);
 }
 
 export function summarizeMonthlyReports(reports: MonthlyRow[]) {
-  const automationValues = reports
-    .map((r) => (r.automationCoverage == null ? null : Number(r.automationCoverage)))
-    .filter((v): v is number => v != null);
-  const executionValues = reports
-    .map((r) => (r.executionCoverage == null ? null : Number(r.executionCoverage)))
-    .filter((v): v is number => v != null);
-
   return {
     productionIncident: reports.reduce((acc, r) => acc + r.productionIncidentCount, 0),
+    testCaseTotal: reports.reduce((acc, r) => acc + (r.testCaseTotal ?? 0), 0),
     testCaseBe: reports.reduce((acc, r) => acc + r.testCaseBeTotal, 0),
     testCaseFe: reports.reduce((acc, r) => acc + r.testCaseFeTotal, 0),
     automationBe: reports.reduce((acc, r) => acc + r.automationBeTotal, 0),
     automationFe: reports.reduce((acc, r) => acc + r.automationFeTotal, 0),
-    avgAutomation: average(automationValues),
-    avgExecution: average(executionValues),
-    blockers: reports.flatMap((r) => splitLines(r.blocker)),
-    nextPlans: reports.flatMap((r) => splitLines(r.nextWeekPlan)),
+    avgAutomation: average(numericValues(reports, "automationCoverage")),
+    avgAutomationBe: average(numericValues(reports, "automationBeCoverage")),
+    avgAutomationFe: average(numericValues(reports, "automationFeCoverage")),
+    avgAutomationBePassRate: average(numericValues(reports, "automationBePassRate")),
+    avgAutomationFePassRate: average(numericValues(reports, "automationFePassRate")),
+    avgExecution: average(numericValues(reports, "executionCoverage")),
+    blockers: reports.flatMap((r) => parseBulletItems(r.blocker)),
+    nextPlans: reports.flatMap((r) => parseBulletItems(r.nextWeekPlan)),
     reportCount: reports.length,
   };
 }

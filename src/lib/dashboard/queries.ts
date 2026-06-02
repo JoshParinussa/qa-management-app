@@ -54,8 +54,10 @@ export function listCoverageByProject() {
   return db
     .select({
       projectName: projects.name,
-      avgAutomation: avg(weeklyReports.automationCoverage),
-      avgExecution: avg(weeklyReports.executionCoverage),
+      avgAutomationBe: avg(weeklyReports.automationBeCoverage),
+      avgAutomationFe: avg(weeklyReports.automationFeCoverage),
+      avgAutomationBePassRate: avg(weeklyReports.automationBePassRate),
+      avgAutomationFePassRate: avg(weeklyReports.automationFePassRate),
       reportCount: count(),
     })
     .from(weeklyReports)

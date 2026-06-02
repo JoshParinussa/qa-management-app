@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { MonthlyFilter } from "@/components/monthly-reports/monthly-filter";
 import { MonthlySummaryView } from "@/components/monthly-reports/monthly-summary";
@@ -20,10 +21,14 @@ export default async function MonthlyReportsPage({
   const params = await searchParams;
   const month = params.month || currentMonth();
   const projectId = params.projectId || undefined;
+  const canExport = can(user.role, "report:export");
+
+  if (!canExport) {
+    redirect("/dashboard");
+  }
 
   const projects = await listActiveProjectsForFilter();
   const summary = await getMonthlySummary({ month, projectId });
-  const canExport = can(user.role, "report:export");
 
   return (
     <div className="space-y-6">

@@ -41,6 +41,16 @@ describe("aggregateTopBlockers", () => {
     const rows = [{ blocker: "a" }, { blocker: "b" }, { blocker: "c" }];
     expect(aggregateTopBlockers(rows, 2)).toHaveLength(2);
   });
+
+  it("counts JSON-array blocker items without splitting multiline text", () => {
+    const result = aggregateTopBlockers([
+      { blocker: JSON.stringify(["Flaky test\nNeeds rerun", "Env down"]) },
+      { blocker: JSON.stringify(["Flaky test\nNeeds rerun"]) },
+    ]);
+
+    expect(result[0]).toEqual({ blocker: "Flaky test\nNeeds rerun", value: 2 });
+    expect(result[1]).toEqual({ blocker: "Env down", value: 1 });
+  });
 });
 
 describe("scopeReportsForRole", () => {

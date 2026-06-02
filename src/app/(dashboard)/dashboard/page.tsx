@@ -63,7 +63,7 @@ export default async function DashboardPage() {
                   <div key={row.projectName} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
                     <span className="text-sm font-medium">{row.projectName}</span>
                     <span className="text-sm text-muted-foreground">
-                      Automation {formatPercent(row.avgAutomation)} · Execution {formatPercent(row.avgExecution)}
+                      BE {formatPercent(row.avgAutomationBe)} · FE {formatPercent(row.avgAutomationFe)}
                     </span>
                   </div>
                 ))}

@@ -1,4 +1,5 @@
 import type { ReportStatus, Role } from "@/types";
+import { parseBulletItems } from "@/lib/reports/bullets";
 
 export function countByStatus(reports: { status: ReportStatus }[]): Record<ReportStatus, number> {
   const counts: Record<ReportStatus, number> = {
@@ -20,12 +21,7 @@ export function aggregateTopBlockers(rows: { blocker: string | null }[], limit =
   const counts = new Map<string, number>();
 
   for (const row of rows) {
-    if (!row.blocker) continue;
-    const lines = row.blocker
-      .split("\n")
-      .map((line) => line.replace(/^[-•]\s*/, "").trim())
-      .filter(Boolean);
-    for (const text of lines) {
+    for (const text of parseBulletItems(row.blocker)) {
       counts.set(text, (counts.get(text) ?? 0) + 1);
     }
   }

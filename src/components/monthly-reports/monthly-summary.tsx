@@ -19,12 +19,15 @@ export function MonthlySummaryView({ summary }: { summary: MonthlySummary }) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label="Production incidents" value={summary.productionIncident} />
+        <Metric label="Test case total" value={summary.testCaseTotal} />
         <Metric label="Test case BE" value={summary.testCaseBe} />
         <Metric label="Test case FE" value={summary.testCaseFe} />
         <Metric label="Automation BE" value={summary.automationBe} />
         <Metric label="Automation FE" value={summary.automationFe} />
-        <Metric label="Avg automation coverage" value={`${summary.avgAutomation.toFixed(2)}%`} />
-        <Metric label="Avg execution coverage" value={`${summary.avgExecution.toFixed(2)}%`} />
+        <Metric label="Avg BE coverage" value={`${summary.avgAutomationBe.toFixed(2)}%`} />
+        <Metric label="Avg FE coverage" value={`${summary.avgAutomationFe.toFixed(2)}%`} />
+        <Metric label="Avg BE pass rate" value={`${summary.avgAutomationBePassRate.toFixed(2)}%`} />
+        <Metric label="Avg FE pass rate" value={`${summary.avgAutomationFePassRate.toFixed(2)}%`} />
         <Metric label="Approved reports" value={summary.reportCount} />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -38,7 +41,7 @@ export function MonthlySummaryView({ summary }: { summary: MonthlySummary }) {
             ) : (
               <ul className="list-disc space-y-1 pl-5 text-sm">
                 {summary.blockers.map((item, i) => (
-                  <li key={i}>{item}</li>
+                  <li key={i} className="whitespace-pre-wrap">{item}</li>
                 ))}
               </ul>
             )}
@@ -54,7 +57,7 @@ export function MonthlySummaryView({ summary }: { summary: MonthlySummary }) {
             ) : (
               <ul className="list-disc space-y-1 pl-5 text-sm">
                 {summary.nextPlans.map((item, i) => (
-                  <li key={i}>{item}</li>
+                  <li key={i} className="whitespace-pre-wrap">{item}</li>
                 ))}
               </ul>
             )}
