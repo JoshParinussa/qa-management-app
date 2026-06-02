@@ -37,6 +37,7 @@
 |---|---|
 | Project CRUD UX | Dedicated routes, not modal-only |
 | User reset password | Generate new random password, show once to admin, set `must_change_password=true` |
+| First-login password change | All users must change password on first login, including seeded/bootstrap admin accounts |
 | Weekly report uniqueness | One report per project/user/week |
 | E2E tests | Required per phase, happy path minimum |
 | ORM | Drizzle only |
@@ -105,7 +106,7 @@
 - Prisma files and dependencies are removed.
 - DB can be reached through resolver.
 - Migrations apply cleanly.
-- Seed data inserts admin/member/project records.
+- Seed data inserts admin/member/project records; every seeded user has `must_change_password=true`.
 
 ---
 
@@ -153,7 +154,7 @@
 - Admin can login.
 - Admin can create users.
 - Created users receive a default password.
-- Created users must change password on first login.
+- Created, seeded, and bootstrap users must change password on first login without role exceptions.
 - Users can login with the new password afterward.
 - Dashboard redirects unauthenticated users to `/login`.
 
@@ -193,6 +194,8 @@
 | 2.11 | Build `/projects/[id]/edit` dedicated route | DONE | 4 |
 | 2.12 | Add active/archived status UI | DONE | 3 |
 | 2.13 | Add empty state for no projects | DONE | 1 |
+| 2.14 | Add restore archived project to active flow | DONE | 3 |
+| 2.15 | Make archived project read-only (no edit/assignment/member mutations) | DONE | 4 |
 
 ### Testing Tasks
 
@@ -208,10 +211,10 @@
 
 ### Acceptance Criteria
 
-- Admin and QA Lead can create, edit, and archive projects.
+- Admin and QA Lead can create, edit, archive, and restore projects.
 - QA Member cannot mutate projects.
 - Project code is unique.
-- Archived projects are visible but visually distinct.
+- Archived projects are visible, visually distinct, and read-only until restored.
 
 ---
 

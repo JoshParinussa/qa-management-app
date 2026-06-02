@@ -317,6 +317,7 @@ QA Lead melihat:
 - Add project
 - Edit project
 - Archive project
+- Restore archived project to active
 - Assign QA member
 
 ### 11.5 Weekly Report
@@ -1038,7 +1039,9 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 - QA Lead bisa membuat project.
 - QA Lead bisa edit project.
 - QA Lead bisa archive project.
+- QA Lead bisa restore archived project menjadi active.
 - QA Lead bisa assign QA member ke project.
+- Archived project bersifat read-only: tidak bisa edit project, assign member, ubah role member, atau remove member sampai di-restore.
 
 ### 22.3 Weekly Report
 
@@ -1197,7 +1200,7 @@ Saat implementasi, prioritaskan:
 
 ## 28. Implementation Status (snapshot)
 
-PRD versi: `v1.2 — 2026-05-30`.
+PRD versi: `v1.3 — 2026-06-01`.
 
 | Item | Status | Catatan |
 |---|---|---|
@@ -1212,13 +1215,13 @@ PRD versi: `v1.2 — 2026-05-30`.
 | Auth login/logout/session | Done | HMAC signed cookie + bcrypt |
 | Role guard | Done | `requireUser`, `requireAdmin` |
 | Admin create user | Done | Default password dari env |
-| First-login change password | Done | kolom `users.must_change_password` |
+| First-login change password | Done | kolom `users.must_change_password`; wajib untuk semua role tanpa pengecualian |
 | Profile page | Done | `/profile` |
 | App shell sidebar + topbar | Done | Style shadcn sidebar-07 |
 | Sidebar collapse | Done | Trigger di topbar, persist via localStorage |
 | Status badge | Done | Format title case |
 | Vitest unit tests | Done | 84 tests: flow, profile, status, calculator, transitions, permissions, schemas, action-result, rules, aggregates |
-| Project CRUD | Done | Phase 2: list/create/edit/archive, dedicated routes |
+| Project CRUD | Done | Phase 2: list/create/edit/archive/restore, dedicated routes, archived read-only |
 | User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru, filter role/status |
 | Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
 | Weekly report CRUD | Done | Phase 5: draft create/edit, server-side coverage, unique week guard, approved lock |
@@ -1243,7 +1246,7 @@ PRD versi: `v1.2 — 2026-05-30`.
 | Auth | Belum diputuskan | HMAC signed cookie + bcrypt | Sederhana, cukup internal |
 | Test runner | Tidak ditentukan | Vitest unit + Playwright E2E | Cepat untuk lib helpers, browser smoke per phase |
 | Table UI | Tidak ditentukan | Reusable `DataTable` (TanStack Table) | Sorting + pagination konsisten di semua tabel |
-| Default password | Tidak ada | `DEFAULT_USER_PASSWORD` env, default `password123` | Wajib ganti di login pertama |
+| Default password | Tidak ada | `DEFAULT_USER_PASSWORD` env, default `password123` | Semua user wajib ganti di login pertama, termasuk seed/admin |
 
 ---
 
@@ -1328,7 +1331,7 @@ drizzle/0002_shocking_moira_mactaggert.sql
 |---|---|---|
 | Phase 0 ✅ | DB ready | Drizzle + Studio + seed |
 | Phase 1 ✅ | Auth + admin create user + first-login change password | Done |
-| Phase 2 | Project CRUD | List, create, edit, archive |
+| Phase 2 | Project CRUD | List, create, edit, archive, restore |
 | Phase 3 | User CRUD lanjutan | Edit role, deactivate, reset password |
 | Phase 4 | Project member assignment | Assign/remove + history |
 | Phase 5 | Weekly report CRUD | Form + draft + auto coverage server-side |
@@ -1378,8 +1381,7 @@ Seed accounts:
 
 | Email | Role | Password | Must Change |
 |---|---|---|---|
-| `jopa@example.com` | `ADMIN` | `password123` | No |
-| `lead@example.com` | `QA_LEAD` | `password123` | No |
+| `jopa@example.com` | `ADMIN` | `password123` | Yes |
+| `lead@example.com` | `QA_LEAD` | `password123` | Yes |
 | `qa1@example.com` | `QA_MEMBER` | `password123` | Yes |
 | `qa2@example.com` | `QA_MEMBER` | `password123` | Yes |
-
