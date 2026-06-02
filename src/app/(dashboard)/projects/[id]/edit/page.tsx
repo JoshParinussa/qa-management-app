@@ -22,6 +22,10 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
     notFound();
   }
 
+  if (project.status === "ARCHIVED") {
+    redirect(`/projects/${id}`);
+  }
+
   async function action(state: ActionState, formData: FormData) {
     "use server";
     return updateProjectAction(id, state, formData);

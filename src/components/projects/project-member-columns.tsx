@@ -18,6 +18,11 @@ type BuildArgs = {
   updateRoleAction?: (formData: FormData) => void;
 };
 
+const roleSortRank: Record<MemberRow["assignmentRole"], number> = {
+  QA_PIC: 0,
+  QA_MEMBER: 1,
+};
+
 export function buildMemberColumns({ canManage, removeAction, updateRoleAction }: BuildArgs): ColumnDef<MemberRow>[] {
   const columns: ColumnDef<MemberRow>[] = [
     {
@@ -33,6 +38,7 @@ export function buildMemberColumns({ canManage, removeAction, updateRoleAction }
     {
       accessorKey: "assignmentRole",
       header: "Role",
+      sortingFn: (rowA, rowB) => roleSortRank[rowA.original.assignmentRole] - roleSortRank[rowB.original.assignmentRole],
       cell: ({ row }) =>
         canManage ? (
           <form action={updateRoleAction} className="flex items-center gap-2">

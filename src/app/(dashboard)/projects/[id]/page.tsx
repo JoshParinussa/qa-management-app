@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { archiveProjectAction } from "@/lib/projects/actions";
-import { getProjectById } from "@/lib/projects/queries";
+import { archiveProjectAction, restoreProjectAction } from "@/lib/projects/actions";
+import { getProjectByIdForUser } from "@/lib/projects/queries";
 import { assignMemberAction, removeMemberAction, updateMemberRoleAction } from "@/lib/project-members/actions";
 import { listAssignableUsers, listProjectMembers } from "@/lib/project-members/queries";
 import { ProjectMemberForm } from "@/components/projects/project-member-form";
 import { ProjectMemberDataTable } from "@/components/projects/project-member-data-table";
+import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import type { ActionState } from "@/types";
@@ -16,19 +16,26 @@ import type { ActionState } from "@/types";
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireUser();
-  const project = await getProjectById(id);
+  const project = await getProjectByIdForUser(id, user);
 
   if (!project) {
     notFound();
   }
 
   const canManage = canManageProjects(user.role);
+  const isArchived = project.status === "ARCHIVED";
+  const canEditProject = canManage && !isArchived;
   const members = await listProjectMembers(id);
-  const assignableUsers = canManage ? await listAssignableUsers() : [];
+  const assignableUsers = canEditProject ? await listAssignableUsers() : [];
 
   async function archive() {
     "use server";
     await archiveProjectAction(id);
+  }
+
+  async function restore() {
+    "use server";
+    await restoreProjectAction(id);
   }
 
   async function assign(state: ActionState, formData: FormData) {
@@ -55,26 +62,36 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
         {canManage ? (
           <div className="flex gap-2">
-            <Link href={`/projects/${id}/edit`}>
-              <Button variant="outline">Edit</Button>
-            </Link>
-            {project.status === "ACTIVE" ? (
+            {canEditProject ? (
+              <Link href={`/projects/${id}/edit`}>
+                <Button variant="outline">Edit</Button>
+              </Link>
+            ) : null}
+            {!isArchived ? (
               <form action={archive}>
                 <Button variant="outline" type="submit">Archive</Button>
+              </form>
+            ) : null}
+            {isArchived ? (
+              <form action={restore}>
+                <Button variant="outline" type="submit">Restore active</Button>
               </form>
             ) : null}
           </div>
         ) : null}
       </div>
+      {isArchived ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Project ini archived. Edit project, assign member, ubah role member, dan remove member dinonaktifkan sampai project di-restore menjadi active.
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Project information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
-            <Badge variant={project.status === "ACTIVE" ? "secondary" : "outline"}>
-              {project.status === "ACTIVE" ? "Active" : "Archived"}
-            </Badge>
+            <ProjectStatusBadge status={project.status} />
           </div>
           <p className="text-sm text-slate-600">{project.description ?? "Tidak ada deskripsi."}</p>
         </CardContent>
@@ -84,8 +101,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           <CardTitle>Assigned members</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {canManage ? <ProjectMemberForm action={assign} users={assignableUsers} /> : null}
-          <ProjectMemberDataTable members={members} canManage={canManage} removeAction={remove} updateRoleAction={updateRole} />
+          {canEditProject ? <ProjectMemberForm action={assign} users={assignableUsers} /> : null}
+          <ProjectMemberDataTable members={members} canManage={canEditProject} removeAction={remove} updateRoleAction={updateRole} />
         </CardContent>
       </Card>
     </div>

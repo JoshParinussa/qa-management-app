@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import { findActiveAssignment } from "@/lib/project-members/queries";
 import { buildRemoveMemberUpdate, hasActiveAssignment } from "@/lib/project-members/rules";
+import { getProjectById } from "@/lib/projects/queries";
 import { assignMemberSchema } from "@/lib/validations/project-member";
 import type { ActionState } from "@/types";
 
@@ -21,8 +22,19 @@ async function requireProjectManager() {
   return user;
 }
 
+async function requireActiveProject(projectId: string): Promise<ActionState | null> {
+  const project = await getProjectById(projectId);
+  if (!project || project.status === "ARCHIVED") {
+    return { error: "Project archived tidak bisa diubah." };
+  }
+
+  return null;
+}
+
 export async function assignMemberAction(projectId: string, _state: ActionState, formData: FormData): Promise<ActionState> {
   await requireProjectManager();
+  const archivedCheck = await requireActiveProject(projectId);
+  if (archivedCheck) return archivedCheck;
 
   const parsed = assignMemberSchema.safeParse({
     userId: formData.get("userId"),
@@ -50,6 +62,8 @@ export async function assignMemberAction(projectId: string, _state: ActionState,
 
 export async function removeMemberAction(projectId: string, userId: string): Promise<ActionState> {
   await requireProjectManager();
+  const archivedCheck = await requireActiveProject(projectId);
+  if (archivedCheck) return archivedCheck;
 
   await db
     .update(projectMembers)
@@ -67,6 +81,8 @@ export async function removeMemberAction(projectId: string, userId: string): Pro
 
 export async function updateMemberRoleAction(projectId: string, formData: FormData): Promise<ActionState> {
   await requireProjectManager();
+  const archivedCheck = await requireActiveProject(projectId);
+  if (archivedCheck) return archivedCheck;
 
   const userId = String(formData.get("userId") ?? "");
   const assignmentRole = String(formData.get("assignmentRole") ?? "");

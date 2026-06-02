@@ -5,12 +5,25 @@ import { ProjectsDataTable } from "@/components/projects/projects-data-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
-import { listProjects } from "@/lib/projects/queries";
+import { archiveProjectAction, restoreProjectAction } from "@/lib/projects/actions";
+import { listProjectsForUser } from "@/lib/projects/queries";
 
 export default async function ProjectsPage() {
   const user = await requireUser();
-  const projects = await listProjects();
+  const projects = await listProjectsForUser(user);
   const canManage = canManageProjects(user.role);
+
+  async function archive(formData: FormData) {
+    "use server";
+    const projectId = String(formData.get("projectId") ?? "");
+    await archiveProjectAction(projectId);
+  }
+
+  async function restore(formData: FormData) {
+    "use server";
+    const projectId = String(formData.get("projectId") ?? "");
+    await restoreProjectAction(projectId);
+  }
 
   return (
     <div className="space-y-6">
@@ -30,7 +43,7 @@ export default async function ProjectsPage() {
           <CardTitle>All projects</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProjectsDataTable projects={projects} />
+          <ProjectsDataTable projects={projects} canManage={canManage} archiveAction={archive} restoreAction={restore} />
         </CardContent>
       </Card>
     </div>

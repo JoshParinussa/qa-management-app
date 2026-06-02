@@ -29,3 +29,15 @@ export function can(role: Role, action: PermissionAction) {
 export function canManageProjects(role: Role) {
   return can(role, "project:manage");
 }
+
+export function canSeeAllProjects(role: Role) {
+  return canManageProjects(role);
+}
+
+export function canViewWeeklyReports(role: Role) {
+  return can(role, "report:create") || can(role, "report:review");
+}
+
+export function canViewMonthlyReports(role: Role) {
+  return can(role, "report:export");
+}

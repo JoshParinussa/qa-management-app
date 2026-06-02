@@ -50,6 +50,11 @@ export async function createProjectAction(_state: ActionState, formData: FormDat
 export async function updateProjectAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
   await requireProjectManager();
 
+  const [project] = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  if (!project || project.status === "ARCHIVED") {
+    redirect(`/projects/${id}`);
+  }
+
   const parsed = parseProjectForm(formData);
 
   if (!parsed.success) {
@@ -74,6 +79,17 @@ export async function archiveProjectAction(id: string) {
   await db
     .update(projects)
     .set({ status: "ARCHIVED", updatedAt: new Date() })
+    .where(eq(projects.id, id));
+
+  redirect("/projects");
+}
+
+export async function restoreProjectAction(id: string) {
+  await requireProjectManager();
+
+  await db
+    .update(projects)
+    .set({ status: "ACTIVE", updatedAt: new Date() })
     .where(eq(projects.id, id));
 
   redirect("/projects");
