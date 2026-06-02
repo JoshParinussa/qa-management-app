@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { getInitials, getRoleLabel } from "@/lib/users/profile";

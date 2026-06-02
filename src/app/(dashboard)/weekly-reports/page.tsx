@@ -4,15 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WeeklyReportsDataTable } from "@/components/reports/weekly-reports-data-table";
 import { PageHeader } from "@/components/layout/page-header";
 import { requireUser } from "@/lib/auth/session";
-import { can } from "@/lib/permissions/roles";
+import { can, canViewWeeklyReports } from "@/lib/permissions/roles";
 import { listAllReports, listReportsByUser } from "@/lib/weekly-reports/queries";
+import { redirect } from "next/navigation";
 
 export default async function WeeklyReportsPage() {
   const user = await requireUser();
+
+  if (!canViewWeeklyReports(user.role)) {
+    redirect("/dashboard");
+  }
+
   const isReviewer = can(user.role, "report:review");
   const reports = isReviewer ? await listAllReports() : await listReportsByUser(user.id);
+  const reportRows = reports.map((report) => ({
+    ...report,
+    canEdit: report.userId === user.id && report.status !== "APPROVED",
+  }));
   const canCreate = can(user.role, "report:create");
-  const isAdmin = user.role === "ADMIN";
 
   return (
     <div className="space-y-6">
@@ -27,17 +36,12 @@ export default async function WeeklyReportsPage() {
           ) : null
         }
       />
-      {isAdmin ? (
-        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-          Admin tidak membuat weekly report. Login sebagai QA Lead atau QA Member untuk membuat report.
-        </div>
-      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>{isReviewer ? "All reports" : "My reports"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <WeeklyReportsDataTable reports={reports} />
+          <WeeklyReportsDataTable reports={reportRows} />
         </CardContent>
       </Card>
     </div>

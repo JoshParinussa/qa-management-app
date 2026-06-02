@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditUserForm } from "@/components/users/edit-user-form";
 import { ResetPasswordPanel } from "@/components/users/reset-password-panel";
