@@ -7,6 +7,7 @@ export function listReportsByUser(userId: string) {
     .select({
       id: weeklyReports.id,
       projectId: weeklyReports.projectId,
+      userId: weeklyReports.userId,
       projectName: projects.name,
       weekStartDate: weeklyReports.weekStartDate,
       weekEndDate: weeklyReports.weekEndDate,

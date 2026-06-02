@@ -7,16 +7,33 @@ const validBase = {
   weekEndDate: "2026-05-10",
   summary: "Done some work",
   productionIncidentCount: 0,
+  testCaseTotal: 120,
   testCaseBeTotal: 100,
   testCaseBeExecuted: 80,
   testCaseFeTotal: 100,
   testCaseFeExecuted: 90,
   automationBeTotal: 50,
   automationFeTotal: 50,
+  automationBePassed: 45,
+  automationBeFailed: 5,
+  automationFePassed: 36,
+  automationFeFailed: 4,
   automationPassed: 90,
   automationFailed: 10,
   nextWeekPlan: "Continue work",
 };
+
+const currentFormOmittedFields = new Set([
+  "testCaseTotal",
+  "automationBePassed",
+  "automationBeFailed",
+  "automationFePassed",
+  "automationFeFailed",
+]);
+
+function currentFormPayload() {
+  return Object.fromEntries(Object.entries(validBase).filter(([key]) => !currentFormOmittedFields.has(key)));
+}
 
 describe("weeklyReportSchema dates", () => {
   it("rejects when end date is before start date", () => {
@@ -64,17 +81,55 @@ describe("weeklyReportSchema executed limits", () => {
 });
 
 describe("weeklyReportSchema automation limits", () => {
-  it("rejects automation total exceeding total test cases", () => {
+  it("rejects BE automation total exceeding BE test case total", () => {
     const result = weeklyReportSchema.safeParse({
       ...validBase,
       testCaseBeTotal: 10,
-      testCaseFeTotal: 10,
       automationBeTotal: 15,
-      automationFeTotal: 15,
       testCaseBeExecuted: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects FE automation total exceeding FE test case total", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      testCaseFeTotal: 10,
+      automationFeTotal: 15,
       testCaseFeExecuted: 0,
     });
     expect(result.success).toBe(false);
+  });
+
+  it("rejects split automation runs exceeding automation totals for both BE and FE", () => {
+    const beResult = weeklyReportSchema.safeParse({
+      ...validBase,
+      automationBeTotal: 50,
+      automationBePassed: 50,
+      automationBeFailed: 1,
+    });
+
+    const feResult = weeklyReportSchema.safeParse({
+      ...validBase,
+      automationFeTotal: 40,
+      automationFePassed: 40,
+      automationFeFailed: 1,
+    });
+
+    expect(beResult.success).toBe(false);
+    expect(feResult.success).toBe(false);
+  });
+
+  it("allows total test case lower than BE plus FE totals", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      testCaseTotal: 50,
+      testCaseBeTotal: 100,
+      testCaseFeTotal: 100,
+      automationBeTotal: 50,
+      automationFeTotal: 50,
+    });
+    expect(result.success).toBe(true);
   });
 
   it("accepts automation equal to total test cases", () => {
@@ -84,9 +139,73 @@ describe("weeklyReportSchema automation limits", () => {
       testCaseFeTotal: 10,
       automationBeTotal: 10,
       automationFeTotal: 10,
+      automationBePassed: 9,
+      automationBeFailed: 1,
+      automationFePassed: 9,
+      automationFeFailed: 1,
+      automationPassed: 18,
+      automationFailed: 2,
       testCaseBeExecuted: 0,
       testCaseFeExecuted: 0,
     });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts current form shape without defaulting new optional fields", () => {
+    const result = weeklyReportSchema.safeParse(currentFormPayload());
+
+    expect(result.success).toBe(true);
+    if (!result.success) throw new Error("Expected current form payload to be valid");
+    expect("testCaseTotal" in result.data).toBe(false);
+  });
+
+  it("rejects current form shape when aggregate automation runs exceed automation totals", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...currentFormPayload(),
+      automationBeTotal: 10,
+      automationFeTotal: 10,
+      automationPassed: 999,
+      automationFailed: 0,
+    });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("weeklyReportSchema production incidents", () => {
+  it("requires incident title, description, and related test case ID when incident count is greater than zero", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      productionIncidentCount: 1,
+      productionIncidentNotes: JSON.stringify([
+        { title: "Bug A", description: "", relatedTestCaseId: "" },
+      ]),
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("requires incident details to match the incident count", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      productionIncidentCount: 2,
+      productionIncidentNotes: JSON.stringify([
+        { title: "Bug A", description: "Detail", relatedTestCaseId: "TC-1" },
+      ]),
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts complete incident details with related test case IDs", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      productionIncidentCount: 1,
+      productionIncidentNotes: JSON.stringify([
+        { title: "Bug A", description: "Detail", relatedTestCaseId: "TC-1" },
+      ]),
+    });
+
     expect(result.success).toBe(true);
   });
 });
