@@ -1,8 +1,23 @@
 "use client";
 
-import { ChevronRight, PanelLeft } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { PanelLeft } from "lucide-react";
+import { Fragment } from "react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { getBreadcrumbItems } from "@/lib/navigation/breadcrumbs";
 
 export function Topbar() {
+  const pathname = usePathname();
+  const breadcrumbs = getBreadcrumbItems(pathname);
+
   function toggleSidebar() {
     window.dispatchEvent(new CustomEvent("qa-sidebar-toggle"));
   }
@@ -13,11 +28,24 @@ export function Topbar() {
         <PanelLeft className="size-4" />
       </button>
       <div className="h-4 w-px bg-slate-200" />
-      <nav className="flex items-center gap-2 text-sm">
-        <span className="text-slate-500">Build your application</span>
-        <ChevronRight className="size-4 text-slate-400" />
-        <span className="font-medium text-slate-950">Dashboard</span>
-      </nav>
+      <Breadcrumb>
+        <BreadcrumbList>
+          {breadcrumbs.map((item, index) => (
+            <Fragment key={item.href}>
+              {index > 0 ? <BreadcrumbSeparator /> : null}
+              <BreadcrumbItem>
+                {item.current ? (
+                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link href={item.href}>{item.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </Fragment>
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
     </header>
   );
 }

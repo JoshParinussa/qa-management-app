@@ -8,7 +8,6 @@ import {
   FileText,
   FolderKanban,
   LogOut,
-  MoreHorizontal,
   Settings2,
   Users,
 } from "lucide-react";
@@ -16,24 +15,25 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { logoutAction } from "@/lib/auth/actions";
 import type { SessionUser } from "@/lib/auth/session";
+import { getVisiblePlatformItems, type PlatformItem } from "@/lib/navigation/items";
 import { getInitials, getRoleLabel } from "@/lib/users/profile";
 import { cn } from "@/lib/utils";
 
-const platformItems = [
-  { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/users", label: "Users", icon: Users },
-  { href: "/weekly-reports", label: "Weekly reports", icon: FileText },
-  { href: "/monthly-reports", label: "Monthly reports", icon: CalendarDays },
-];
+const platformIcons: Record<PlatformItem["id"], typeof BarChart3> = {
+  dashboard: BarChart3,
+  projects: FolderKanban,
+  users: Users,
+  weeklyReports: FileText,
+  monthlyReports: CalendarDays,
+};
 
 const secondaryItems = [
   { href: "/profile", label: "Profile settings", icon: Settings2 },
-  { href: "/dashboard", label: "More", icon: MoreHorizontal },
 ];
 
 export function AppSidebar({ user }: { user: SessionUser }) {
   const pathname = usePathname();
+  const platformItems = getVisiblePlatformItems(user.role);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("qa-sidebar-collapsed") === "true";
@@ -66,7 +66,8 @@ export function AppSidebar({ user }: { user: SessionUser }) {
         <div className="mt-5 space-y-1">
           <p className={cn("px-2 pb-1 text-xs font-medium text-slate-500", collapsed && "sr-only")}>Platform</p>
           {platformItems.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = platformIcons[item.id];
 
             return (
               <Link
@@ -79,7 +80,7 @@ export function AppSidebar({ user }: { user: SessionUser }) {
                   collapsed && "justify-center",
                 )}
               >
-                <item.icon className="size-4 shrink-0" />
+                <Icon className="size-4 shrink-0" />
                 <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
               </Link>
             );
@@ -87,7 +88,7 @@ export function AppSidebar({ user }: { user: SessionUser }) {
         </div>
 
         <div className="mt-6 space-y-1">
-          <p className={cn("px-2 pb-1 text-xs font-medium text-slate-500", collapsed && "sr-only")}>Projects</p>
+          <p className={cn("px-2 pb-1 text-xs font-medium text-slate-500", collapsed && "sr-only")}>Account</p>
           {secondaryItems.map((item) => (
             <Link
               key={item.label}

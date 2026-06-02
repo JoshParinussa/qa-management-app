@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { ReportStatus } from "@/types";
 
@@ -11,6 +12,7 @@ export type WeeklyReportRow = {
   weekStartDate: Date;
   weekEndDate: Date;
   status: ReportStatus;
+  canEdit?: boolean;
 };
 
 function formatDate(value: Date) {
@@ -39,12 +41,18 @@ export const weeklyReportColumns: ColumnDef<WeeklyReportRow>[] = [
   },
   {
     id: "action",
+    enableSorting: false,
     header: () => <span className="sr-only">Action</span>,
     cell: ({ row }) => (
-      <div className="text-right">
-        <Link href={`/weekly-reports/${row.original.id}`} className="font-medium text-foreground hover:underline">
-          View
-        </Link>
+      <div className="flex justify-end gap-1">
+        <Button asChild variant="ghost" size="sm">
+          <Link href={`/weekly-reports/${row.original.id}`}>View</Link>
+        </Button>
+        {row.original.canEdit ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/weekly-reports/${row.original.id}/edit`}>Edit</Link>
+          </Button>
+        ) : null}
       </div>
     ),
   },
