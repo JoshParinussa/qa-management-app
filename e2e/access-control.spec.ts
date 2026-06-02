@@ -1,12 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { loginAs, loginAndChangePassword, SEEDED, SEEDED_INITIAL_PASSWORD } from "./helpers";
 
 async function createMemberAndLogin(page: import("@playwright/test").Page) {
-  // Admin creates a fresh QA member
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("jopa@example.com");
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
+  // Admin buat fresh QA member, lalu member lewati first-login flow.
+  await loginAs(page, SEEDED.admin.email);
 
   const stamp = Date.now();
   const email = `guard-${stamp}@example.com`;
@@ -20,23 +17,14 @@ async function createMemberAndLogin(page: import("@playwright/test").Page) {
   await page.context().clearCookies();
 
   // Member first login → change password
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/change-password", { timeout: 15_000 });
-  const np = "GuardPass123!";
-  await page.getByLabel("Password Baru").fill(np);
-  await page.getByLabel("Konfirmasi Password").fill(np);
-  await page.getByRole("button", { name: /simpan password baru/i }).click();
-  await page.waitForURL("**/dashboard", { timeout: 15_000 });
+  await loginAndChangePassword(page, email, SEEDED_INITIAL_PASSWORD, "GuardPass123!");
 }
 
 test("qa member is redirected away from admin users page", async ({ page }) => {
   await createMemberAndLogin(page);
 
   await page.goto("/users");
-  // requireAdmin redirects non-admins to /dashboard
+  // requireAdmin redirect non-admin ke /dashboard
   await page.waitForURL("**/dashboard", { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 });
@@ -45,7 +33,7 @@ test("qa member cannot reach project create page", async ({ page }) => {
   await createMemberAndLogin(page);
 
   await page.goto("/projects/new");
-  // canManageProjects is false for QA_MEMBER → redirect to /projects
+  // canManageProjects=false untuk QA_MEMBER → redirect ke /projects
   await page.waitForURL("**/projects", { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
 });

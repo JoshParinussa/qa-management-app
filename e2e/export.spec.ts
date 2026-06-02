@@ -1,15 +1,8 @@
 import { test, expect } from "@playwright/test";
-
-async function login(page: import("@playwright/test").Page, email: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
-}
+import { loginAs, SEEDED } from "./helpers";
 
 test("lead can download monthly markdown export", async ({ page }) => {
-  await login(page, "lead@example.com");
+  await loginAs(page, SEEDED.lead.email);
   await page.goto("/monthly-reports");
 
   const [download] = await Promise.all([

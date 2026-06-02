@@ -1,13 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { loginAs, SEEDED } from "./helpers";
 
 test("admin can login and reach dashboard", async ({ page }) => {
-  await page.goto("/login");
-
-  await page.getByLabel("Email").fill("jopa@example.com");
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: "Login" }).click();
-
-  await page.waitForURL("**/dashboard");
+  await loginAs(page, SEEDED.admin.email);
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 });
 

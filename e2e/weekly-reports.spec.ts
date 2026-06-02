@@ -1,12 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-async function loginLead(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("lead@example.com");
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
-}
+import { loginAs, SEEDED } from "./helpers";
 
 async function createProject(page: import("@playwright/test").Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -26,7 +19,7 @@ async function assignSelfToProject(page: import("@playwright/test").Page, projec
     ),
     row.getByRole("link", { name: "View" }).click(),
   ]);
-  // Assign QA Lead (has report:create) to the project
+  // Assign QA Lead (punya report:create) ke project
   await page.getByLabel("User").selectOption({ label: "QA Lead (lead@example.com)" });
   await page.getByRole("button", { name: /^assign$/i }).click();
   await expect(page.getByRole("row").filter({ hasText: "lead@example.com" })).toBeVisible({ timeout: 15_000 });
@@ -36,20 +29,21 @@ async function fillReportForm(page: import("@playwright/test").Page, projectName
   await page.getByLabel("Project").selectOption({ label: projectName });
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
-  await page.getByLabel("Summary item 1", { exact: true }).fill("Weekly QA progress summary.");
+  await page.getByLabel("summary item 1", { exact: true }).fill("Weekly QA progress summary.");
+  await page.getByLabel("Test case total").fill("200");
   await page.getByLabel("Test case BE total").fill("100");
-  await page.getByLabel("Test case BE executed").fill("80");
   await page.getByLabel("Test case FE total").fill("100");
-  await page.getByLabel("Test case FE executed").fill("90");
-  await page.getByLabel("Automation BE total").fill("50");
-  await page.getByLabel("Automation FE total").fill("50");
-  await page.getByLabel("Automation passed").fill("90");
-  await page.getByLabel("Automation failed").fill("10");
+  await page.getByLabel("BE total", { exact: true }).fill("50");
+  await page.getByLabel("BE passed", { exact: true }).fill("45");
+  await page.getByLabel("BE failed", { exact: true }).fill("5");
+  await page.getByLabel("FE total", { exact: true }).fill("50");
+  await page.getByLabel("FE passed", { exact: true }).fill("45");
+  await page.getByLabel("FE failed", { exact: true }).fill("5");
   await page.getByLabel("Next week plan item 1", { exact: true }).fill("Continue regression suite.");
 }
 
 test("qa lead can create a draft weekly report", async ({ page }) => {
-  await loginLead(page);
+  await loginAs(page, SEEDED.lead.email);
 
   const stamp = Date.now();
   const projectName = `Report Project ${stamp}`;
@@ -69,7 +63,7 @@ test("qa lead can create a draft weekly report", async ({ page }) => {
 });
 
 test("qa lead can edit a draft report", async ({ page }) => {
-  await loginLead(page);
+  await loginAs(page, SEEDED.lead.email);
 
   const stamp = Date.now();
   const projectName = `Edit Report ${stamp}`;
@@ -83,15 +77,15 @@ test("qa lead can edit a draft report", async ({ page }) => {
   await page.getByRole("button", { name: /save draft/i }).click();
   await page.waitForURL("**/weekly-reports");
 
-  // Open detail then edit
   const reportRow = page.getByRole("row").filter({ hasText: projectName });
   await reportRow.getByRole("link", { name: "View" }).click();
-  await expect(page.getByRole("heading", { name: "Weekly report" })).toBeVisible({ timeout: 15_000 });
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: "Weekly report", exact: true })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("link", { name: /^edit$/i }).click();
   await page.waitForURL(/\/weekly-reports\/[^/]+\/edit$/);
 
   const updatedSummary = `Updated summary ${stamp}`;
-  await page.getByLabel("Summary item 1", { exact: true }).fill(updatedSummary);
+  await page.getByLabel("summary item 1", { exact: true }).fill(updatedSummary);
   await page.getByRole("button", { name: /save changes/i }).click();
 
   await expect(page.getByRole("heading", { name: "Weekly report" })).toBeVisible({ timeout: 15_000 });
@@ -99,7 +93,7 @@ test("qa lead can edit a draft report", async ({ page }) => {
 });
 
 test("qa lead can submit a draft report", async ({ page }) => {
-  await loginLead(page);
+  await loginAs(page, SEEDED.lead.email);
 
   const stamp = Date.now();
   const projectName = `Submit Project ${stamp}`;
@@ -113,12 +107,11 @@ test("qa lead can submit a draft report", async ({ page }) => {
   await page.getByRole("button", { name: /save draft/i }).click();
   await page.waitForURL("**/weekly-reports");
 
-  // Open the report detail
   const reportRow = page.getByRole("row").filter({ hasText: projectName });
   await reportRow.getByRole("link", { name: "View" }).click();
-  await expect(page.getByRole("heading", { name: "Weekly report" })).toBeVisible({ timeout: 15_000 });
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: "Weekly report", exact: true })).toBeVisible({ timeout: 15_000 });
 
-  // Submit
   await page.getByRole("button", { name: /submit report/i }).click();
 
   await expect(page.getByText("Submitted")).toBeVisible({ timeout: 15_000 });

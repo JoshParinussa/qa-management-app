@@ -1,15 +1,8 @@
 import { test, expect } from "@playwright/test";
-
-async function loginAdmin(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("jopa@example.com");
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
-}
+import { loginAs, SEEDED } from "./helpers";
 
 test("admin can create a project", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
   await page.goto("/projects");
   await page.getByRole("link", { name: /new project/i }).click();
@@ -29,9 +22,8 @@ test("admin can create a project", async ({ page }) => {
 });
 
 test("admin can edit a project", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
-  // First create a project to edit
   const stamp = Date.now();
   const code = `EDIT${stamp}`.slice(0, 24);
   const name = `Edit Target ${stamp}`;
@@ -43,7 +35,6 @@ test("admin can edit a project", async ({ page }) => {
   await page.getByRole("button", { name: /create project/i }).click();
   await page.waitForURL("**/projects");
 
-  // Open detail of the project we just created
   const row = page.getByRole("row").filter({ hasText: name });
   await Promise.all([
     page.waitForURL((url) => /\/projects\/[^/]+$/.test(url.pathname) && url.pathname !== "/projects/new", { timeout: 15_000 }),
@@ -59,7 +50,7 @@ test("admin can edit a project", async ({ page }) => {
 });
 
 test("admin can archive a project", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
   const stamp = Date.now();
   const code = `ARC${stamp}`.slice(0, 24);

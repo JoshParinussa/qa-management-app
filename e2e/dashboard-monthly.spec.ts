@@ -1,15 +1,8 @@
 import { test, expect } from "@playwright/test";
-
-async function login(page: import("@playwright/test").Page, email: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
-}
+import { loginAs, loginAndChangePassword, SEEDED, SEEDED_INITIAL_PASSWORD } from "./helpers";
 
 test("lead dashboard shows QA stat cards and sections", async ({ page }) => {
-  await login(page, "lead@example.com");
+  await loginAs(page, SEEDED.lead.email);
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Active projects")).toBeVisible();
@@ -19,7 +12,7 @@ test("lead dashboard shows QA stat cards and sections", async ({ page }) => {
 });
 
 test("admin dashboard shows reviewer view", async ({ page }) => {
-  await login(page, "jopa@example.com");
+  await loginAs(page, SEEDED.admin.email);
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Active projects")).toBeVisible();
@@ -27,8 +20,8 @@ test("admin dashboard shows reviewer view", async ({ page }) => {
 });
 
 test("member dashboard shows personal summary", async ({ page }) => {
-  // Use a fresh member created by admin so the password state is deterministic
-  await login(page, "jopa@example.com");
+  await loginAs(page, SEEDED.admin.email);
+
   const stamp = Date.now();
   const email = `member-dash-${stamp}@example.com`;
   const name = `Member Dash ${stamp}`;
@@ -40,17 +33,7 @@ test("member dashboard shows personal summary", async ({ page }) => {
   await expect(page.getByRole("cell", { name })).toBeVisible({ timeout: 15_000 });
   await page.context().clearCookies();
 
-  // First login → forced change password
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/change-password", { timeout: 15_000 });
-  const np = "MemberPass123!";
-  await page.getByLabel("Password Baru").fill(np);
-  await page.getByLabel("Konfirmasi Password").fill(np);
-  await page.getByRole("button", { name: /simpan password baru/i }).click();
-  await page.waitForURL("**/dashboard", { timeout: 15_000 });
+  await loginAndChangePassword(page, email, SEEDED_INITIAL_PASSWORD, "MemberPass123!");
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Assigned projects")).toBeVisible();
@@ -58,7 +41,7 @@ test("member dashboard shows personal summary", async ({ page }) => {
 });
 
 test("monthly summary page loads with filter and export", async ({ page }) => {
-  await login(page, "lead@example.com");
+  await loginAs(page, SEEDED.lead.email);
 
   await page.goto("/monthly-reports");
   await expect(page.getByRole("heading", { name: "Monthly reports" })).toBeVisible();

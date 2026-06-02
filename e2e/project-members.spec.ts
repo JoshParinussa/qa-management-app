@@ -1,12 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-async function loginAdmin(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("jopa@example.com");
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
-}
+import { loginAs, SEEDED } from "./helpers";
 
 async function createProject(page: import("@playwright/test").Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -39,7 +32,7 @@ async function openProjectDetail(page: import("@playwright/test").Page, name: st
 }
 
 test("admin can assign a member to a project", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
   const stamp = Date.now();
   const projectName = `Assign Project ${stamp}`;
@@ -51,19 +44,18 @@ test("admin can assign a member to a project", async ({ page }) => {
   await createProject(page, projectName, code);
   await openProjectDetail(page, projectName);
 
-  // Assign newly created user
   await page.getByLabel("User").selectOption({ label: `${memberName} (${memberEmail})` });
   await page.getByLabel("Role", { exact: true }).selectOption("QA_MEMBER");
   await page.getByRole("button", { name: /^assign$/i }).click();
 
-  // After redirect back to detail, member should appear in assigned table
   const memberRow = page.getByRole("row").filter({ hasText: memberEmail });
   await expect(memberRow).toBeVisible({ timeout: 15_000 });
-  await expect(memberRow.getByText("QA Member")).toBeVisible();
+  // Role rendered sebagai <select> editable; cek value-nya QA_MEMBER.
+  await expect(memberRow.getByRole("combobox")).toHaveValue("QA_MEMBER");
 });
 
 test("admin can remove an assigned member", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
   const stamp = Date.now();
   const projectName = `Remove Project ${stamp}`;
@@ -83,7 +75,6 @@ test("admin can remove an assigned member", async ({ page }) => {
 
   await memberRow.getByRole("button", { name: /^remove$/i }).click();
 
-  // After remove + redirect back to detail, the member row should be gone
   await expect(page.getByRole("row").filter({ hasText: memberEmail })).toHaveCount(0, {
     timeout: 15_000,
   });

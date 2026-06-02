@@ -1,12 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-async function loginAdmin(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("jopa@example.com");
-  await page.getByLabel("Password").fill("password123");
-  await page.getByRole("button", { name: /login/i }).click();
-  await page.waitForURL("**/dashboard");
-}
+import { loginAs, SEEDED } from "./helpers";
 
 async function createUser(page: import("@playwright/test").Page, name: string, email: string) {
   await page.goto("/users");
@@ -18,7 +11,7 @@ async function createUser(page: import("@playwright/test").Page, name: string, e
 }
 
 test("admin can edit a user's name", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
   const stamp = Date.now();
   const email = `edituser-${stamp}@example.com`;
@@ -27,7 +20,6 @@ test("admin can edit a user's name", async ({ page }) => {
 
   await createUser(page, name, email);
 
-  // Open edit page from user row
   const row = page.getByRole("row").filter({ hasText: email });
   await row.getByRole("link", { name: /edit/i }).click();
   await page.waitForURL(/\/users\/[^/]+\/edit$/);
@@ -40,7 +32,7 @@ test("admin can edit a user's name", async ({ page }) => {
 });
 
 test("admin can reset a user's password and login with new password", async ({ page }) => {
-  await loginAdmin(page);
+  await loginAs(page, SEEDED.admin.email);
 
   const stamp = Date.now();
   const email = `resetpwd-${stamp}@example.com`;
@@ -60,10 +52,10 @@ test("admin can reset a user's password and login with new password", async ({ p
   const newPassword = (await codeLocator.textContent())?.trim() || "";
   expect(newPassword.length).toBeGreaterThanOrEqual(12);
 
-  // Logout via clearing cookies
   await page.context().clearCookies();
 
-  // Login pakai password baru — harus diarahkan ke change-password karena resetPasswordAction set must_change_password=true
+  // Login pakai password baru — harus diarahkan ke /change-password karena
+  // resetPasswordAction set must_change_password=true
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(newPassword);
