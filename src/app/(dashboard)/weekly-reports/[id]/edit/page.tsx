@@ -5,7 +5,7 @@ import { updateDraftAction } from "@/lib/weekly-reports/actions";
 import { requireUser } from "@/lib/auth/session";
 import { getReportById } from "@/lib/weekly-reports/queries";
 import { listAssignedProjects } from "@/lib/project-members/queries";
-import type { ActionState } from "@/types";
+import type { WeeklyReportActionState } from "@/lib/weekly-reports/form-state";
 
 function toDateInput(value: Date) {
   return new Date(value).toISOString().slice(0, 10);
@@ -26,7 +26,7 @@ export default async function EditWeeklyReportPage({ params }: { params: Promise
 
   const projects = await listAssignedProjects(user.id);
 
-  async function action(state: ActionState, formData: FormData) {
+  async function action(state: WeeklyReportActionState, formData: FormData) {
     "use server";
     return updateDraftAction(id, state, formData);
   }
@@ -55,12 +55,15 @@ export default async function EditWeeklyReportPage({ params }: { params: Promise
               productionIncidentCount: report.productionIncidentCount,
               productionIncidentNotes: report.productionIncidentNotes,
               bugDocumentUrl: report.bugDocumentUrl,
+              testCaseTotal: report.testCaseTotal,
               testCaseBeTotal: report.testCaseBeTotal,
-              testCaseBeExecuted: report.testCaseBeExecuted,
               testCaseFeTotal: report.testCaseFeTotal,
-              testCaseFeExecuted: report.testCaseFeExecuted,
               automationBeTotal: report.automationBeTotal,
               automationFeTotal: report.automationFeTotal,
+              automationBePassed: report.automationBePassed,
+              automationBeFailed: report.automationBeFailed,
+              automationFePassed: report.automationFePassed,
+              automationFeFailed: report.automationFeFailed,
               automationPassed: report.automationPassed,
               automationFailed: report.automationFailed,
               blocker: report.blocker,

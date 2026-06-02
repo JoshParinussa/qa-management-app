@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { parseIncidents, type IncidentItem } from "@/lib/reports/incidents";
+import { parseIncidents, syncIncidentItemsToCount, type IncidentItem } from "@/lib/reports/incidents";
 
 export type { IncidentItem };
 
@@ -14,28 +14,54 @@ type IncidentListInputProps = {
   name: string;
   label: string;
   defaultValue?: string | null;
+  count?: number;
+  onCountChange?: (count: number) => void;
 };
 
-export function IncidentListInput({ name, label, defaultValue }: IncidentListInputProps) {
+export function IncidentListInput({ name, label, defaultValue, count, onCountChange }: IncidentListInputProps) {
   const [items, setItems] = useState<IncidentItem[]>(() => {
     const parsed = parseIncidents(defaultValue);
-    return parsed.length > 0 ? parsed : [{ title: "", description: "" }];
+    if (count !== undefined) return syncIncidentItemsToCount(parsed, count);
+    return parsed.length > 0 ? parsed : [{ title: "", description: "", relatedTestCaseId: "" }];
   });
 
-  const cleaned = items
-    .map((item) => ({ title: item.title.trim(), description: item.description.trim() }))
-    .filter((item) => item.title || item.description);
+  const visibleItems = count === undefined ? items : syncIncidentItemsToCount(items, count);
+
+  const cleaned = visibleItems
+    .map((item) => ({
+      title: item.title.trim(),
+      description: item.description.trim(),
+      relatedTestCaseId: item.relatedTestCaseId.trim(),
+    }))
+    .filter((item) => item.title || item.description || item.relatedTestCaseId);
 
   function update(index: number, key: keyof IncidentItem, value: string) {
-    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)));
+    setItems((prev) => {
+      const base = count === undefined ? prev : syncIncidentItemsToCount(prev, count);
+      return base.map((item, i) => (i === index ? { ...item, [key]: value } : item));
+    });
   }
 
   function addItem() {
-    setItems((prev) => [...prev, { title: "", description: "" }]);
+    setItems((prev) => {
+      const base = count === undefined ? prev : syncIncidentItemsToCount(prev, count);
+      const next = [...base, { title: "", description: "", relatedTestCaseId: "" }];
+      onCountChange?.(next.length);
+      return next;
+    });
   }
 
   function removeItem(index: number) {
-    setItems((prev) => (prev.length <= 1 ? [{ title: "", description: "" }] : prev.filter((_, i) => i !== index)));
+    setItems((prev) => {
+      const base = count === undefined ? prev : syncIncidentItemsToCount(prev, count);
+      const next = base.filter((_, i) => i !== index);
+      onCountChange?.(next.length);
+      return count === undefined && next.length === 0 ? [{ title: "", description: "", relatedTestCaseId: "" }] : next;
+    });
+  }
+
+  function RequiredMark() {
+    return <span className="text-destructive">*</span>;
   }
 
   return (
@@ -43,31 +69,50 @@ export function IncidentListInput({ name, label, defaultValue }: IncidentListInp
       {label ? <Label>{label}</Label> : null}
       <input type="hidden" name={name} value={cleaned.length > 0 ? JSON.stringify(cleaned) : ""} />
       <div className="space-y-3">
-        {items.map((item, index) => (
+        {visibleItems.map((item, index) => (
           <div key={index} className="space-y-2 rounded-lg border border-border p-3">
-            <div className="flex items-center gap-2">
-              <Input
-                value={item.title}
-                onChange={(e) => update(index, "title", e.target.value)}
-                placeholder="Incident title"
-                aria-label={`Incident title ${index + 1}`}
-              />
+            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+              <div className="space-y-2">
+                <Label htmlFor={`incidentTitle${index}`}>Incident title <RequiredMark /></Label>
+                <Input
+                  id={`incidentTitle${index}`}
+                  value={item.title}
+                  onChange={(e) => update(index, "title", e.target.value)}
+                  placeholder="Incident title"
+                  aria-label={`Incident title ${index + 1}`}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`incidentRelatedTestCase${index}`}>Related test case ID <RequiredMark /></Label>
+                <Input
+                  id={`incidentRelatedTestCase${index}`}
+                  value={item.relatedTestCaseId}
+                  onChange={(e) => update(index, "relatedTestCaseId", e.target.value)}
+                  placeholder="TC-001"
+                  aria-label={`Related test case ID ${index + 1}`}
+                />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="self-end"
                 onClick={() => removeItem(index)}
                 aria-label={`Remove incident ${index + 1}`}
               >
                 <X className="size-4" />
               </Button>
             </div>
-            <Textarea
-              value={item.description}
-              onChange={(e) => update(index, "description", e.target.value)}
-              placeholder="Incident description"
-              aria-label={`Incident description ${index + 1}`}
-            />
+            <div className="space-y-2">
+              <Label htmlFor={`incidentDescription${index}`}>Incident description <RequiredMark /></Label>
+              <Textarea
+                id={`incidentDescription${index}`}
+                value={item.description}
+                onChange={(e) => update(index, "description", e.target.value)}
+                placeholder="Incident description"
+                aria-label={`Incident description ${index + 1}`}
+              />
+            </div>
           </div>
         ))}
       </div>

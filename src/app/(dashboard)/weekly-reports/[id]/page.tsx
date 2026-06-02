@@ -9,6 +9,7 @@ import { ReviewActions } from "@/components/reports/review-actions";
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import { getReportById, listReportFeedbacks } from "@/lib/weekly-reports/queries";
+import { parseBulletItems } from "@/lib/reports/bullets";
 import { parseIncidents } from "@/lib/reports/incidents";
 import { submitReportAction } from "@/lib/weekly-reports/actions";
 import { markReviewedAction, requestRevisionAction, approveReportAction } from "@/lib/reviews/actions";
@@ -30,9 +31,14 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
 
   const metrics = calculateReportMetrics(report);
   const isOwner = report.userId === user.id;
+  const isReviewer = can(user.role, "report:review");
+
+  if (!isOwner && !isReviewer) {
+    notFound();
+  }
+
   const canEdit = isOwner && report.status !== "APPROVED";
   const canSubmit = isOwner && canSubmitReport(report.status);
-  const isReviewer = can(user.role, "report:review");
   const canReview = isReviewer && canReviewReport(report.status);
   const feedbacks = await listReportFeedbacks(id);
 
@@ -114,11 +120,13 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
             <Metric label="Total test case" value={metrics.totalTestCase} />
-            <Metric label="Executed" value={metrics.totalExecutedTestCase} />
+            <Metric label="BE test case" value={report.testCaseBeTotal} />
+            <Metric label="FE test case" value={report.testCaseFeTotal} />
+            <Metric label="BE automation coverage" value={`${metrics.automationBeCoverage}%`} />
+            <Metric label="FE automation coverage" value={`${metrics.automationFeCoverage}%`} />
+            <Metric label="BE pass rate" value={`${metrics.automationBePassRate}%`} />
+            <Metric label="FE pass rate" value={`${metrics.automationFePassRate}%`} />
             <Metric label="Total automation" value={metrics.totalAutomation} />
-            <Metric label="Automation coverage" value={`${metrics.automationCoverage}%`} />
-            <Metric label="Execution coverage" value={`${metrics.executionCoverage}%`} />
-            <Metric label="Automation pass rate" value={`${metrics.automationPassRate}%`} />
           </div>
         </CardContent>
       </Card>
@@ -158,10 +166,7 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 function BulletField({ label, value }: { label: string; value: string | null }) {
-  const items = (value ?? "")
-    .split("\n")
-    .map((line) => line.replace(/^[-•]\s*/, "").trim())
-    .filter(Boolean);
+  const items = parseBulletItems(value);
 
   return (
     <div>
@@ -171,7 +176,7 @@ function BulletField({ label, value }: { label: string; value: string | null }) 
       ) : (
         <ul className="mt-1 list-disc space-y-1 pl-5 text-foreground">
           {items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i} className="whitespace-pre-wrap">{item}</li>
           ))}
         </ul>
       )}
@@ -192,6 +197,9 @@ function IncidentsField({ label, value }: { label: string; value: string | null 
           {incidents.map((incident, i) => (
             <li key={i} className="rounded-lg border border-border p-3">
               {incident.title ? <p className="font-medium text-foreground">{incident.title}</p> : null}
+              {incident.relatedTestCaseId ? (
+                <p className="mt-1 text-xs text-muted-foreground">Related test case: {incident.relatedTestCaseId}</p>
+              ) : null}
               {incident.description ? (
                 <p className="mt-0.5 whitespace-pre-wrap text-muted-foreground">{incident.description}</p>
               ) : null}

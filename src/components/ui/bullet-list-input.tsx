@@ -3,32 +3,28 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { parseBulletItems, serializeBulletItems } from "@/lib/reports/bullets";
 
 type BulletListInputProps = {
   name: string;
   label: string;
   defaultValue?: string | null;
   placeholder?: string;
+  required?: boolean;
 };
 
 function parseRows(value?: string | null): string[] {
-  if (!value) return [""];
-  const rows = value
-    .split("\n")
-    .map((r) => r.replace(/^[-•]\s*/, "").trim())
-    .filter((r) => r.length > 0);
+  const rows = parseBulletItems(value);
   return rows.length > 0 ? rows : [""];
 }
 
-export function BulletListInput({ name, label, defaultValue, placeholder }: BulletListInputProps) {
+export function BulletListInput({ name, label, defaultValue, placeholder, required }: BulletListInputProps) {
   const [rows, setRows] = useState<string[]>(() => parseRows(defaultValue));
+  const labelText = label.trim();
 
-  const joined = rows
-    .map((r) => r.trim())
-    .filter(Boolean)
-    .join("\n");
+  const joined = serializeBulletItems(rows);
 
   function update(index: number, value: string) {
     setRows((prev) => prev.map((row, i) => (i === index ? value : row)));
@@ -44,24 +40,29 @@ export function BulletListInput({ name, label, defaultValue, placeholder }: Bull
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      {labelText ? (
+        <Label>
+          {labelText} {required ? <span className="text-destructive">*</span> : null}
+        </Label>
+      ) : null}
       <input type="hidden" name={name} value={joined} />
       <div className="space-y-2">
         {rows.map((row, index) => (
           <div key={index} className="flex items-center gap-2">
             <span className="select-none text-muted-foreground">•</span>
-            <Input
+            <Textarea
               value={row}
               onChange={(e) => update(index, e.target.value)}
               placeholder={placeholder}
-              aria-label={`${label} item ${index + 1}`}
+              aria-label={`${labelText || name} item ${index + 1}`}
+              className="min-h-11 resize-y py-2"
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={() => removeRow(index)}
-              aria-label={`Remove ${label} item ${index + 1}`}
+              aria-label={`Remove ${labelText || name} item ${index + 1}`}
             >
               <X className="size-4" />
             </Button>
