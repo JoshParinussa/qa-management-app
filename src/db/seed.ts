@@ -38,10 +38,10 @@ async function upsertProjectMember(input: typeof projectMembers.$inferInsert) {
 async function main() {
   const passwordHash = await hashPassword("password123");
 
-  const jopa = await upsertUser({ name: "Jopa", email: "jopa@example.com", role: "ADMIN", passwordHash, mustChangePassword: false });
-  const lead = await upsertUser({ name: "QA Lead", email: "lead@example.com", role: "QA_LEAD", passwordHash, mustChangePassword: false });
-  const qa1 = await upsertUser({ name: "QA Member 1", email: "qa1@example.com", role: "QA_MEMBER", passwordHash });
-  const qa2 = await upsertUser({ name: "QA Member 2", email: "qa2@example.com", role: "QA_MEMBER", passwordHash });
+  await upsertUser({ name: "Jopa", email: "jopa@example.com", role: "ADMIN", passwordHash, mustChangePassword: true });
+  const lead = await upsertUser({ name: "QA Lead", email: "lead@example.com", role: "QA_LEAD", passwordHash, mustChangePassword: true });
+  const qa1 = await upsertUser({ name: "QA Member 1", email: "qa1@example.com", role: "QA_MEMBER", passwordHash, mustChangePassword: true });
+  const qa2 = await upsertUser({ name: "QA Member 2", email: "qa2@example.com", role: "QA_MEMBER", passwordHash, mustChangePassword: true });
 
   const uhf = await upsertProject({ name: "UHealth Frontend", code: "UHF", description: "Frontend QA coverage" });
   const uhb = await upsertProject({ name: "UHealth Backend", code: "UHB", description: "Backend QA coverage" });

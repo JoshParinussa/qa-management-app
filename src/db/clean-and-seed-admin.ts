@@ -34,7 +34,7 @@ async function main() {
     email: ADMIN_EMAIL,
     role: "ADMIN",
     passwordHash,
-    mustChangePassword: false,
+    mustChangePassword: true,
   });
 
   console.log("Database cleaned. Super admin created:");
