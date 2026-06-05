@@ -217,7 +217,7 @@ describe("weekly report actions", () => {
     const statusRevert = mocks.updateSet.mock.calls[1][0];
     expect(statusRevert.status).toBe("DRAFT");
 
-    const activityActions = mocks.insertActivity.mock.calls.map((c: [{ action: string }]) => c[0].action);
+    const activityActions = mocks.insertActivity.mock.calls.map((c) => (c[0] as { action: string }).action);
     expect(activityActions).toContain(ACTIVITY_ACTIONS.EDITED);
     expect(activityActions).toContain(ACTIVITY_ACTIONS.QA_APPROVAL_REVOKED);
   });

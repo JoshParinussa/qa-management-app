@@ -4,17 +4,39 @@ import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { SubmitReportButton } from "@/components/reports/submit-report-button";
+import { QaApprovalButton, SubmitToReviewerButton } from "@/components/reports/qa-approval-button";
+import { CoAuthorsPanel } from "@/components/reports/co-authors-panel";
+import { ActivityTimeline } from "@/components/reports/activity-timeline";
 import { FeedbackHistory } from "@/components/reports/feedback-history";
 import { ReviewActions } from "@/components/reports/review-actions";
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
-import { getReportById, getReportReviewNames, isCoAuthor, listReportFeedbacks } from "@/lib/weekly-reports/queries";
+import {
+  getReportById,
+  getReportReviewNames,
+  hasUserApproved,
+  isCoAuthor,
+  listReportActivities,
+  listReportAuthors,
+  listReportFeedbacks,
+} from "@/lib/weekly-reports/queries";
+import { db } from "@/db/client";
+import { eq } from "drizzle-orm";
+import { users } from "@/db/schema";
 import { parseBulletItems } from "@/lib/reports/bullets";
 import { parseIncidents } from "@/lib/reports/incidents";
-import { submitReportAction } from "@/lib/weekly-reports/actions";
+import { requestQaApprovalAction } from "@/lib/weekly-reports/actions";
+import {
+  approveAsCoAuthorAction,
+  revokeMyApprovalAction,
+} from "@/lib/weekly-reports/co-author-actions";
 import { markReviewedAction, requestRevisionAction, approveReportAction } from "@/lib/reviews/actions";
-import { canReviewReport, canStartQaApproval } from "@/lib/weekly-reports/transitions";
+import {
+  canApproveAsCoAuthor,
+  canReviewReport,
+  canRevokeApproval,
+  canStartQaApproval,
+} from "@/lib/weekly-reports/transitions";
 import { canEditReport } from "@/lib/weekly-reports/rules";
 import { reportStageDescription } from "@/lib/reports/status";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
@@ -27,6 +49,12 @@ function formatDate(value: Date) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(value));
+}
+
+async function getUserName(userId: string | null) {
+  if (!userId) return null;
+  const [row] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+  return row?.name ?? null;
 }
 
 export default async function WeeklyReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,16 +74,54 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
     notFound();
   }
 
-  const canEdit = userIsCoAuthor && canEditReport(report.status);
-  const canSubmit = userIsCoAuthor && canStartQaApproval(report.status);
-  const canReview = isReviewer && canReviewReport(report.status);
-  const feedbacks = await listReportFeedbacks(id);
-  const { reviewerName, approverName } = await getReportReviewNames(report.reviewedBy, report.approvedBy);
-  const stageDescription = reportStageDescription(report.status, { reviewerName, approverName });
+  const [
+    authors,
+    activities,
+    userHasApproved,
+    feedbacks,
+    submitterName,
+    creatorName,
+    { reviewerName, approverName },
+  ] = await Promise.all([
+    listReportAuthors(id),
+    listReportActivities(id),
+    userIsCoAuthor ? hasUserApproved(id, user.id) : Promise.resolve(false),
+    listReportFeedbacks(id),
+    getUserName(report.submittedBy),
+    getUserName(report.createdBy),
+    getReportReviewNames(report.reviewedBy, report.approvedBy),
+  ]);
 
-  async function submit() {
+  const approvedCount = authors.filter((a) => a.approvedAt != null).length;
+  const totalCount = authors.length;
+
+  const canEdit = userIsCoAuthor && canEditReport(report.status);
+  const canRequestApproval = userIsCoAuthor && canStartQaApproval(report.status);
+  const showApprove = canApproveAsCoAuthor(report.status, userIsCoAuthor, userHasApproved);
+  const showRevoke = canRevokeApproval(report.status, userIsCoAuthor, userHasApproved);
+  const canReview = isReviewer && canReviewReport(report.status);
+
+  const stageDescription = reportStageDescription(report.status, {
+    reviewerName,
+    approverName,
+    submitterName,
+    approvalProgress:
+      report.status === "PENDING_QA_APPROVAL" ? { approved: approvedCount, total: totalCount } : undefined,
+  });
+
+  async function requestApproval() {
     "use server";
-    return submitReportAction(id);
+    return requestQaApprovalAction(id);
+  }
+
+  async function approveAsCoAuthor() {
+    "use server";
+    return approveAsCoAuthorAction(id);
+  }
+
+  async function revokeApproval() {
+    "use server";
+    return revokeMyApprovalAction(id);
   }
 
   async function markReviewed(formData: FormData) {
@@ -75,26 +141,43 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Weekly report</h2>
           <p className="text-muted-foreground">
             {formatDate(report.weekStartDate)} → {formatDate(report.weekEndDate)}
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Dibuat oleh {creatorName ?? "—"}
+            {submitterName ? <> · Submitted oleh {submitterName}</> : null}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-end gap-2">
           <div className="flex flex-col items-end gap-0.5">
             <StatusBadge status={report.status} />
             <p className="text-xs text-muted-foreground">{stageDescription}</p>
           </div>
-          {canEdit ? (
-            <Link href={`/weekly-reports/${id}/edit`}>
-              <Button variant="outline">Edit</Button>
-            </Link>
-          ) : null}
-          {canSubmit ? <SubmitReportButton action={submit} /> : null}
+          <div className="flex items-center gap-2">
+            {canEdit ? (
+              <Link href={`/weekly-reports/${id}/edit`}>
+                <Button variant="outline">Edit</Button>
+              </Link>
+            ) : null}
+            {canRequestApproval ? <SubmitToReviewerButton action={requestApproval} /> : null}
+          </div>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Co-authors & approval</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CoAuthorsPanel authors={authors} approvedCount={approvedCount} totalCount={totalCount} />
+          {showApprove ? <QaApprovalButton mode="approve" action={approveAsCoAuthor} /> : null}
+          {showRevoke ? <QaApprovalButton mode="revoke" action={revokeApproval} /> : null}
+        </CardContent>
+      </Card>
 
       {canReview ? (
         <Card>
@@ -165,6 +248,15 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
           <BulletField label="Blocker" value={report.blocker} />
           <BulletField label="Next week plan" value={report.nextWeekPlan} />
           <Field label="Notes" value={report.notes ?? "-"} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActivityTimeline activities={activities} />
         </CardContent>
       </Card>
     </div>
