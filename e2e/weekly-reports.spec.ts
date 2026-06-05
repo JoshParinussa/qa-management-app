@@ -30,6 +30,7 @@ async function fillReportForm(page: import("@playwright/test").Page, projectName
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
   await page.getByLabel("summary item 1", { exact: true }).fill("Weekly QA progress summary.");
+  await page.getByLabel("Bug document URL").fill("https://example.test/bugs/weekly");
   await page.getByLabel("Test case total").fill("200");
   await page.getByLabel("Test case BE total").fill("100");
   await page.getByLabel("Test case FE total").fill("100");

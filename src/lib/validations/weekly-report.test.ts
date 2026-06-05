@@ -7,6 +7,7 @@ const validBase = {
   weekEndDate: "2026-05-10",
   summary: "Done some work",
   productionIncidentCount: 0,
+  bugDocumentUrl: "https://example.test/bugs/weekly",
   testCaseTotal: 120,
   testCaseBeTotal: 100,
   testCaseBeExecuted: 80,
@@ -24,7 +25,6 @@ const validBase = {
 };
 
 const currentFormOmittedFields = new Set([
-  "testCaseTotal",
   "automationBePassed",
   "automationBeFailed",
   "automationFePassed",
@@ -57,6 +57,65 @@ describe("weeklyReportSchema dates", () => {
   it("accepts a normal week range", () => {
     const result = weeklyReportSchema.safeParse(validBase);
     expect(result.success).toBe(true);
+  });
+});
+
+describe("weeklyReportSchema total test case coverage", () => {
+  const noAutomation = {
+    automationBeTotal: 0,
+    automationFeTotal: 0,
+    automationBePassed: 0,
+    automationBeFailed: 0,
+    automationFePassed: 0,
+    automationFeFailed: 0,
+    automationPassed: 0,
+    automationFailed: 0,
+  };
+
+  it("rejects when BE + FE total is less than the input total test case", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      ...noAutomation,
+      testCaseTotal: 100,
+      testCaseBeTotal: 50,
+      testCaseBeExecuted: 0,
+      testCaseFeTotal: 20,
+      testCaseFeExecuted: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts when BE + FE total equals the input total test case", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      ...noAutomation,
+      testCaseTotal: 100,
+      testCaseBeTotal: 50,
+      testCaseBeExecuted: 0,
+      testCaseFeTotal: 50,
+      testCaseFeExecuted: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts when BE + FE total exceeds the input total test case", () => {
+    const result = weeklyReportSchema.safeParse({
+      ...validBase,
+      ...noAutomation,
+      testCaseTotal: 100,
+      testCaseBeTotal: 60,
+      testCaseBeExecuted: 0,
+      testCaseFeTotal: 60,
+      testCaseFeExecuted: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("requires the total test case to be provided", () => {
+    const withoutTotal = { ...validBase } as Partial<typeof validBase>;
+    delete withoutTotal.testCaseTotal;
+    const result = weeklyReportSchema.safeParse(withoutTotal);
+    expect(result.success).toBe(false);
   });
 });
 
@@ -135,6 +194,7 @@ describe("weeklyReportSchema automation limits", () => {
   it("accepts automation equal to total test cases", () => {
     const result = weeklyReportSchema.safeParse({
       ...validBase,
+      testCaseTotal: 20,
       testCaseBeTotal: 10,
       testCaseFeTotal: 10,
       automationBeTotal: 10,
@@ -156,7 +216,8 @@ describe("weeklyReportSchema automation limits", () => {
 
     expect(result.success).toBe(true);
     if (!result.success) throw new Error("Expected current form payload to be valid");
-    expect("testCaseTotal" in result.data).toBe(false);
+    expect("automationBePassed" in result.data).toBe(false);
+    expect("automationFePassed" in result.data).toBe(false);
   });
 
   it("rejects current form shape when aggregate automation runs exceed automation totals", () => {

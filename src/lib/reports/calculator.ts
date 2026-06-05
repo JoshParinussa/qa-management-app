@@ -42,7 +42,7 @@ export function calculateReportMetrics(input: ReportMetricsInput) {
     totalExecutedTestCase,
     totalAutomation,
     totalAutomationRun,
-    automationCoverage: percent(totalAutomation, legacyTotalTestCase),
+    automationCoverage: percent(totalAutomation, totalTestCase),
     executionCoverage: percent(totalExecutedTestCase, legacyTotalTestCase),
     automationPassRate: percent(automationPassed, totalAutomationRun),
     automationBeCoverage: percent(input.automationBeTotal, input.testCaseBeTotal),

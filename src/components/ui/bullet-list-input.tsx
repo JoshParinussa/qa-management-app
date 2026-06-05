@@ -13,6 +13,7 @@ type BulletListInputProps = {
   defaultValue?: string | null;
   placeholder?: string;
   required?: boolean;
+  error?: string;
 };
 
 function parseRows(value?: string | null): string[] {
@@ -20,9 +21,10 @@ function parseRows(value?: string | null): string[] {
   return rows.length > 0 ? rows : [""];
 }
 
-export function BulletListInput({ name, label, defaultValue, placeholder, required }: BulletListInputProps) {
+export function BulletListInput({ name, label, defaultValue, placeholder, required, error }: BulletListInputProps) {
   const [rows, setRows] = useState<string[]>(() => parseRows(defaultValue));
   const labelText = label.trim();
+  const errorId = error ? `${name}-error` : undefined;
 
   const joined = serializeBulletItems(rows);
 
@@ -55,6 +57,8 @@ export function BulletListInput({ name, label, defaultValue, placeholder, requir
               onChange={(e) => update(index, e.target.value)}
               placeholder={placeholder}
               aria-label={`${labelText || name} item ${index + 1}`}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={index === 0 ? errorId : undefined}
               className="min-h-11 resize-y py-2"
             />
             <Button
@@ -69,6 +73,11 @@ export function BulletListInput({ name, label, defaultValue, placeholder, requir
           </div>
         ))}
       </div>
+      {error ? (
+        <p id={errorId} className="text-xs text-destructive">
+          {error}
+        </p>
+      ) : null}
       <Button type="button" variant="outline" size="sm" onClick={addRow}>
         <Plus className="size-4" />
         Add row
