@@ -5,7 +5,8 @@ import { WeeklyReportsDataTable } from "@/components/reports/weekly-reports-data
 import { PageHeader } from "@/components/layout/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { can, canViewWeeklyReports } from "@/lib/permissions/roles";
-import { listAllReports, listReportsByUser } from "@/lib/weekly-reports/queries";
+import { listAllReports, listReportsByCoAuthor } from "@/lib/weekly-reports/queries";
+import { canEditReport } from "@/lib/weekly-reports/rules";
 import { redirect } from "next/navigation";
 
 export default async function WeeklyReportsPage() {
@@ -16,10 +17,10 @@ export default async function WeeklyReportsPage() {
   }
 
   const isReviewer = can(user.role, "report:review");
-  const reports = isReviewer ? await listAllReports() : await listReportsByUser(user.id);
+  const reports = isReviewer ? await listAllReports() : await listReportsByCoAuthor(user.id);
   const reportRows = reports.map((report) => ({
     ...report,
-    canEdit: report.userId === user.id && report.status !== "APPROVED",
+    canEdit: canEditReport(report.status),
   }));
   const canCreate = can(user.role, "report:create");
 

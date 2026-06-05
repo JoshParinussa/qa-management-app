@@ -1,5 +1,5 @@
 export const roles = ["ADMIN", "QA_LEAD", "QA_MEMBER"] as const;
-export const reportStatuses = ["DRAFT", "SUBMITTED", "REVIEWED", "NEED_REVISION", "APPROVED"] as const;
+export const reportStatuses = ["DRAFT", "PENDING_QA_APPROVAL", "SUBMITTED", "REVIEWED", "NEED_REVISION", "APPROVED"] as const;
 export const projectStatuses = ["ACTIVE", "ARCHIVED"] as const;
 
 export type Role = (typeof roles)[number];

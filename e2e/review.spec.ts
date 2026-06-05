@@ -30,6 +30,7 @@ async function createAndSubmitReport(page: import("@playwright/test").Page, proj
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
   await page.getByLabel("summary item 1", { exact: true }).fill("Weekly QA progress summary.");
+  await page.getByLabel("Bug document URL").fill("https://example.test/bugs/weekly");
   await page.getByLabel("Test case total").fill("200");
   await page.getByLabel("Test case BE total").fill("100");
   await page.getByLabel("Test case FE total").fill("100");
@@ -47,8 +48,10 @@ async function createAndSubmitReport(page: import("@playwright/test").Page, proj
   await reportRow.getByRole("link", { name: "View" }).click();
   await page.waitForURL(/\/weekly-reports\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "Weekly report", exact: true })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: /submit report/i }).click();
-  await expect(page.getByText("Submitted")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /ajukan untuk approval qa/i }).click();
+  await expect(page.getByText("Pending qa approval")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /^approve$/i }).click();
+  await expect(page.getByText("Submitted", { exact: true })).toBeVisible({ timeout: 15_000 });
 }
 
 test("qa lead can review and approve a submitted report", async ({ page }) => {

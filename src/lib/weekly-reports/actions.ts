@@ -2,18 +2,20 @@
 
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
+import { uuidv7 } from "uuidv7";
 import { db } from "@/db/client";
-import { weeklyReports } from "@/db/schema";
+import { reportAuthors, reportQaApprovals, weeklyReports } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { calculateReportMetrics } from "@/lib/reports/calculator";
-import { findActiveAssignment } from "@/lib/project-members/queries";
+import { findActiveAssignment, listProjectMembers } from "@/lib/project-members/queries";
 import { hasActiveAssignment } from "@/lib/project-members/rules";
-import { canEditReport, validateSubmitReadiness } from "@/lib/weekly-reports/rules";
-import { findReportForWeek, getReportById } from "@/lib/weekly-reports/queries";
-import { canSubmitReport } from "@/lib/weekly-reports/transitions";
+import { canEditReport, detectContentChanges, validateSubmitReadiness } from "@/lib/weekly-reports/rules";
+import { findReportForWeek, getReportById, isCoAuthor } from "@/lib/weekly-reports/queries";
+import { canStartQaApproval } from "@/lib/weekly-reports/transitions";
+import { ACTIVITY_ACTIONS, insertActivity } from "@/lib/weekly-reports/activity";
 import { weeklyReportSchema, type WeeklyReportInput } from "@/lib/validations/weekly-report";
 import type { ActionState } from "@/types";
-import { weeklyReportErrorState, type WeeklyReportActionState } from "./form-state";
+import { fieldErrorsFromZod, weeklyReportErrorState, type WeeklyReportActionState } from "./form-state";
 
 function parseReportForm(formData: FormData) {
   const num = (key: string) => Number(formData.get(key) ?? 0);
@@ -22,8 +24,9 @@ function parseReportForm(formData: FormData) {
     if (raw === null || raw === "") return undefined;
     return Number(raw);
   };
+  const testCaseBeTotal = optionalNum("testCaseBeTotal");
+  const testCaseFeTotal = optionalNum("testCaseFeTotal");
   const optionalNumbers = {
-    testCaseTotal: optionalNum("testCaseTotal"),
     automationBePassed: optionalNum("automationBePassed"),
     automationBeFailed: optionalNum("automationBeFailed"),
     automationFePassed: optionalNum("automationFePassed"),
@@ -46,9 +49,10 @@ function parseReportForm(formData: FormData) {
     productionIncidentCount: num("productionIncidentCount"),
     productionIncidentNotes: String(formData.get("productionIncidentNotes") ?? "") || undefined,
     bugDocumentUrl: String(formData.get("bugDocumentUrl") ?? ""),
-    testCaseBeTotal: num("testCaseBeTotal"),
+    testCaseTotal: optionalNum("testCaseTotal"),
+    testCaseBeTotal,
     testCaseBeExecuted: num("testCaseBeExecuted"),
-    testCaseFeTotal: num("testCaseFeTotal"),
+    testCaseFeTotal,
     testCaseFeExecuted: num("testCaseFeExecuted"),
     automationBeTotal: num("automationBeTotal"),
     automationFeTotal: num("automationFeTotal"),
@@ -92,7 +96,7 @@ export async function createDraftAction(_state: WeeklyReportActionState, formDat
   const parsed = parseReportForm(formData);
 
   if (!parsed.success) {
-    return weeklyReportErrorState("Data report tidak valid. Periksa kembali isian.", formData);
+    return weeklyReportErrorState("Data report tidak valid. Periksa kembali isian.", formData, fieldErrorsFromZod(parsed.error));
   }
 
   const assignment = await findActiveAssignment(parsed.data.projectId, user.id);
@@ -103,7 +107,6 @@ export async function createDraftAction(_state: WeeklyReportActionState, formDat
 
   const duplicate = await findReportForWeek(
     parsed.data.projectId,
-    user.id,
     parsed.data.weekStartDate,
     parsed.data.weekEndDate,
   );
@@ -113,14 +116,42 @@ export async function createDraftAction(_state: WeeklyReportActionState, formDat
   }
 
   const coverage = coverageValues(parsed.data);
+  const reportId = uuidv7();
 
   await db.insert(weeklyReports).values({
+    id: reportId,
     ...parsed.data,
     ...nullableSplitValues(parsed.data),
-    userId: user.id,
+    createdBy: user.id,
     bugDocumentUrl: parsed.data.bugDocumentUrl || null,
     status: "DRAFT",
     ...coverage,
+  });
+
+  // Snapshot all currently-active QA members of the project as co-authors.
+  const members = await listProjectMembers(parsed.data.projectId);
+  const memberIds = new Set(members.map((m) => m.userId));
+  const authorRows = members.map((m) => ({
+    weeklyReportId: reportId,
+    userId: m.userId,
+    assignmentRole: m.assignmentRole,
+  }));
+  // Always make sure the creator is a co-author, even if not in active members.
+  if (!memberIds.has(user.id)) {
+    authorRows.push({
+      weeklyReportId: reportId,
+      userId: user.id,
+      assignmentRole: assignment.assignmentRole,
+    });
+  }
+  if (authorRows.length > 0) {
+    await db.insert(reportAuthors).values(authorRows);
+  }
+
+  await insertActivity({
+    weeklyReportId: reportId,
+    actorId: user.id,
+    action: ACTIVITY_ACTIONS.CREATED,
   });
 
   redirect("/weekly-reports");
@@ -130,46 +161,104 @@ export async function updateDraftAction(id: string, _state: WeeklyReportActionSt
   const user = await requireUser();
   const report = await getReportById(id);
 
-  if (!report || report.userId !== user.id) {
+  if (!report) {
     return { error: "Report tidak ditemukan." };
   }
 
+  const userIsCoAuthor = await isCoAuthor(id, user.id);
+  if (!userIsCoAuthor) {
+    return { error: "Hanya co-author yang bisa edit report ini." };
+  }
+
   if (!canEditReport(report.status)) {
-    return { error: "Report yang sudah approved tidak bisa diedit." };
+    return { error: "Report ini sudah dikunci dan tidak bisa diedit." };
   }
 
   const parsed = parseReportForm(formData);
 
   if (!parsed.success) {
-    return weeklyReportErrorState("Data report tidak valid. Periksa kembali isian.", formData);
+    return weeklyReportErrorState("Data report tidak valid. Periksa kembali isian.", formData, fieldErrorsFromZod(parsed.error));
   }
 
   const coverage = coverageValues(parsed.data);
+  const nextValues = {
+    ...parsed.data,
+    ...nullableSplitValues(parsed.data),
+    bugDocumentUrl: parsed.data.bugDocumentUrl || null,
+    ...coverage,
+  };
+
+  const changedFields = detectContentChanges(
+    report as unknown as Partial<Record<string, unknown>>,
+    nextValues as unknown as Partial<Record<string, unknown>>,
+  );
 
   await db
     .update(weeklyReports)
     .set({
-      ...parsed.data,
-      ...nullableSplitValues(parsed.data),
-      bugDocumentUrl: parsed.data.bugDocumentUrl || null,
-      ...coverage,
+      ...nextValues,
       updatedAt: new Date(),
     })
     .where(eq(weeklyReports.id, id));
 
+  if (changedFields.length > 0) {
+    const deleted = await db
+      .delete(reportQaApprovals)
+      .where(eq(reportQaApprovals.weeklyReportId, id))
+      .returning({ id: reportQaApprovals.id });
+
+    if (report.status !== "DRAFT") {
+      await db
+        .update(weeklyReports)
+        .set({ status: "DRAFT", updatedAt: new Date() })
+        .where(eq(weeklyReports.id, id));
+    }
+
+    await insertActivity({
+      weeklyReportId: id,
+      actorId: user.id,
+      action: ACTIVITY_ACTIONS.EDITED,
+      changedFields,
+    });
+
+    if (deleted.length > 0) {
+      await insertActivity({
+        weeklyReportId: id,
+        actorId: user.id,
+        action: ACTIVITY_ACTIONS.QA_APPROVAL_REVOKED,
+      });
+    }
+  } else {
+    await insertActivity({
+      weeklyReportId: id,
+      actorId: user.id,
+      action: ACTIVITY_ACTIONS.EDITED,
+    });
+  }
+
   redirect(`/weekly-reports/${id}`);
 }
 
-export async function submitReportAction(id: string): Promise<ActionState> {
+/**
+ * User-initiated transition: DRAFT → PENDING_QA_APPROVAL.
+ * The actual SUBMITTED transition is auto-triggered when the last QA approval lands
+ * (see `approveAsCoAuthorAction` in `co-author-actions.ts`).
+ */
+export async function requestQaApprovalAction(id: string): Promise<ActionState> {
   const user = await requireUser();
   const report = await getReportById(id);
 
-  if (!report || report.userId !== user.id) {
+  if (!report) {
     return { error: "Report tidak ditemukan." };
   }
 
-  if (!canSubmitReport(report.status)) {
-    return { error: "Report ini tidak bisa disubmit dari status sekarang." };
+  const userIsCoAuthor = await isCoAuthor(id, user.id);
+  if (!userIsCoAuthor) {
+    return { error: "Hanya co-author yang bisa mengajukan approval QA." };
+  }
+
+  if (!canStartQaApproval(report.status)) {
+    return { error: "Report ini tidak bisa diajukan untuk approval QA dari status sekarang." };
   }
 
   const readiness = validateSubmitReadiness({
@@ -183,8 +272,21 @@ export async function submitReportAction(id: string): Promise<ActionState> {
 
   await db
     .update(weeklyReports)
-    .set({ status: "SUBMITTED", submittedAt: new Date(), updatedAt: new Date() })
+    .set({ status: "PENDING_QA_APPROVAL", updatedAt: new Date() })
     .where(eq(weeklyReports.id, id));
+
+  await insertActivity({
+    weeklyReportId: id,
+    actorId: user.id,
+    action: ACTIVITY_ACTIONS.QA_APPROVAL_REQUESTED,
+  });
 
   redirect(`/weekly-reports/${id}`);
 }
+
+/**
+ * Backward-compat alias. UI components import `submitReportAction`; the new
+ * canonical name is `requestQaApprovalAction` because the user action is now
+ * "ajukan untuk approval QA" rather than "submit ke reviewer".
+ */
+export const submitReportAction = requestQaApprovalAction;

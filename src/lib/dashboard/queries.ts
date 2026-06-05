@@ -91,17 +91,17 @@ export async function getMemberSummary(userId: string) {
   const [needRevision] = await db
     .select({ value: count() })
     .from(weeklyReports)
-    .where(and(eq(weeklyReports.userId, userId), eq(weeklyReports.status, "NEED_REVISION")));
+    .where(and(eq(weeklyReports.createdBy, userId), eq(weeklyReports.status, "NEED_REVISION")));
 
   const [submitted] = await db
     .select({ value: count() })
     .from(weeklyReports)
-    .where(and(eq(weeklyReports.userId, userId), eq(weeklyReports.status, "SUBMITTED")));
+    .where(and(eq(weeklyReports.createdBy, userId), eq(weeklyReports.status, "SUBMITTED")));
 
   const [approved] = await db
     .select({ value: count() })
     .from(weeklyReports)
-    .where(and(eq(weeklyReports.userId, userId), eq(weeklyReports.status, "APPROVED")));
+    .where(and(eq(weeklyReports.createdBy, userId), eq(weeklyReports.status, "APPROVED")));
 
   return {
     assignedProjects: assignedProjects?.value ?? 0,
@@ -124,7 +124,7 @@ export function listRecentReportsByUser(userId: string, limit = 5) {
     })
     .from(weeklyReports)
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
-    .where(eq(weeklyReports.userId, userId))
+    .where(eq(weeklyReports.createdBy, userId))
     .orderBy(desc(weeklyReports.weekStartDate))
     .limit(limit);
 }

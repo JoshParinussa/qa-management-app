@@ -29,6 +29,13 @@
       "when": 1780383856761,
       "tag": "0003_strong_alex_power",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780633407462,
+      "tag": "0004_collaborative_weekly_reports",
+      "breakpoints": true
     }
   ]
 }

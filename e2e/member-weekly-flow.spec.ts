@@ -52,6 +52,7 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
   await page.getByLabel("Week start").fill("2026-05-04");
   await page.getByLabel("Week end").fill("2026-05-10");
   await page.getByLabel("summary item 1", { exact: true }).fill("QA member weekly progress.");
+  await page.getByLabel("Bug document URL").fill("https://example.test/bugs/weekly");
   await page.getByLabel("Test case total").fill("100");
   await page.getByLabel("Test case BE total").fill("60");
   await page.getByLabel("Test case FE total").fill("40");
@@ -69,10 +70,12 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
   await expect(reportRow).toBeVisible({ timeout: 15_000 });
   await expect(reportRow.getByText("Draft")).toBeVisible();
 
-  // 4. Member submit report.
+  // 4. Member ajukan approval QA → approve sendiri (sole co-author) → auto-submit ke reviewer.
   await reportRow.getByRole("link", { name: "View" }).click();
   await page.waitForURL(/\/weekly-reports\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "Weekly report", exact: true })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: /submit report/i }).click();
-  await expect(page.getByText("Submitted")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /ajukan untuk approval qa/i }).click();
+  await expect(page.getByText("Pending qa approval")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /^approve$/i }).click();
+  await expect(page.getByText("Submitted", { exact: true })).toBeVisible({ timeout: 15_000 });
 });

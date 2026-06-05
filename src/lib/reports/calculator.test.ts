@@ -58,6 +58,21 @@ describe("calculateReportMetrics", () => {
     expect(result.totalTestCase).toBe(0);
   });
 
+  it("uses the manual total test case as the basis for overview automation coverage", () => {
+    const result = calculateReportMetrics({
+      ...base,
+      testCaseTotal: 80,
+      testCaseBeTotal: 50,
+      testCaseFeTotal: 50,
+      automationBeTotal: 20,
+      automationFeTotal: 20,
+    });
+
+    // totalAutomation = 40, manual total = 80 -> 50%
+    // (legacy BE+FE basis would give 40 / 100 = 40%)
+    expect(result.automationCoverage).toBe(50);
+  });
+
   it("rounds coverage to two decimals", () => {
     const result = calculateReportMetrics({
       ...base,

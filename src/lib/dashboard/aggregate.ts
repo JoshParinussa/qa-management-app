@@ -4,6 +4,7 @@ import { parseBulletItems } from "@/lib/reports/bullets";
 export function countByStatus(reports: { status: ReportStatus }[]): Record<ReportStatus, number> {
   const counts: Record<ReportStatus, number> = {
     DRAFT: 0,
+    PENDING_QA_APPROVAL: 0,
     SUBMITTED: 0,
     REVIEWED: 0,
     NEED_REVISION: 0,
@@ -32,7 +33,7 @@ export function aggregateTopBlockers(rows: { blocker: string | null }[], limit =
     .slice(0, limit);
 }
 
-export function scopeReportsForRole<T extends { userId: string }>(
+export function scopeReportsForRole<T extends { createdBy: string }>(
   reports: T[],
   role: Role,
   userId: string,
@@ -40,5 +41,5 @@ export function scopeReportsForRole<T extends { userId: string }>(
   if (role === "QA_LEAD" || role === "ADMIN") {
     return reports;
   }
-  return reports.filter((report) => report.userId === userId);
+  return reports.filter((report) => report.createdBy === userId);
 }

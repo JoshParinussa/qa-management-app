@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { reportStageDescription } from "@/lib/reports/status";
 import type { ReportStatus } from "@/types";
 
 export type WeeklyReportRow = {
@@ -12,6 +13,8 @@ export type WeeklyReportRow = {
   weekStartDate: Date;
   weekEndDate: Date;
   status: ReportStatus;
+  reviewerName?: string | null;
+  approverName?: string | null;
   canEdit?: boolean;
 };
 
@@ -37,7 +40,17 @@ export const weeklyReportColumns: ColumnDef<WeeklyReportRow>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    cell: ({ row }) => (
+      <div className="space-y-1">
+        <StatusBadge status={row.original.status} />
+        <p className="text-xs text-muted-foreground">
+          {reportStageDescription(row.original.status, {
+            reviewerName: row.original.reviewerName,
+            approverName: row.original.approverName,
+          })}
+        </p>
+      </div>
+    ),
   },
   {
     id: "action",

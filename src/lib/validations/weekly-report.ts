@@ -9,11 +9,11 @@ export const weeklyReportSchema = z
     summary: z.string().min(1),
     productionIncidentCount: z.number().int().min(0).default(0),
     productionIncidentNotes: z.string().optional(),
-    bugDocumentUrl: z.url().optional().or(z.literal("")),
-    testCaseTotal: z.number().int().min(0).optional(),
-    testCaseBeTotal: z.number().int().min(0).default(0),
+    bugDocumentUrl: z.url(),
+    testCaseTotal: z.number().int().min(0),
+    testCaseBeTotal: z.number().int().min(0),
     testCaseBeExecuted: z.number().int().min(0).default(0),
-    testCaseFeTotal: z.number().int().min(0).default(0),
+    testCaseFeTotal: z.number().int().min(0),
     testCaseFeExecuted: z.number().int().min(0).default(0),
     automationBeTotal: z.number().int().min(0).default(0),
     automationFeTotal: z.number().int().min(0).default(0),
@@ -30,6 +30,10 @@ export const weeklyReportSchema = z
   .refine((data) => data.weekStartDate < data.weekEndDate, {
     message: "Week start date must be before week end date",
     path: ["weekEndDate"],
+  })
+  .refine((data) => data.testCaseBeTotal + data.testCaseFeTotal >= data.testCaseTotal, {
+    message: "BE + FE total test cases cannot be less than the total test cases",
+    path: ["testCaseTotal"],
   })
   .refine((data) => data.testCaseBeExecuted <= data.testCaseBeTotal, {
     message: "BE executed test cases cannot exceed BE total",

@@ -55,8 +55,8 @@ describe("aggregateTopBlockers", () => {
 
 describe("scopeReportsForRole", () => {
   const all = [
-    { id: "1", userId: "u1" },
-    { id: "2", userId: "u2" },
+    { id: "1", createdBy: "u1" },
+    { id: "2", createdBy: "u2" },
   ];
 
   it("returns all reports for reviewer roles", () => {
