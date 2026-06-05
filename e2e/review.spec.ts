@@ -48,8 +48,10 @@ async function createAndSubmitReport(page: import("@playwright/test").Page, proj
   await reportRow.getByRole("link", { name: "View" }).click();
   await page.waitForURL(/\/weekly-reports\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "Weekly report", exact: true })).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: /submit report/i }).click();
-  await expect(page.getByText("Submitted")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /ajukan untuk approval qa/i }).click();
+  await expect(page.getByText("Pending qa approval")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: /^approve$/i }).click();
+  await expect(page.getByText("Submitted", { exact: true })).toBeVisible({ timeout: 15_000 });
 }
 
 test("qa lead can review and approve a submitted report", async ({ page }) => {
