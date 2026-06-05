@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WeeklyReportForm } from "@/components/reports/weekly-report-form";
 import { updateDraftAction } from "@/lib/weekly-reports/actions";
 import { requireUser } from "@/lib/auth/session";
-import { getReportById } from "@/lib/weekly-reports/queries";
+import { getReportById, isCoAuthor } from "@/lib/weekly-reports/queries";
+import { canEditReport } from "@/lib/weekly-reports/rules";
 import { listAssignedProjects } from "@/lib/project-members/queries";
 import type { WeeklyReportActionState } from "@/lib/weekly-reports/form-state";
 
@@ -16,11 +17,16 @@ export default async function EditWeeklyReportPage({ params }: { params: Promise
   const user = await requireUser();
   const report = await getReportById(id);
 
-  if (!report || report.userId !== user.id) {
+  if (!report) {
     notFound();
   }
 
-  if (report.status === "APPROVED") {
+  const userIsCoAuthor = await isCoAuthor(id, user.id);
+  if (!userIsCoAuthor) {
+    notFound();
+  }
+
+  if (!canEditReport(report.status)) {
     redirect(`/weekly-reports/${id}`);
   }
 

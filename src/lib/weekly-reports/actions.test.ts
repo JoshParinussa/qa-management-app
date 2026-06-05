@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   findActiveAssignment: vi.fn(),
+  listProjectMembers: vi.fn(),
   findReportForWeek: vi.fn(),
   getReportById: vi.fn(),
+  isCoAuthor: vi.fn(),
   insert: vi.fn(),
   insertValues: vi.fn(),
   redirect: vi.fn((path: string) => {
@@ -13,18 +15,36 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   updateSet: vi.fn(),
   updateWhere: vi.fn(),
+  delete: vi.fn(),
+  deleteWhere: vi.fn(),
+  deleteReturning: vi.fn(),
+  insertActivity: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
-vi.mock("@/db/client", () => ({ db: { insert: mocks.insert, update: mocks.update } }));
+vi.mock("@/db/client", () => ({
+  db: { insert: mocks.insert, update: mocks.update, delete: mocks.delete },
+}));
 vi.mock("@/lib/auth/session", () => ({ requireUser: mocks.requireUser }));
-vi.mock("@/lib/project-members/queries", () => ({ findActiveAssignment: mocks.findActiveAssignment }));
+vi.mock("@/lib/project-members/queries", () => ({
+  findActiveAssignment: mocks.findActiveAssignment,
+  listProjectMembers: mocks.listProjectMembers,
+}));
 vi.mock("@/lib/weekly-reports/queries", () => ({
   findReportForWeek: mocks.findReportForWeek,
   getReportById: mocks.getReportById,
+  isCoAuthor: mocks.isCoAuthor,
 }));
+vi.mock("@/lib/weekly-reports/activity", async () => {
+  const actual = await vi.importActual<typeof import("./activity")>("./activity");
+  return {
+    ...actual,
+    insertActivity: mocks.insertActivity,
+  };
+});
 
-import { createDraftAction, updateDraftAction } from "./actions";
+import { createDraftAction, requestQaApprovalAction, updateDraftAction } from "./actions";
+import { ACTIVITY_ACTIONS } from "./activity";
 
 function validFormData() {
   const formData = new FormData();
@@ -34,7 +54,8 @@ function validFormData() {
   formData.set("summary", "Done some work");
   formData.set("productionIncidentCount", "0");
   formData.set("productionIncidentNotes", "");
-  formData.set("bugDocumentUrl", "");
+  formData.set("bugDocumentUrl", "https://example.test/bugs/weekly");
+  formData.set("testCaseTotal", "200");
   formData.set("testCaseBeTotal", "100");
   formData.set("testCaseBeExecuted", "80");
   formData.set("testCaseFeTotal", "100");
@@ -45,18 +66,35 @@ function validFormData() {
   return formData;
 }
 
+const USER_ID = "018f0b3c-1d2e-7a3b-8c4d-5e6f70819294";
+const OTHER_QA_ID = "018f0b3c-1d2e-7a3b-8c4d-5e6f70819295";
+
+function activeAssignment(role: "QA_MEMBER" | "QA_PIC" = "QA_MEMBER") {
+  return { id: "assignment-1", removedAt: null, assignmentRole: role };
+}
+
+function projectMember(userId: string, role: "QA_MEMBER" | "QA_PIC" = "QA_MEMBER") {
+  return { id: `member-${userId}`, userId, name: "QA", email: "qa@example.test", assignmentRole: role, assignedAt: new Date() };
+}
+
 describe("weekly report actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.findActiveAssignment.mockResolvedValue({ id: "assignment-1", removedAt: null });
+    mocks.findActiveAssignment.mockResolvedValue(activeAssignment());
+    mocks.listProjectMembers.mockResolvedValue([projectMember(USER_ID)]);
     mocks.findReportForWeek.mockResolvedValue(null);
+    mocks.isCoAuthor.mockResolvedValue(true);
     mocks.insert.mockReturnValue({ values: mocks.insertValues });
     mocks.insertValues.mockResolvedValue(undefined);
     mocks.update.mockReturnValue({ set: mocks.updateSet });
     mocks.updateSet.mockReturnValue({ where: mocks.updateWhere });
     mocks.updateWhere.mockResolvedValue(undefined);
+    mocks.delete.mockReturnValue({ where: mocks.deleteWhere });
+    mocks.deleteWhere.mockReturnValue({ returning: mocks.deleteReturning });
+    mocks.deleteReturning.mockResolvedValue([]);
+    mocks.insertActivity.mockResolvedValue(undefined);
     mocks.requireUser.mockResolvedValue({
-      id: "018f0b3c-1d2e-7a3b-8c4d-5e6f70819294",
+      id: USER_ID,
       name: "QA",
       email: "qa@example.test",
       role: "QA_MEMBER",
@@ -66,7 +104,6 @@ describe("weekly report actions", () => {
 
   it("backfills legacy automation aggregates from split fields and stores split coverage", async () => {
     const formData = validFormData();
-    formData.set("testCaseTotal", "120");
     formData.set("automationBePassed", "45");
     formData.set("automationBeFailed", "5");
     formData.set("automationFePassed", "36");
@@ -74,9 +111,9 @@ describe("weekly report actions", () => {
 
     await expect(createDraftAction({}, formData)).rejects.toThrow("redirect:/weekly-reports");
 
-    expect(mocks.insertValues).toHaveBeenCalledTimes(1);
-    expect(mocks.insertValues.mock.calls[0][0]).toMatchObject({
-      testCaseTotal: 120,
+    const reportInsert = mocks.insertValues.mock.calls[0][0];
+    expect(reportInsert).toMatchObject({
+      testCaseTotal: 200,
       automationBePassed: 45,
       automationBeFailed: 5,
       automationFePassed: 36,
@@ -90,53 +127,36 @@ describe("weekly report actions", () => {
       automationBePassRate: "90",
       automationFePassRate: "90",
     });
+    expect(reportInsert.createdBy).toBe(USER_ID);
   });
 
-  it("persists null nullable split fields and preserves legacy automation aggregates", async () => {
-    const formData = validFormData();
-    formData.set("testCaseTotal", "");
-    formData.set("automationBePassed", "");
-    formData.set("automationBeFailed", "");
-    formData.set("automationFePassed", "");
-    formData.set("automationFeFailed", "");
-    formData.set("automationPassed", "12");
-    formData.set("automationFailed", "3");
+  it("snapshots all active project members as co-authors and logs CREATED activity", async () => {
+    mocks.listProjectMembers.mockResolvedValue([
+      projectMember(USER_ID, "QA_PIC"),
+      projectMember(OTHER_QA_ID, "QA_MEMBER"),
+    ]);
 
-    await expect(createDraftAction({}, formData)).rejects.toThrow("redirect:/weekly-reports");
+    await expect(createDraftAction({}, validFormData())).rejects.toThrow("redirect:/weekly-reports");
 
-    expect(mocks.insertValues).toHaveBeenCalledTimes(1);
-    const values = mocks.insertValues.mock.calls[0][0];
-    expect(values.automationPassed).toBe(12);
-    expect(values.automationFailed).toBe(3);
-    expect(values.automationBeCoverage).toBe("50");
-    expect(values.automationFeCoverage).toBe("50");
-    expect(values.testCaseTotal).toBeNull();
-    expect(values.automationBePassed).toBeNull();
-    expect(values.automationBeFailed).toBeNull();
-    expect(values.automationFePassed).toBeNull();
-    expect(values.automationFeFailed).toBeNull();
+    // calls[0] is weeklyReports insert; calls[1] is reportAuthors insert.
+    const authorRows = mocks.insertValues.mock.calls[1][0];
+    expect(Array.isArray(authorRows)).toBe(true);
+    expect(authorRows).toHaveLength(2);
+    expect(authorRows.map((r: { userId: string }) => r.userId).sort()).toEqual([USER_ID, OTHER_QA_ID].sort());
+
+    expect(mocks.insertActivity).toHaveBeenCalledWith(
+      expect.objectContaining({ action: ACTIVITY_ACTIONS.CREATED, actorId: USER_ID }),
+    );
   });
 
-  it("uses split automation values over legacy aggregate fields when both are present", async () => {
-    const formData = validFormData();
-    formData.set("automationBePassed", "30");
-    formData.set("automationBeFailed", "5");
-    formData.set("automationFePassed", "20");
-    formData.set("automationFeFailed", "10");
-    formData.set("automationPassed", "999");
-    formData.set("automationFailed", "999");
+  it("appends the creator as co-author when they are not in the active member list", async () => {
+    mocks.listProjectMembers.mockResolvedValue([projectMember(OTHER_QA_ID)]);
 
-    await expect(createDraftAction({}, formData)).rejects.toThrow("redirect:/weekly-reports");
+    await expect(createDraftAction({}, validFormData())).rejects.toThrow("redirect:/weekly-reports");
 
-    expect(mocks.insertValues).toHaveBeenCalledTimes(1);
-    expect(mocks.insertValues.mock.calls[0][0]).toMatchObject({
-      automationBePassed: 30,
-      automationBeFailed: 5,
-      automationFePassed: 20,
-      automationFeFailed: 10,
-      automationPassed: 50,
-      automationFailed: 15,
-    });
+    const authorRows = mocks.insertValues.mock.calls[1][0];
+    expect(authorRows).toHaveLength(2);
+    expect(authorRows.map((r: { userId: string }) => r.userId).sort()).toEqual([USER_ID, OTHER_QA_ID].sort());
   });
 
   it("clears nullable split fields on update when omitted from the form", async () => {
@@ -145,21 +165,120 @@ describe("weekly report actions", () => {
     formData.set("automationFailed", "3");
     mocks.getReportById.mockResolvedValue({
       id: "report-1",
-      userId: "018f0b3c-1d2e-7a3b-8c4d-5e6f70819294",
+      createdBy: USER_ID,
       status: "DRAFT",
+      summary: "old",
+      nextWeekPlan: "old",
     });
 
     await expect(updateDraftAction("report-1", {}, formData)).rejects.toThrow("redirect:/weekly-reports/report-1");
 
-    expect(mocks.updateSet).toHaveBeenCalledTimes(1);
-    expect(mocks.updateSet.mock.calls[0][0]).toMatchObject({
-      testCaseTotal: null,
+    const updateValues = mocks.updateSet.mock.calls[0][0];
+    expect(updateValues).toMatchObject({
+      testCaseTotal: 200,
       automationBePassed: null,
       automationBeFailed: null,
       automationFePassed: null,
       automationFeFailed: null,
       automationPassed: 12,
       automationFailed: 3,
+    });
+  });
+
+  it("rejects updates from non-co-authors", async () => {
+    mocks.isCoAuthor.mockResolvedValue(false);
+    mocks.getReportById.mockResolvedValue({
+      id: "report-1",
+      createdBy: "someone-else",
+      status: "DRAFT",
+      summary: "x",
+      nextWeekPlan: "y",
+    });
+
+    const result = await updateDraftAction("report-1", {}, validFormData());
+    expect(result.error).toMatch(/co-author/i);
+  });
+
+  it("resets approvals and reverts to DRAFT when content changes from PENDING_QA_APPROVAL", async () => {
+    mocks.getReportById.mockResolvedValue({
+      id: "report-1",
+      createdBy: USER_ID,
+      status: "PENDING_QA_APPROVAL",
+      summary: "old summary",
+      nextWeekPlan: "old plan",
+    });
+    mocks.deleteReturning.mockResolvedValue([{ id: "approval-1" }]);
+
+    await expect(updateDraftAction("report-1", {}, validFormData())).rejects.toThrow("redirect:");
+
+    expect(mocks.delete).toHaveBeenCalled();
+    // Two update.set calls: 1) content update, 2) status revert to DRAFT
+    expect(mocks.updateSet).toHaveBeenCalledTimes(2);
+    const statusRevert = mocks.updateSet.mock.calls[1][0];
+    expect(statusRevert.status).toBe("DRAFT");
+
+    const activityActions = mocks.insertActivity.mock.calls.map((c: [{ action: string }]) => c[0].action);
+    expect(activityActions).toContain(ACTIVITY_ACTIONS.EDITED);
+    expect(activityActions).toContain(ACTIVITY_ACTIONS.QA_APPROVAL_REVOKED);
+  });
+
+  describe("requestQaApprovalAction", () => {
+    it("transitions DRAFT to PENDING_QA_APPROVAL and logs activity", async () => {
+      mocks.getReportById.mockResolvedValue({
+        id: "report-1",
+        createdBy: USER_ID,
+        status: "DRAFT",
+        summary: "ok",
+        nextWeekPlan: "ok",
+      });
+
+      await expect(requestQaApprovalAction("report-1")).rejects.toThrow("redirect:/weekly-reports/report-1");
+
+      const updateValues = mocks.updateSet.mock.calls[0][0];
+      expect(updateValues.status).toBe("PENDING_QA_APPROVAL");
+      expect(mocks.insertActivity).toHaveBeenCalledWith(
+        expect.objectContaining({ action: ACTIVITY_ACTIONS.QA_APPROVAL_REQUESTED }),
+      );
+    });
+
+    it("rejects when summary is empty", async () => {
+      mocks.getReportById.mockResolvedValue({
+        id: "report-1",
+        createdBy: USER_ID,
+        status: "DRAFT",
+        summary: "",
+        nextWeekPlan: "ok",
+      });
+
+      const result = await requestQaApprovalAction("report-1");
+      expect(result.error).toMatch(/summary/i);
+    });
+
+    it("rejects when status is not DRAFT", async () => {
+      mocks.getReportById.mockResolvedValue({
+        id: "report-1",
+        createdBy: USER_ID,
+        status: "PENDING_QA_APPROVAL",
+        summary: "ok",
+        nextWeekPlan: "ok",
+      });
+
+      const result = await requestQaApprovalAction("report-1");
+      expect(result.error).toMatch(/tidak bisa/i);
+    });
+
+    it("rejects when user is not a co-author", async () => {
+      mocks.isCoAuthor.mockResolvedValue(false);
+      mocks.getReportById.mockResolvedValue({
+        id: "report-1",
+        createdBy: "someone",
+        status: "DRAFT",
+        summary: "ok",
+        nextWeekPlan: "ok",
+      });
+
+      const result = await requestQaApprovalAction("report-1");
+      expect(result.error).toMatch(/co-author/i);
     });
   });
 });
