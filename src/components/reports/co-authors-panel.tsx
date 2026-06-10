@@ -31,10 +31,10 @@ export function CoAuthorsPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-baseline gap-2 text-sm">
-        <span className="font-medium text-foreground tabular-nums">
-          {approvedCount}/{totalCount}
+               <span className="font-medium text-foreground tabular-nums">
+          {approvedCount}/{totalCount}{' '}
         </span>
-        <span className="text-muted-foreground">co-author sudah approve</span>
+       <span className="text-muted-foreground">co-author sudah approve</span>
       </div>
 
       <ul className="space-y-2">

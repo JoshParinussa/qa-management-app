@@ -84,5 +84,5 @@ test("qa lead can request revision with feedback", async ({ page }) => {
   await page.getByRole("button", { name: /request revision/i }).click();
 
   await expect(page.getByText("Need revision").first()).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByText("Tolong perbaiki automation coverage.")).toBeVisible();
+  await expect(page.getByText("Tolong perbaiki automation coverage.").first()).toBeVisible();
 });

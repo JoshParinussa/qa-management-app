@@ -17,7 +17,7 @@ const submitterUsers = alias(users, "submitter_users");
 
 export function listReportsByCoAuthor(userId: string) {
   return db
-    .selectDistinct({
+    .select({
       id: weeklyReports.id,
       projectId: weeklyReports.projectId,
       createdBy: weeklyReports.createdBy,
@@ -32,11 +32,18 @@ export function listReportsByCoAuthor(userId: string) {
     })
     .from(weeklyReports)
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
-    .innerJoin(reportAuthors, eq(reportAuthors.weeklyReportId, weeklyReports.id))
     .leftJoin(reviewerUsers, eq(weeklyReports.reviewedBy, reviewerUsers.id))
     .leftJoin(approverUsers, eq(weeklyReports.approvedBy, approverUsers.id))
     .leftJoin(submitterUsers, eq(weeklyReports.submittedBy, submitterUsers.id))
-    .where(eq(reportAuthors.userId, userId))
+    .where(
+      eq(
+        weeklyReports.id,
+        db
+          .select({ reportId: reportAuthors.weeklyReportId })
+          .from(reportAuthors)
+          .where(eq(reportAuthors.userId, userId)),
+      ),
+    )
     .orderBy(desc(weeklyReports.createdAt));
 }
 

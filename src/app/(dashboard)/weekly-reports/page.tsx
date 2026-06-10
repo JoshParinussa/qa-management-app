@@ -29,12 +29,12 @@ export default async function WeeklyReportsPage() {
       <PageHeader
         title="Weekly reports"
         description="Draft, submit, dan review weekly report QA."
-        action={
+    action={
           canCreate ? (
-            <Link href="/weekly-reports/new">
+       <Link href="/weekly-reports/new">
               <Button>New report</Button>
-            </Link>
-          ) : null
+       </Link>
+  ) : null
         }
       />
       <Card>
