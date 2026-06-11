@@ -69,8 +69,9 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
   const metrics = calculateReportMetrics(report);
   const userIsCoAuthor = await isCoAuthor(id, user.id);
   const isReviewer = can(user.role, "report:review");
+  const canViewAll = can(user.role, "dashboard:all");
 
-  if (!userIsCoAuthor && !isReviewer) {
+  if (!userIsCoAuthor && !isReviewer && !canViewAll) {
     notFound();
   }
 
