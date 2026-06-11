@@ -216,18 +216,24 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
           <CardTitle>Metrics</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <MetricGroup title="Overview">
-            <Metric label="Total test case" value={metrics.totalTestCase} />
-          </MetricGroup>
+    <MetricGroup title="Overview">
+    <Metric label="Total test case" value={metrics.totalTestCase} />
+        <Metric
+     label="Total automated"
+    value={report.automationBeTotal + report.automationFeTotal}
+       />
+     </MetricGroup>
           <MetricGroup title="Backend">
-            <Metric label="Test case" value={report.testCaseBeTotal} />
-            <Metric label="Automation coverage" value={`${metrics.automationBeCoverage}%`} />
-            <Metric label="Pass rate" value={`${metrics.automationBePassRate}%`} />
+ <Metric label="Test case" value={report.testCaseBeTotal} />
+            <Metric label="Automated" value={report.automationBeTotal} />
+  <Metric label="Automation coverage" value={`${metrics.automationBeCoverage}%`} />
+      <Metric label="Pass rate" value={`${metrics.automationBePassRate}%`} />
           </MetricGroup>
-          <MetricGroup title="Frontend">
+     <MetricGroup title="Frontend">
             <Metric label="Test case" value={report.testCaseFeTotal} />
+            <Metric label="Automated" value={report.automationFeTotal} />
             <Metric label="Automation coverage" value={`${metrics.automationFeCoverage}%`} />
-            <Metric label="Pass rate" value={`${metrics.automationFePassRate}%`} />
+         <Metric label="Pass rate" value={`${metrics.automationFePassRate}%`} />
           </MetricGroup>
         </CardContent>
       </Card>
