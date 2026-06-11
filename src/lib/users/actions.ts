@@ -10,11 +10,8 @@ import { countActiveAdmins, getUserById } from "@/lib/users/queries";
 import { buildResetPasswordUpdate, canDeactivateUser } from "@/lib/users/rules";
 import { userSchema } from "@/lib/validations/user";
 import { mapDbError } from "@/lib/action-result";
+import { getDefaultPassword } from "@/lib/users/defaults";
 import type { ActionState } from "@/types";
-
-function getDefaultPassword() {
-  return process.env.DEFAULT_USER_PASSWORD || "password123";
-}
 
 export async function createUserAction(_state: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
