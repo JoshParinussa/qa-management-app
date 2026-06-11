@@ -13,12 +13,12 @@ export function LoginForm() {
     <form action={action} className="space-y-4">
       {state.error ? <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p> : null}
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" placeholder="jopa@example.com" required />
+ <Label htmlFor="email">Email</Label>
+        <Input id="email" name="email" type="email" autoComplete="username" placeholder="name@company.com" required />
       </div>
-      <div className="space-y-2">
+  <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input id="password" name="password" type="password" placeholder="password123" required />
+      <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
       <Button className="w-full" type="submit" disabled={pending}>
         {pending ? "Memproses..." : "Login"}
