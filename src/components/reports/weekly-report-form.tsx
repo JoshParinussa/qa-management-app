@@ -44,22 +44,23 @@ type WeeklyReportFormProps = {
   lockProject?: boolean;
 };
 
-function NumberField({ name, label, defaultValue, error, required, value, onChange }: { name: string; label: string; defaultValue?: number | string; error?: string; required?: boolean; value?: string; onChange?: (value: string) => void }) {
+function NumberField({ name, label, defaultValue, error, warning, required, value, onChange }: { name: string; label: string; defaultValue?: number | string; error?: string; warning?: string; required?: boolean; value?: string; onChange?: (value: string) => void }) {
   const controlled = value !== undefined && onChange !== undefined;
+  const invalid = Boolean(error || warning);
   return (
     <div className="space-y-2">
       <Label htmlFor={name}>{label} {required ? <RequiredMark /> : null}</Label>
       <Input
-        id={name}
+   id={name}
         name={name}
-        type="number"
+  type="number"
         min={0}
-        placeholder="0"
-        {...(controlled ? { value, onChange: (event) => onChange(event.target.value) } : { defaultValue })}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${name}-error` : undefined}
+ placeholder="0"
+   {...(controlled ? { value, onChange: (event) => onChange(event.target.value) } : { defaultValue })}
+  aria-invalid={invalid ? true : undefined}
+        aria-describedby={invalid ? `${name}-error` : undefined}
       />
-      <FieldError id={`${name}-error`} message={error} />
+      <FieldError id={`${name}-error`} message={error ?? warning} />
     </div>
   );
 }
@@ -125,6 +126,41 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
   const beFeSum = (Number(testCaseBeTotal) || 0) + (Number(testCaseFeTotal) || 0);
   const totalTestCaseValue = Number(testCaseTotal) || 0;
   const coverageShortfall = testCaseTotal !== "" && beFeSum < totalTestCaseValue;
+
+  const [automationBeTotal, setAutomationBeTotal] = useState(() =>
+    values.automationBeTotal !== undefined && values.automationBeTotal !== null ? String(values.automationBeTotal) : "",
+  );
+  const [automationBePassed, setAutomationBePassed] = useState(() =>
+  values.automationBePassed !== undefined && values.automationBePassed !== null ? String(values.automationBePassed) : "",
+  );
+  const [automationBeFailed, setAutomationBeFailed] = useState(() =>
+    values.automationBeFailed !== undefined && values.automationBeFailed !== null ? String(values.automationBeFailed) : "",
+  );
+  const [automationFeTotal, setAutomationFeTotal] = useState(() =>
+    values.automationFeTotal !== undefined && values.automationFeTotal !== null ? String(values.automationFeTotal) : "",
+  );
+  const [automationFePassed, setAutomationFePassed] = useState(() =>
+    values.automationFePassed !== undefined && values.automationFePassed !== null ? String(values.automationFePassed) : "",
+  );
+  const [automationFeFailed, setAutomationFeFailed] = useState(() =>
+    values.automationFeFailed !== undefined && values.automationFeFailed !== null ? String(values.automationFeFailed) : "",
+  );
+
+  const beTotalNum = Number(automationBeTotal) || 0;
+  const bePassedNum = Number(automationBePassed) || 0;
+  const beFailedNum = Number(automationBeFailed) || 0;
+  const beTcTotal = Number(testCaseBeTotal) || 0;
+  const feTotalNum = Number(automationFeTotal) || 0;
+  const fePassedNum = Number(automationFePassed) || 0;
+  const feFailedNum = Number(automationFeFailed) || 0;
+  const feTcTotal = Number(testCaseFeTotal) || 0;
+
+  const beTotalExceeds = automationBeTotal !== "" && testCaseBeTotal !== "" && beTotalNum > beTcTotal;
+  const bePassFailExceeds =
+    automationBeTotal !== "" && (bePassedNum + beFailedNum > beTotalNum);
+  const feTotalExceeds = automationFeTotal !== "" && testCaseFeTotal !== "" && feTotalNum > feTcTotal;
+  const fePassFailExceeds =
+    automationFeTotal !== "" && (fePassedNum + feFailedNum > feTotalNum);
 
   useEffect(() => {
     if (!errorSignature) return;
@@ -227,27 +263,81 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         </p>
       </FormSection>
 
-      <FormSection title="Automation" description="Coverage dan hasil run automation per platform.">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-4 rounded-md border border-border/70 p-4">
-            <h4 className="text-sm font-medium text-foreground">Backend</h4>
-            <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-1">
-              <NumberField name="automationBeTotal" label="BE total" defaultValue={values.automationBeTotal} error={fieldErrors.automationBeTotal} />
-              <NumberField name="automationBePassed" label="BE passed" defaultValue={values.automationBePassed ?? undefined} error={fieldErrors.automationBePassed} />
-              <NumberField name="automationBeFailed" label="BE failed" defaultValue={values.automationBeFailed ?? undefined} />
-            </div>
-          </div>
-          <div className="space-y-4 rounded-md border border-border/70 p-4">
+      <FormSection title="Automation" description="Coverage dan hasil run automation per platform. Tidak boleh melebihi total test case-nya.">
+      <div className="grid gap-4 md:grid-cols-2">
+ <div className="space-y-4 rounded-md border border-border/70 p-4">
+    <h4 className="text-sm font-medium text-foreground">Backend</h4>
+   <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-1">
+     <NumberField
+   name="automationBeTotal"
+   label="BE total"
+   value={automationBeTotal}
+   onChange={setAutomationBeTotal}
+   error={fieldErrors.automationBeTotal}
+    warning={
+beTotalExceeds
+                ? `Tidak boleh lebih dari Test case BE total (${beTcTotal})`
+: undefined
+           }
+              />
+        <NumberField
+          name="automationBePassed"
+    label="BE passed"
+         value={automationBePassed}
+       onChange={setAutomationBePassed}
+       error={fieldErrors.automationBePassed}
+        warning={
+       bePassFailExceeds
+ ? `Passed + Failed (${bePassedNum + beFailedNum}) melebihi BE total (${beTotalNum})`
+                : undefined
+           }
+     />
+       <NumberField
+        name="automationBeFailed"
+        label="BE failed"
+        value={automationBeFailed}
+    onChange={setAutomationBeFailed}
+       />
+  </div>
+ </div>
+     <div className="space-y-4 rounded-md border border-border/70 p-4">
             <h4 className="text-sm font-medium text-foreground">Frontend</h4>
             <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-1">
-              <NumberField name="automationFeTotal" label="FE total" defaultValue={values.automationFeTotal} error={fieldErrors.automationFeTotal} />
-              <NumberField name="automationFePassed" label="FE passed" defaultValue={values.automationFePassed ?? undefined} error={fieldErrors.automationFePassed} />
-              <NumberField name="automationFeFailed" label="FE failed" defaultValue={values.automationFeFailed ?? undefined} />
-            </div>
-          </div>
-        </div>
+   <NumberField
+    name="automationFeTotal"
+   label="FE total"
+       value={automationFeTotal}
+   onChange={setAutomationFeTotal}
+error={fieldErrors.automationFeTotal}
+         warning={
+  feTotalExceeds
+            ? `Tidak boleh lebih dari Test case FE total (${feTcTotal})`
+       : undefined
+     }
+  />
+   <NumberField
+     name="automationFePassed"
+       label="FE passed"
+      value={automationFePassed}
+  onChange={setAutomationFePassed}
+   error={fieldErrors.automationFePassed}
+       warning={
+   fePassFailExceeds
+  ? `Passed + Failed (${fePassedNum + feFailedNum}) melebihi FE total (${feTotalNum})`
+   : undefined
+            }
+              />
+          <NumberField
+             name="automationFeFailed"
+        label="FE failed"
+           value={automationFeFailed}
+       onChange={setAutomationFeFailed}
+         />
+    </div>
+    </div>
+    </div>
         {hasValue(values.automationPassed) ? <input type="hidden" name="automationPassed" value={String(values.automationPassed)} /> : null}
-        {hasValue(values.automationFailed) ? <input type="hidden" name="automationFailed" value={String(values.automationFailed)} /> : null}
+    {hasValue(values.automationFailed) ? <input type="hidden" name="automationFailed" value={String(values.automationFailed)} /> : null}
       </FormSection>
 
       <FormSection title="Blocker & plan" description="Kendala minggu ini, rencana minggu depan, dan catatan tambahan.">
