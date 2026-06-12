@@ -13,7 +13,7 @@ import {
   weeklyReports,
 } from "./schema";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@example.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "yehezkieljosh@gmail.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin12345!";
 const ADMIN_NAME = process.env.ADMIN_NAME || "Super Admin";
 
