@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ type WeeklyReportFormProps = {
   projects: ProjectOption[];
   defaultValues?: WeeklyReportDefaults;
   submitLabel: string;
+  cancelHref?: string;
   lockProject?: boolean;
 };
 
@@ -98,7 +100,7 @@ function FormSection({ title, description, children }: { title: React.ReactNode;
   );
 }
 
-export function WeeklyReportForm({ action, projects, defaultValues, submitLabel, lockProject }: WeeklyReportFormProps) {
+export function WeeklyReportForm({ action, projects, defaultValues, submitLabel, cancelHref, lockProject }: WeeklyReportFormProps) {
   const [state, formAction, pending] = useActionState(action, {});
   const values = { ...defaultValues, ...state.values };
   const fieldErrors: WeeklyReportFieldErrors = state.fieldErrors ?? {};
@@ -361,9 +363,16 @@ error={fieldErrors.automationFeTotal}
         </div>
       </FormSection>
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Saving..." : submitLabel}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+   <Button type="submit" disabled={pending}>
+     {pending ? "Saving..." : submitLabel}
+ </Button>
+        {cancelHref ? (
+        <Button type="button" variant="outline" asChild disabled={pending}>
+   <Link href={cancelHref}>Cancel</Link>
+        </Button>
+      ) : null}
+</div>
     </form>
   );
 }

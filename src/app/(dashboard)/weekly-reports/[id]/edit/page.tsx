@@ -49,11 +49,12 @@ export default async function EditWeeklyReportPage({ params }: { params: Promise
         </CardHeader>
         <CardContent>
           <WeeklyReportForm
-            action={action}
+      action={action}
             projects={projects}
-            submitLabel="Save changes"
-            lockProject
-            defaultValues={{
+   submitLabel="Save changes"
+cancelHref={`/weekly-reports/${id}`}
+     lockProject
+  defaultValues={{
               projectId: report.projectId,
               weekStartDate: toDateInput(report.weekStartDate),
               weekEndDate: toDateInput(report.weekEndDate),

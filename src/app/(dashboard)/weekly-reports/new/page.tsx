@@ -26,7 +26,7 @@ export default async function NewWeeklyReportPage() {
           <CardTitle>Report detail</CardTitle>
         </CardHeader>
         <CardContent>
-          <WeeklyReportForm action={createDraftAction} projects={projects} submitLabel="Save draft" />
+          <WeeklyReportForm action={createDraftAction} projects={projects} submitLabel="Save draft" cancelHref="/weekly-reports" />
         </CardContent>
       </Card>
     </div>
