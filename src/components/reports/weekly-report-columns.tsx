@@ -4,11 +4,12 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { formatReportDate } from "@/lib/reports/format";
 import { reportStageDescription } from "@/lib/reports/status";
 import type { ReportStatus } from "@/types";
 
 export type WeeklyReportRow = {
-  id: string;
+id: string;
   projectName: string;
   weekStartDate: Date;
   weekEndDate: Date;
@@ -17,10 +18,6 @@ export type WeeklyReportRow = {
   approverName?: string | null;
   canEdit?: boolean;
 };
-
-function formatDate(value: Date) {
-  return new Date(value).toISOString().slice(0, 10);
-}
 
 export const weeklyReportColumns: ColumnDef<WeeklyReportRow>[] = [
   {
@@ -33,7 +30,7 @@ export const weeklyReportColumns: ColumnDef<WeeklyReportRow>[] = [
     header: "Week",
     cell: ({ row }) => (
       <span className="text-muted-foreground">
-        {formatDate(row.original.weekStartDate)} → {formatDate(row.original.weekEndDate)}
+       {formatReportDate(row.original.weekStartDate)} → {formatReportDate(row.original.weekEndDate)}
       </span>
     ),
   },
