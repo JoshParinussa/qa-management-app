@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { formatReportTimestamp } from "@/lib/reports/format";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -48,17 +49,6 @@ const TONE_CLASSES: Record<ActionMeta["tone"], string> = {
   danger: "text-destructive border-destructive/30",
 };
 
-function formatTimestamp(value: Date) {
-  const d = new Date(value);
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(d);
-}
-
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((v): v is string => typeof v === "string");
@@ -91,7 +81,7 @@ export function ActivityTimeline({ activities }: { activities: ActivityRow[] }) 
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                 <p className="text-sm font-medium text-foreground">{meta.label}</p>
-                <p className="text-xs text-muted-foreground">{formatTimestamp(activity.createdAt)}</p>
+                 <p className="text-xs text-muted-foreground">{formatReportTimestamp(activity.createdAt)}</p>
               </div>
               <p className="text-xs text-muted-foreground">oleh {activity.actorName}</p>
               {fields.length > 0 ? (

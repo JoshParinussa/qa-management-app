@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { formatReportTimestamp } from "@/lib/reports/format";
 
 type FeedbackRow = {
   id: string;
@@ -21,16 +22,16 @@ export function FeedbackHistory({ feedbacks }: { feedbacks: FeedbackRow[] }) {
 
   return (
     <div className="space-y-4">
-      {feedbacks.map((item) => (
-        <div key={item.id} className="rounded-lg border border-border p-4">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium">{item.reviewerName}</span>
-            <Badge variant="outline">{actionLabel[item.action]}</Badge>
-          </div>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{item.feedback}</p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {new Date(item.createdAt).toISOString().slice(0, 16).replace("T", " ")}
-          </p>
+   {feedbacks.map((item) => (
+    <div key={item.id} className="rounded-lg border border-border p-4">
+   <div className="flex items-center justify-between gap-2">
+     <span className="text-sm font-medium">{item.reviewerName}</span>
+     <Badge variant="outline">{actionLabel[item.action]}</Badge>
+        </div>
+   <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{item.feedback}</p>
+       <p className="mt-2 text-xs text-muted-foreground">
+   {formatReportTimestamp(item.createdAt)}
+   </p>
         </div>
       ))}
     </div>
