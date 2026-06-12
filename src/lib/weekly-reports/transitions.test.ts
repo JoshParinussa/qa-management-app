@@ -10,12 +10,12 @@ import {
 } from "./transitions";
 
 describe("canStartQaApproval", () => {
-  it("only allows starting from DRAFT", () => {
+  it("allows starting from DRAFT or NEED_REVISION", () => {
     expect(canStartQaApproval("DRAFT")).toBe(true);
+    expect(canStartQaApproval("NEED_REVISION")).toBe(true);
     expect(canStartQaApproval("PENDING_QA_APPROVAL")).toBe(false);
     expect(canStartQaApproval("SUBMITTED")).toBe(false);
     expect(canStartQaApproval("REVIEWED")).toBe(false);
-    expect(canStartQaApproval("NEED_REVISION")).toBe(false);
     expect(canStartQaApproval("APPROVED")).toBe(false);
   });
 });
