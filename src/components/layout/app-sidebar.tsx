@@ -51,8 +51,8 @@ export function AppSidebar({ user }: { user: SessionUser }) {
   });
 
   return (
-    <aside className={cn("hidden min-h-screen border-r border-slate-200 bg-slate-50/60 text-slate-950 transition-[width] duration-200 lg:block", collapsed ? "w-14" : "w-64")}>
-      <div className="flex h-full min-h-screen flex-col p-2">
+    <aside className={cn("hidden border-r border-slate-200 bg-slate-50/60 text-slate-950 transition-[width] duration-200 lg:block", collapsed ? "w-14" : "w-64")}>
+      <div className="sticky top-0 flex h-screen flex-col p-2">
         <div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-slate-100">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white">
             <FolderKanban className="size-4" />
