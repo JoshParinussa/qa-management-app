@@ -14,7 +14,6 @@ import {
   listCoverageByProject,
   listPendingReviewReports,
   listRecentReportsByUser,
-  listTopBlockers,
 } from "@/lib/dashboard/queries";
 
 function formatPercent(value: string | null) {
@@ -31,7 +30,6 @@ export default async function DashboardPage() {
     const pending = await listPendingReviewReports();
     const coverage = await listCoverageByProject();
     const incidentTotal = await getIncidentTotal();
-    const topBlockers = await listTopBlockers();
 
     return (
       <div className="space-y-6">
@@ -55,63 +53,61 @@ export default async function DashboardPage() {
             <DashboardReportTable reports={pending} />
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Coverage per project (approved)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {coverage.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada report approved.</p>
-            ) : (
-              <div className="space-y-3">
-                {coverage.map((row) => {
-                  const bePercent = Number(row.avgAutomationBe) || 0;
-                  const fePercent = Number(row.avgAutomationFe) || 0;
-                  const bePassRate = Number(row.avgAutomationBePassRate) || 0;
-                  const fePassRate = Number(row.avgAutomationFePassRate) || 0;
-                  
-                  return (
-                    <div key={row.projectName} className="rounded-lg border border-border p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold">{row.projectName}</h4>
-                        <span className="text-xs text-muted-foreground">{row.reportCount} report{row.reportCount > 1 ? 's' : ''}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Backend</p>
-                          <div className="space-y-1">
-                            <div className="flex items-baseline justify-between">
-                              <span className="text-sm font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
-                              <span className="text-xs text-muted-foreground">coverage</span>
-                            </div>
-                            <ProgressBar value={bePercent} />
-                            <p className="text-xs text-muted-foreground">
-                              <span className="font-medium text-foreground">{formatPercent(row.avgAutomationBePassRate)}</span> pass rate
-                            </p>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Frontend</p>
-                          <div className="space-y-1">
-                            <div className="flex items-baseline justify-between">
-                              <span className="text-sm font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
-                              <span className="text-xs text-muted-foreground">coverage</span>
-                            </div>
-                            <ProgressBar value={fePercent} />
-                            <p className="text-xs text-muted-foreground">
-                              <span className="font-medium text-foreground">{formatPercent(row.avgAutomationFePassRate)}</span> pass rate
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
         <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Coverage per project (approved)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {coverage.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Belum ada report approved.</p>
+              ) : (
+                <div className="space-y-3">
+                  {coverage.map((row) => {
+                    const bePercent = Number(row.avgAutomationBe) || 0;
+                    const fePercent = Number(row.avgAutomationFe) || 0;
+                    
+                    return (
+                      <div key={row.projectName} className="rounded-lg border border-border p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold">{row.projectName}</h4>
+                          <span className="text-xs text-muted-foreground">{row.reportCount} report{row.reportCount > 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-muted-foreground">Backend</p>
+                            <div className="space-y-1">
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-sm font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
+                                <span className="text-xs text-muted-foreground">coverage</span>
+                              </div>
+                              <ProgressBar value={bePercent} />
+                              <p className="text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">{formatPercent(row.avgAutomationBePassRate)}</span> pass rate
+                              </p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-muted-foreground">Frontend</p>
+                            <div className="space-y-1">
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-sm font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
+                                <span className="text-xs text-muted-foreground">coverage</span>
+                              </div>
+                              <ProgressBar value={fePercent} />
+                              <p className="text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">{formatPercent(row.avgAutomationFePassRate)}</span> pass rate
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -122,25 +118,6 @@ export default async function DashboardPage() {
             <CardContent>
               <p className="text-3xl font-semibold tabular-nums">{incidentTotal}</p>
               <p className="mt-1 text-sm text-muted-foreground">Total dari semua report.</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Top blockers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {topBlockers.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Tidak ada blocker.</p>
-              ) : (
-                <div className="space-y-2">
-                  {topBlockers.map((row) => (
-                    <div key={row.blocker} className="flex items-center justify-between gap-2 border-b pb-2 last:border-0 last:pb-0">
-                      <span className="truncate text-sm">{row.blocker}</span>
-                      <span className="text-sm text-muted-foreground">{row.value}×</span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
