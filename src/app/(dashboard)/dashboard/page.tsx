@@ -4,6 +4,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { DashboardReportTable } from "@/components/dashboard/dashboard-report-table";
+import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import {
@@ -34,7 +35,10 @@ export default async function DashboardPage() {
 
     return (
       <div className="space-y-6">
-        <PageHeader title="Dashboard" description="Ringkasan operasional QA team." />
+        <div className="flex items-start justify-between gap-4">
+          <PageHeader title="Dashboard" description="Ringkasan operasional QA team." />
+          <DateRangeFilter />
+        </div>
         <StatCards
           cards={[
             { label: "Active projects", value: summary.activeProjects, icon: FolderKanban, color: "blue", subtitle: "On track" },
@@ -149,7 +153,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Dashboard" description="Ringkasan report QA kamu." />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader title="Dashboard" description="Ringkasan report QA kamu." />
+        <DateRangeFilter />
+      </div>
       <StatCards
         cards={[
           { label: "Assigned projects", value: member.assignedProjects, icon: FolderKanban, color: "blue", subtitle: "Active" },

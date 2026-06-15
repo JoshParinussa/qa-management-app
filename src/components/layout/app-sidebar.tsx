@@ -76,11 +76,11 @@ export function AppSidebar({ user }: { user: SessionUser }) {
                 title={collapsed ? item.label : undefined}
                 className={cn(
                   "flex h-9 items-center gap-2 rounded-md px-2 text-sm transition-colors hover:bg-slate-100",
-                  active && "bg-slate-100 font-medium",
+                  active && "border-l-4 border-slate-950 bg-slate-100 font-semibold pl-1.5",
                   collapsed && "justify-center",
                 )}
               >
-                <Icon className="size-4 shrink-0" />
+                <Icon className={cn("size-4 shrink-0", active && "text-slate-950")} />
                 <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
               </Link>
             );
