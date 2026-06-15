@@ -90,10 +90,10 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 function FormSection({ title, description, children }: { title: React.ReactNode; description?: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-4 rounded-lg border border-border p-4">
-      <div className="space-y-0.5">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+  <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+      <div className="space-y-1">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        {description ? <p className="text-sm text-muted-foreground leading-relaxed">{description}</p> : null}
       </div>
       {children}
     </section>
@@ -178,7 +178,7 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
     <form key={formKey} ref={formRef} action={formAction} className="space-y-6">
       {state.error ? <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{state.error}</p> : null}
 
-      <FormSection title="Periode & project" description="Project yang direport dan rentang minggunya.">
+      <FormSection title="Periode & project" description="Pilih project dan tentukan rentang minggu yang dilaporkan. Setiap report mencakup satu minggu penuh.">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <RequiredLabel htmlFor="projectId">Project</RequiredLabel>
@@ -213,7 +213,7 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         </div>
       </FormSection>
 
-      <FormSection title={<>Summary <RequiredMark /></>} description="Ringkasan pekerjaan minggu ini, satu poin per baris.">
+      <FormSection title={<>Summary <RequiredMark /></>} description="Tuliskan poin-poin utama pekerjaan yang diselesaikan minggu ini. Gunakan bullet list untuk memudahkan pembacaan.">
         <BulletListInput
           name="summary"
           label=""
@@ -223,7 +223,7 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         />
       </FormSection>
 
-      <FormSection title="Production incident" description="Jumlah, link dokumen bug, dan detail tiap incident.">
+      <FormSection title="Production incident" description="Laporkan bug atau masalah yang terjadi di production minggu ini. Jika tidak ada, biarkan kosong.">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="productionIncidentCount">Production incidents</Label>
@@ -254,7 +254,7 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         />
       </FormSection>
 
-      <FormSection title="Test case" description="Total test case diisi manual. BE + FE wajib lebih besar atau sama dengan total.">
+      <FormSection title="Test case" description="Masukkan jumlah test case manual yang sudah dieksekusi minggu ini. Pisahkan antara backend dan frontend. Total BE + FE harus sama atau lebih besar dari jumlah total.">
         <div className="grid gap-4 sm:grid-cols-3">
           <NumberField name="testCaseTotal" label="Test case total" value={testCaseTotal} onChange={setTestCaseTotal} required error={fieldErrors.testCaseTotal} />
           <NumberField name="testCaseBeTotal" label="Test case BE total" value={testCaseBeTotal} onChange={setTestCaseBeTotal} required error={fieldErrors.testCaseBeTotal} />
@@ -265,7 +265,7 @@ export function WeeklyReportForm({ action, projects, defaultValues, submitLabel,
         </p>
       </FormSection>
 
-      <FormSection title="Automation" description="Coverage dan hasil run automation per platform. Tidak boleh melebihi total test case-nya.">
+      <FormSection title="Automation" description="Laporkan hasil eksekusi test automation minggu ini. Masukkan total test case yang di-automate, jumlah yang passed, dan jumlah yang failed untuk backend dan frontend. Total automation tidak boleh melebihi jumlah test case manual.">
       <div className="grid gap-4 md:grid-cols-2">
  <div className="space-y-4 rounded-md border border-border/70 p-4">
     <h4 className="text-sm font-medium text-foreground">Backend</h4>
@@ -342,7 +342,7 @@ error={fieldErrors.automationFeTotal}
     {hasValue(values.automationFailed) ? <input type="hidden" name="automationFailed" value={String(values.automationFailed)} /> : null}
       </FormSection>
 
-      <FormSection title="Blocker & plan" description="Kendala minggu ini, rencana minggu depan, dan catatan tambahan.">
+      <FormSection title="Blocker & plan" description="Tuliskan kendala yang menghambat progress minggu ini, rencana pekerjaan minggu depan, dan catatan tambahan jika ada.">
         <BulletListInput
           name="blocker"
           label="Blocker"
