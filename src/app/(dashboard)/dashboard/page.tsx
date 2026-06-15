@@ -58,13 +58,43 @@ export default async function DashboardPage() {
             {coverage.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada report approved.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {coverage.map((row) => (
-                  <div key={row.projectName} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
-                    <span className="text-sm font-medium">{row.projectName}</span>
-                    <span className="text-sm text-muted-foreground">
-                      BE {formatPercent(row.avgAutomationBe)} · FE {formatPercent(row.avgAutomationFe)}
-                    </span>
+                  <div key={row.projectName} className="space-y-3 rounded-lg border border-border p-4 last:border-b">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="text-base font-semibold">{row.projectName}</h4>
+                        <p className="text-xs text-muted-foreground">{row.reportCount} approved report{row.reportCount > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Backend</span>
+                          <span className="text-xs text-muted-foreground">Coverage</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Pass rate</span>
+                          <span className="font-medium tabular-nums">{formatPercent(row.avgAutomationBePassRate)}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Frontend</span>
+                          <span className="text-xs text-muted-foreground">Coverage</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Pass rate</span>
+                          <span className="font-medium tabular-nums">{formatPercent(row.avgAutomationFePassRate)}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
