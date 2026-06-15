@@ -58,41 +58,33 @@ export default async function DashboardPage() {
             {coverage.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada report approved.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {coverage.map((row) => (
-                  <div key={row.projectName} className="space-y-3 rounded-lg border border-border p-4 last:border-b">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="text-base font-semibold">{row.projectName}</h4>
-                        <p className="text-xs text-muted-foreground">{row.reportCount} approved report{row.reportCount > 1 ? 's' : ''}</p>
-                      </div>
+                  <div key={row.projectName} className="rounded-lg border border-border p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold">{row.projectName}</h4>
+                      <span className="text-xs text-muted-foreground">{row.reportCount} report{row.reportCount > 1 ? 's' : ''}</span>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Backend</span>
-                          <span className="text-xs text-muted-foreground">Coverage</span>
-                        </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground">Backend</p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
+                          <span className="text-lg font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
+                          <span className="text-xs text-muted-foreground">coverage</span>
                         </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Pass rate</span>
-                          <span className="font-medium tabular-nums">{formatPercent(row.avgAutomationBePassRate)}</span>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">{formatPercent(row.avgAutomationBePassRate)}</span> pass rate
+                        </p>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Frontend</span>
-                          <span className="text-xs text-muted-foreground">Coverage</span>
-                        </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground">Frontend</p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
+                          <span className="text-lg font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
+                          <span className="text-xs text-muted-foreground">coverage</span>
                         </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Pass rate</span>
-                          <span className="font-medium tabular-nums">{formatPercent(row.avgAutomationFePassRate)}</span>
-                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">{formatPercent(row.avgAutomationFePassRate)}</span> pass rate
+                        </p>
                       </div>
                     </div>
                   </div>
