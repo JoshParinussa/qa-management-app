@@ -15,6 +15,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search } fr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getPaginationRange } from "@/lib/ui/pagination";
 import { cn } from "@/lib/utils";
 
@@ -115,8 +116,8 @@ export function DataTable<TData, TValue>({
         <TableBody>
           {table.getRowModel().rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                {emptyLabel}
+              <TableCell colSpan={columns.length}>
+                <EmptyState title={emptyLabel || "Tidak ada data."} />
               </TableCell>
             </TableRow>
           ) : (

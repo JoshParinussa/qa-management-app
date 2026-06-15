@@ -1,5 +1,6 @@
 import { FolderKanban, Clock, RotateCcw, CheckCircle2, Send, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { DashboardReportTable } from "@/components/dashboard/dashboard-report-table";
@@ -36,10 +37,10 @@ export default async function DashboardPage() {
         <PageHeader title="Dashboard" description="Ringkasan operasional QA team." />
         <StatCards
           cards={[
-            { label: "Active projects", value: summary.activeProjects, icon: FolderKanban },
-            { label: "Pending review", value: summary.pendingReview, icon: Clock },
-            { label: "Need revision", value: summary.needRevision, icon: RotateCcw },
-            { label: "Approved", value: summary.approved, icon: CheckCircle2 },
+            { label: "Active projects", value: summary.activeProjects, icon: FolderKanban, color: "blue", subtitle: "On track" },
+            { label: "Pending review", value: summary.pendingReview, icon: Clock, color: "amber", subtitle: summary.pendingReview === 0 ? "All clear" : "Needs attention" },
+            { label: "Need revision", value: summary.needRevision, icon: RotateCcw, color: "red", subtitle: summary.needRevision === 0 ? "No issues" : "Action required" },
+            { label: "Approved", value: summary.approved, icon: CheckCircle2, color: "green", subtitle: "Completed" },
           ]}
         />
         <Card>
@@ -47,7 +48,7 @@ export default async function DashboardPage() {
             <CardTitle>Pending review</CardTitle>
           </CardHeader>
           <CardContent>
-            <DashboardReportTable reports={pending} emptyLabel="Tidak ada report menunggu review." />
+            <DashboardReportTable reports={pending} />
           </CardContent>
         </Card>
         <Card>
@@ -59,36 +60,49 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted-foreground">Belum ada report approved.</p>
             ) : (
               <div className="space-y-3">
-                {coverage.map((row) => (
-                  <div key={row.projectName} className="rounded-lg border border-border p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold">{row.projectName}</h4>
-                      <span className="text-xs text-muted-foreground">{row.reportCount} report{row.reportCount > 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Backend</p>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
-                          <span className="text-xs text-muted-foreground">coverage</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">{formatPercent(row.avgAutomationBePassRate)}</span> pass rate
-                        </p>
+                {coverage.map((row) => {
+                  const bePercent = Number(row.avgAutomationBe) || 0;
+                  const fePercent = Number(row.avgAutomationFe) || 0;
+                  const bePassRate = Number(row.avgAutomationBePassRate) || 0;
+                  const fePassRate = Number(row.avgAutomationFePassRate) || 0;
+                  
+                  return (
+                    <div key={row.projectName} className="rounded-lg border border-border p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold">{row.projectName}</h4>
+                        <span className="text-xs text-muted-foreground">{row.reportCount} report{row.reportCount > 1 ? 's' : ''}</span>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground">Frontend</p>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
-                          <span className="text-xs text-muted-foreground">coverage</span>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Backend</p>
+                          <div className="space-y-1">
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-sm font-bold tabular-nums">{formatPercent(row.avgAutomationBe)}</span>
+                              <span className="text-xs text-muted-foreground">coverage</span>
+                            </div>
+                            <ProgressBar value={bePercent} />
+                            <p className="text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">{formatPercent(row.avgAutomationBePassRate)}</span> pass rate
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">{formatPercent(row.avgAutomationFePassRate)}</span> pass rate
-                        </p>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Frontend</p>
+                          <div className="space-y-1">
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-sm font-bold tabular-nums">{formatPercent(row.avgAutomationFe)}</span>
+                              <span className="text-xs text-muted-foreground">coverage</span>
+                            </div>
+                            <ProgressBar value={fePercent} />
+                            <p className="text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">{formatPercent(row.avgAutomationFePassRate)}</span> pass rate
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -138,10 +152,10 @@ export default async function DashboardPage() {
       <PageHeader title="Dashboard" description="Ringkasan report QA kamu." />
       <StatCards
         cards={[
-          { label: "Assigned projects", value: member.assignedProjects, icon: FolderKanban },
-          { label: "Submitted", value: member.submitted, icon: Send },
-          { label: "Need revision", value: member.needRevision, icon: RotateCcw },
-          { label: "Approved", value: member.approved, icon: CheckCircle2 },
+          { label: "Assigned projects", value: member.assignedProjects, icon: FolderKanban, color: "blue", subtitle: "Active" },
+          { label: "Submitted", value: member.submitted, icon: Send, color: "amber", subtitle: "Under review" },
+          { label: "Need revision", value: member.needRevision, icon: RotateCcw, color: "red", subtitle: member.needRevision === 0 ? "No issues" : "Action required" },
+          { label: "Approved", value: member.approved, icon: CheckCircle2, color: "green", subtitle: "Completed" },
         ]}
       />
       <Card>
@@ -149,7 +163,7 @@ export default async function DashboardPage() {
           <CardTitle>My recent reports</CardTitle>
         </CardHeader>
         <CardContent>
-          <DashboardReportTable reports={recent} emptyLabel="Belum ada report." />
+          <DashboardReportTable reports={recent} />
         </CardContent>
       </Card>
     </div>
