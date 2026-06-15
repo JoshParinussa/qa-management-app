@@ -202,14 +202,12 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </Card>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm">
+      <div className="space-y-2">
+        <h3 className="text-base font-semibold">Summary</h3>
+        <div className="text-sm">
           <BulletField label="" value={report.summary} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Card>
         <CardHeader>
@@ -234,7 +232,7 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
             <Metric label="Automated" value={report.automationFeTotal} />
             <Metric label="Automation coverage" value={`${metrics.automationFeCoverage}%`} />
          <Metric label="Pass rate" value={`${metrics.automationFePassRate}%`} />
-          </MetricGroup>
+           </MetricGroup>
         </CardContent>
       </Card>
 
@@ -247,25 +245,19 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Plan & notes</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5 text-sm">
+      <div className="space-y-4 text-sm">
+        <h3 className="text-base font-semibold">Plan & notes</h3>
+        <div className="space-y-5">
           <BulletField label="Blocker" value={report.blocker} />
           <BulletField label="Next week plan" value={report.nextWeekPlan} />
           <Field label="Notes" value={report.notes ?? "-"} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityTimeline activities={activities} />
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <h3 className="text-base font-semibold">Activity</h3>
+        <ActivityTimeline activities={activities} />
+      </div>
     </div>
   );
 }
