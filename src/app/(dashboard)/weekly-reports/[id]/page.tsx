@@ -202,12 +202,14 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </Card>
       ) : null}
 
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold">Summary</h3>
-        <div className="text-sm">
+      <Card>
+        <CardHeader>
+          <CardTitle>Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm">
           <BulletField label="" value={report.summary} />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -245,14 +247,22 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
         </CardContent>
       </Card>
 
-      <div className="space-y-4 text-sm">
-        <h3 className="text-base font-semibold">Plan & notes</h3>
-        <div className="space-y-5">
-          <BulletField label="Blocker" value={report.blocker} />
-          <BulletField label="Next week plan" value={report.nextWeekPlan} />
-          <Field label="Notes" value={report.notes ?? "-"} />
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Plan & notes</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
+          <div className="rounded-lg border border-border p-4">
+            <BulletField label="Blocker" value={report.blocker} />
+          </div>
+          <div className="rounded-lg border border-border p-4">
+            <BulletField label="Next week plan" value={report.nextWeekPlan} />
+          </div>
+          <div className="rounded-lg border border-border p-4 sm:col-span-2">
+            <Field label="Notes" value={report.notes ?? "-"} />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-2">
         <h3 className="text-base font-semibold">Activity</h3>

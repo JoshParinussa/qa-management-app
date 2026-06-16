@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-day-picker/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,6 +9,8 @@
   --foreground: #020617;
   --card: #ffffff;
   --card-foreground: #020617;
+  --popover: #ffffff;
+  --popover-foreground: #020617;
   --primary: #0f172a;
   --primary-foreground: #f8fafc;
   --secondary: #f1f5f9;
@@ -36,6 +39,8 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -73,6 +78,8 @@
 }
 
 .dark {
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
   --sidebar: hsl(240 5.9% 10%);
   --sidebar-foreground: hsl(240 4.8% 95.9%);
   --sidebar-primary: hsl(224.3 76.3% 48%);
@@ -81,4 +88,48 @@
   --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
   --sidebar-border: hsl(240 3.7% 15.9%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dashboard-range-calendar {
+  --rdp-accent-color: var(--primary);
+  --rdp-accent-background-color: var(--secondary);
+  --rdp-day-height: 2.25rem;
+  --rdp-day-width: 2.25rem;
+  --rdp-day_button-height: 2.25rem;
+  --rdp-day_button-width: 2.25rem;
+  --rdp-day_button-border-radius: 0.45rem;
+  --rdp-range_start-date-background-color: var(--primary);
+  --rdp-range_end-date-background-color: var(--primary);
+  --rdp-range_middle-background-color: var(--secondary);
+  font-size: 0.875rem;
+}
+
+.dashboard-range-calendar .rdp-month_caption {
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.dashboard-range-calendar .rdp-button_previous,
+.dashboard-range-calendar .rdp-button_next {
+  border-radius: 0.45rem;
+  color: var(--muted-foreground);
+}
+
+.dashboard-range-calendar .rdp-button_previous:hover,
+.dashboard-range-calendar .rdp-button_next:hover,
+.dashboard-range-calendar .rdp-day_button:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.dashboard-range-calendar .rdp-weekday {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.dashboard-range-calendar .rdp-outside {
+  color: var(--muted-foreground);
+  opacity: 0.35;
 }

@@ -16,6 +16,7 @@ id: string;
   status: ReportStatus;
   reviewerName?: string | null;
   approverName?: string | null;
+  needsMyApproval?: boolean;
   canEdit?: boolean;
 };
 
@@ -41,10 +42,12 @@ export const weeklyReportColumns: ColumnDef<WeeklyReportRow>[] = [
       <div className="space-y-1">
         <StatusBadge status={row.original.status} />
         <p className="text-xs text-muted-foreground">
-          {reportStageDescription(row.original.status, {
-            reviewerName: row.original.reviewerName,
-            approverName: row.original.approverName,
-          })}
+          {row.original.needsMyApproval
+            ? "Approval kamu diperlukan"
+            : reportStageDescription(row.original.status, {
+                reviewerName: row.original.reviewerName,
+                approverName: row.original.approverName,
+              })}
         </p>
       </div>
     ),

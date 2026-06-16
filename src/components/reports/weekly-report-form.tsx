@@ -90,10 +90,10 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 function FormSection({ title, description, children }: { title: React.ReactNode; description?: string; children: React.ReactNode }) {
   return (
-  <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
-      <div className="space-y-1">
+    <section className="space-y-5 border-b border-border/70 pb-6">
+      <div className="space-y-1.5">
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
-        {description ? <p className="text-sm text-muted-foreground leading-relaxed">{description}</p> : null}
+        {description ? <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p> : null}
       </div>
       {children}
     </section>

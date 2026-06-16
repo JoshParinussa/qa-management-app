@@ -5,13 +5,23 @@ import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { weeklyReportColumns, type WeeklyReportRow } from "@/components/reports/weekly-report-columns";
 
-export function DashboardReportTable({ reports }: { reports: WeeklyReportRow[] }) {
+type DashboardReportTableProps = {
+  reports: WeeklyReportRow[];
+  emptyTitle?: string;
+  emptyDescription?: string;
+};
+
+export function DashboardReportTable({
+  reports,
+  emptyTitle = "All caught up!",
+  emptyDescription = "No reports pending review at the moment.",
+}: DashboardReportTableProps) {
   if (reports.length === 0) {
     return (
       <EmptyState
-        icon={<CheckCircle className="size-8 text-green-600" />}
-        title="All caught up!"
-        description="No reports pending review at the moment."
+        icon={<CheckCircle className="size-8 text-slate-600" />}
+        title={emptyTitle}
+        description={emptyDescription}
       />
     );
   }

@@ -31,19 +31,17 @@ export function listReportsByCoAuthor(userId: string) {
       submitterName: submitterUsers.name,
     })
     .from(weeklyReports)
+    .innerJoin(
+      reportAuthors,
+      and(
+        eq(reportAuthors.weeklyReportId, weeklyReports.id),
+        eq(reportAuthors.userId, userId),
+      ),
+    )
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
     .leftJoin(reviewerUsers, eq(weeklyReports.reviewedBy, reviewerUsers.id))
     .leftJoin(approverUsers, eq(weeklyReports.approvedBy, approverUsers.id))
     .leftJoin(submitterUsers, eq(weeklyReports.submittedBy, submitterUsers.id))
-    .where(
-      eq(
-        weeklyReports.id,
-        db
-          .select({ reportId: reportAuthors.weeklyReportId })
-          .from(reportAuthors)
-          .where(eq(reportAuthors.userId, userId)),
-      ),
-    )
     .orderBy(desc(weeklyReports.createdAt));
 }
 
