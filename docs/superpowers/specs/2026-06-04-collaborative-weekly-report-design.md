@@ -1,7 +1,15 @@
 # Collaborative Weekly Report Design
 
 Date: 2026-06-04
-Status: Approved (pending user spec review)
+Status: Implemented
+
+Update 2026-06-16:
+
+- Collaborative weekly report model is live via `drizzle/0004_collaborative_weekly_reports.sql`.
+- Dashboard now includes URL-backed date range filtering using report-week overlap logic.
+- Dashboard member view highlights pending internal approval for the current co-author.
+- Dashboard lead view uses compact pending review, coverage per project search/pagination, and production incident summary.
+- Date range picker uses React DayPicker + Radix Popover with presets for Minggu ini, 1 minggu lalu, Bulan ini, and Week 1-N for the current month.
 
 ## 1. Problem & Goal
 

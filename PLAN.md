@@ -38,7 +38,7 @@
 | Project CRUD UX | Dedicated routes, not modal-only |
 | User reset password | Generate new random password, show once to admin, set `must_change_password=true` |
 | First-login password change | All users must change password on first login, including seeded/bootstrap admin accounts |
-| Weekly report uniqueness | One report per project/user/week |
+| Weekly report uniqueness | One report per project/week; co-authors are captured in `report_authors` |
 | E2E tests | Required per phase, happy path minimum |
 | ORM | Drizzle only |
 | DB | Homeserver PostgreSQL, Tailscale first, LAN fallback |
@@ -65,12 +65,13 @@
 | 10 | Markdown export | DONE | 4 |
 | 11 | Hardening | DONE | 5 |
 | 12 | Test baseline | DONE | 5 |
+| 13 | Collaborative report + dashboard polish | DONE | 7 |
 
 ---
 
 ## Phase 0 — DB Ready
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 5
 
 ### Tasks
@@ -112,7 +113,7 @@
 
 ## Phase 1 — Auth + Admin Create User + First-Login Password Change
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 6
 
 ### Tasks
@@ -162,7 +163,7 @@
 
 ## Phase 2 — Project CRUD
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 5
 
 ### Files
@@ -220,7 +221,7 @@
 
 ## Phase 3 — User CRUD Lanjutan
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 5
 
 ### Files
@@ -275,7 +276,7 @@
 
 ## Phase 4 — Project Member Assignment
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 5
 
 ### Files
@@ -320,7 +321,7 @@
 
 ## Phase 5 — Weekly Report CRUD
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 8
 
 ### Files
@@ -382,7 +383,7 @@
 
 ## Phase 6 — Submit Flow
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 4
 
 ### Files
@@ -420,7 +421,7 @@
 
 ## Phase 7 — Review Flow
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 6
 
 ### Files
@@ -468,7 +469,7 @@
 
 ## Phase 8 — Dashboard Summary
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 6
 
 ### Files
@@ -492,6 +493,10 @@
 | 8.8 | Build lead dashboard | DONE | 5 |
 | 8.9 | Build pending review table | DONE | 4 |
 | 8.10 | Build need revision table | DONE | 3 |
+| 8.11 | Add URL-backed dashboard date range filter | DONE | 5 |
+| 8.12 | Add dashboard presets: this week, last week, this month, Week 1-N | DONE | 4 |
+| 8.13 | Add coverage per project search and pagination | DONE | 4 |
+| 8.14 | Count member pending approval from co-author approvals | DONE | 5 |
 
 ### Testing Tasks
 
@@ -508,15 +513,16 @@
 
 ### Acceptance Criteria
 
-- Only approved reports are included.
-- Filters work by month/project/member.
-- Summary values are accurate.
+- Role-aware dashboard metrics are accurate for QA Lead/Admin and QA Member.
+- Report-based metrics respect selected dashboard date range by report-week overlap.
+- Coverage per project remains usable with many projects via search and pagination.
+- Member dashboard highlights reports waiting for the current user's internal approval.
 
 ---
 
 ## Phase 10 — Markdown Export
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 4
 
 ### Files
@@ -553,7 +559,7 @@
 
 ## Phase 11 — Hardening
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 5
 
 ### Files
@@ -594,7 +600,7 @@
 
 ## Phase 12 — Test Baseline
 
-**Status:** DONE  
+**Status:** DONE
 **Complexity:** 5
 
 ### Tasks
@@ -625,6 +631,44 @@
 - Business logic has unit coverage.
 - Each phase has at least one E2E happy path.
 - `npm run test`, `npm run typecheck`, `npm run lint`, `npm run build` pass.
+
+---
+
+## Phase 13 — Collaborative Report + Dashboard Polish
+
+**Status:** DONE
+**Complexity:** 7
+
+### Tasks
+
+| ID | Task | Status | Complexity |
+|---|---|---|---:|
+| 13.1 | Migrate weekly reports from owner-based to project/week co-author model | DONE | 8 |
+| 13.2 | Add co-author snapshot, internal QA approvals, and report activity log | DONE | 8 |
+| 13.3 | Add co-author approval panel and activity timeline on report detail | DONE | 6 |
+| 13.4 | Polish weekly report detail sections for Summary, Metrics, Incidents, Plan & Notes | DONE | 4 |
+| 13.5 | Fix co-author report listing query to avoid scalar subquery multi-row errors | DONE | 5 |
+| 13.6 | Refine dashboard stat card icon color and layout | DONE | 2 |
+| 13.7 | Add role-aware dashboard date range filter with presets | DONE | 5 |
+| 13.8 | Add coverage per project compact table with search and pagination | DONE | 5 |
+| 13.9 | Add solid, clean date range popover using React DayPicker + Radix Popover | DONE | 4 |
+
+### Testing Tasks
+
+| ID | Test | Status | Complexity |
+|---|---|---|---:|
+| 13.T1 | Unit test dashboard date range parsing and presets | DONE | 3 |
+| 13.T2 | Unit test dashboard co-author scoping and date-overlap filters | DONE | 4 |
+| 13.T3 | Unit test weekly report co-author query regression | DONE | 3 |
+| 13.T4 | Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build` | DONE | 3 |
+
+### Acceptance Criteria
+
+- Weekly reports support multiple QA co-authors per project/week.
+- QA Lead sees report only after all internal QA approvals are complete.
+- Dashboard date filter updates server data and is preserved in the URL.
+- Dashboard remains readable when coverage has many projects.
+- Current unit test suite has 196 passing tests.
 
 ---
 
@@ -673,12 +717,10 @@ npm run e2e
 
 ## Next Recommended Action
 
-Start Phase 2: Project CRUD.
+MVP core is complete. Recommended next backlog:
 
-Recommended order:
-
-1. Write tests for `projectSchema` and project permission helper.
-2. Implement project queries/actions.
-3. Build dedicated project routes.
-4. Add E2E create/edit/archive project.
-5. Verify all commands.
+1. Add notification/reminder flow for pending QA approval and pending reviewer action.
+2. Add manual co-author management for exceptional report ownership changes.
+3. Add export formats beyond Markdown, such as Excel/PDF.
+4. Re-run and harden Playwright E2E against an isolated disposable database.
+5. Add trend charts after baseline dashboard metrics are stable.

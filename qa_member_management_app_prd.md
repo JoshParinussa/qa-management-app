@@ -10,9 +10,10 @@ Fokus utama aplikasi:
 - Mengelola project aktif.
 - Mengatur assignment QA ke project.
 - Membuat weekly report.
+- Mengelola weekly report kolaboratif per project/minggu dengan co-author approval internal QA.
 - Review report oleh QA Lead.
 - Membuat summary untuk monthly report.
-- Melihat dashboard progress QA per project dan per member.
+- Melihat dashboard progress QA per project dan per member dengan filter periode.
 
 Target awal aplikasi adalah internal team QA.
 
@@ -99,7 +100,7 @@ MVP fokus pada fitur utama yang langsung berguna untuk operasional QA.
 9. Feedback dan revision flow
 10. Dashboard summary
 11. Monthly report summary
-12. Export report ke Markdown atau PDF
+12. Export report ke Markdown
 
 ### 5.2 Out of Scope MVP
 
@@ -145,7 +146,8 @@ Weekly report memiliki status berikut:
 |---|---|
 | Not Started | Report belum dibuat |
 | Draft | Report sudah dibuat tapi belum disubmit |
-| Submitted | Report sudah disubmit oleh QA member |
+| Pending QA Approval | Report sudah diajukan dan menunggu approval semua co-author QA |
+| Submitted | Semua co-author sudah approve; report dikirim ke reviewer |
 | Reviewed | Report sudah dicek oleh QA Lead |
 | Need Revision | QA Lead meminta revisi |
 | Approved | Report sudah final |
@@ -156,13 +158,19 @@ Weekly report memiliki status berikut:
 stateDiagram-v2
     [*] --> NotStarted
     NotStarted --> Draft
-    Draft --> Submitted
+    Draft --> PendingQAApproval
+    PendingQAApproval --> Submitted: Semua co-author approve
+    PendingQAApproval --> Draft: Ada edit konten
     Submitted --> Reviewed
     Reviewed --> NeedRevision
     NeedRevision --> Draft
     Reviewed --> Approved
+    Submitted --> NeedRevision
+    Submitted --> Approved
     Approved --> [*]
 ```
+
+Catatan implementasi aktual: tombol submit member adalah **Ajukan untuk approval QA**. Status `SUBMITTED` terjadi otomatis setelah approval internal lengkap.
 
 ---
 
@@ -177,17 +185,19 @@ stateDiagram-v2
 5. QA Member memilih week report.
 6. QA Member mengisi form weekly report.
 7. QA Member klik Save Draft.
-8. QA Member klik Submit.
-9. QA Lead review report.
-10. Jika perlu revisi, QA Member memperbaiki report.
-11. Jika approved, report masuk ke monthly summary.
+8. QA Member klik Ajukan untuk approval QA.
+9. Semua co-author QA approve internal.
+10. Setelah approval lengkap, report otomatis terkirim ke QA Lead.
+11. QA Lead review report.
+12. Jika perlu revisi, QA Member memperbaiki report dan approval internal diulang.
+13. Jika approved, report masuk ke monthly summary.
 
 ### 8.2 Workflow QA Lead
 
 1. QA Lead login.
 2. QA Lead melihat dashboard team.
 3. QA Lead melihat daftar project aktif.
-4. QA Lead melihat report yang statusnya Submitted.
+4. QA Lead melihat report yang statusnya Submitted dalam periode dashboard yang dipilih.
 5. QA Lead membuka detail report.
 6. QA Lead memberi feedback.
 7. QA Lead memilih:
@@ -254,27 +264,27 @@ stateDiagram-v2
 QA Member melihat:
 
 - Total assigned project.
-- Report minggu ini.
-- Status report per project.
+- Report yang membutuhkan approval internal dirinya.
 - Report yang perlu revisi.
-- History report.
-- Next week plan sebelumnya.
+- Report approved yang ia ikuti sebagai co-author.
+- Recent report yang ia ikuti sebagai co-author.
+- Date range filter yang sama dengan dashboard lead.
 
 ### 10.2 Dashboard QA Lead
 
 QA Lead melihat:
 
 - Total active project.
-- Total QA member aktif.
-- Jumlah report Not Started.
-- Jumlah report Draft.
-- Jumlah report Submitted.
+- Jumlah report Pending Review (`SUBMITTED`).
 - Jumlah report Need Revision.
 - Jumlah report Approved.
+- Pending review table.
 - Summary production incident.
-- Summary blocker.
-- Automation coverage per project.
-- Test case execution coverage per project.
+- Automation coverage dan pass rate per project.
+- Coverage per project dengan search dan pagination 5 project per halaman.
+- Date range filter berbasis URL dengan preset Minggu ini, 1 minggu lalu, Bulan ini, dan Week 1-N bulan berjalan.
+
+Semua metrik report-based memakai logika overlap periode report: report dihitung jika `week_start_date <= filter_to` dan `week_end_date >= filter_from`. Active project tetap menghitung project aktif saat ini.
 
 ### 10.3 Contoh Widget Dashboard
 
@@ -283,9 +293,9 @@ QA Lead melihat:
 | Active Projects | Jumlah project aktif |
 | Pending Review | Report yang menunggu review |
 | Need Revision | Report yang perlu diperbaiki |
-| Production Incident | Total incident minggu ini |
-| Automation Coverage | Rata-rata automation coverage |
-| Top Blockers | Blocker yang paling sering muncul |
+| Approved | Report approved dalam periode filter |
+| Production Incident | Total incident dalam periode filter |
+| Coverage per Project | Rata-rata backend/frontend automation coverage dan pass rate per project |
 
 ---
 
@@ -370,7 +380,8 @@ erDiagram
     PROJECT_MEMBERS {
         uuid id PK
         uuid project_id FK
-        uuid user_id FK
+        uuid created_by FK
+        uuid submitted_by FK
         string assignment_role
         datetime assigned_at
         datetime removed_at
@@ -418,6 +429,32 @@ erDiagram
         datetime created_at
     }
 
+    REPORT_AUTHORS {
+        uuid id PK
+        uuid weekly_report_id FK
+        uuid user_id FK
+        string assignment_role
+        datetime added_at
+        datetime removed_at
+    }
+
+    REPORT_QA_APPROVALS {
+        uuid id PK
+        uuid weekly_report_id FK
+        uuid user_id FK
+        datetime approved_at
+    }
+
+    REPORT_ACTIVITIES {
+        uuid id PK
+        uuid weekly_report_id FK
+        uuid actor_id FK
+        string action
+        json changed_fields
+        text note
+        datetime created_at
+    }
+
     REPORT_ATTACHMENTS {
         uuid id PK
         uuid weekly_report_id FK
@@ -430,10 +467,17 @@ erDiagram
     USERS ||--o{ PROJECT_MEMBERS : assigned
     PROJECTS ||--o{ PROJECT_MEMBERS : has
     USERS ||--o{ WEEKLY_REPORTS : creates
+    USERS ||--o{ WEEKLY_REPORTS : submits
     PROJECTS ||--o{ WEEKLY_REPORTS : has
     WEEKLY_REPORTS ||--o{ REPORT_FEEDBACKS : receives
     USERS ||--o{ REPORT_FEEDBACKS : gives
     WEEKLY_REPORTS ||--o{ REPORT_ATTACHMENTS : has
+    WEEKLY_REPORTS ||--o{ REPORT_AUTHORS : has
+    USERS ||--o{ REPORT_AUTHORS : authors
+    WEEKLY_REPORTS ||--o{ REPORT_QA_APPROVALS : has
+    USERS ||--o{ REPORT_QA_APPROVALS : approves
+    WEEKLY_REPORTS ||--o{ REPORT_ACTIVITIES : has
+    USERS ||--o{ REPORT_ACTIVITIES : acts
 ```
 
 ---
@@ -484,10 +528,11 @@ erDiagram
 |---|---|---:|---|
 | id | uuid | Yes | Primary key |
 | project_id | uuid | Yes | FK projects.id |
-| user_id | uuid | Yes | FK users.id |
+| created_by | uuid | Yes | FK users.id, pembuat draft |
+| submitted_by | uuid | No | FK users.id, co-author terakhir yang membuat approval lengkap |
 | week_start_date | date | Yes | Awal periode |
 | week_end_date | date | Yes | Akhir periode |
-| status | varchar | Yes | draft, submitted, reviewed, need_revision, approved |
+| status | varchar | Yes | draft, pending_qa_approval, submitted, reviewed, need_revision, approved |
 | summary | text | Yes | Ringkasan pekerjaan |
 | production_incident_count | int | Yes | Default 0 |
 | production_incident_notes | text | No | Detail incident |
@@ -513,7 +558,49 @@ erDiagram
 | created_at | timestamp | Yes | Auto |
 | updated_at | timestamp | Yes | Auto |
 
-### 13.5 report_feedbacks
+Unique constraint aktual: satu weekly report per `project_id + week_start_date + week_end_date`.
+
+### 13.5 report_authors
+
+Snapshot co-author QA saat draft dibuat.
+
+| Column | Type | Required | Notes |
+|---|---|---:|---|
+| id | uuid | Yes | Primary key |
+| weekly_report_id | uuid | Yes | FK weekly_reports.id |
+| user_id | uuid | Yes | FK users.id |
+| assignment_role | varchar | Yes | Snapshot role QA_MEMBER / QA_PIC |
+| added_at | timestamp | Yes | Auto |
+| removed_at | timestamp | No | Disiapkan untuk fleksibilitas masa depan |
+
+### 13.6 report_qa_approvals
+
+Approval internal co-author sebelum report terkirim ke QA Lead.
+
+| Column | Type | Required | Notes |
+|---|---|---:|---|
+| id | uuid | Yes | Primary key |
+| weekly_report_id | uuid | Yes | FK weekly_reports.id |
+| user_id | uuid | Yes | FK users.id |
+| approved_at | timestamp | Yes | Auto |
+
+### 13.7 report_activities
+
+Audit trail event-level untuk create/edit/request approval/approve/review/revision.
+
+| Column | Type | Required | Notes |
+|---|---|---:|---|
+| id | uuid | Yes | Primary key |
+| weekly_report_id | uuid | Yes | FK weekly_reports.id |
+| actor_id | uuid | Yes | FK users.id |
+| action | text | Yes | CREATED, EDITED, QA_APPROVED, SUBMITTED_TO_REVIEWER, REVIEWED, REVISION_REQUESTED, APPROVED, dll |
+| changed_fields | jsonb | No | Nama field konten yang berubah |
+| note | text | No | Catatan reviewer/activity |
+| created_at | timestamp | Yes | Auto |
+
+### 13.8 report_feedbacks
+
+Legacy feedback table. Data historis tetap dapat dibaca, tetapi activity timeline baru memakai `report_activities`.
 
 | Column | Type | Required | Notes |
 |---|---|---:|---|
@@ -526,7 +613,11 @@ erDiagram
 
 ---
 
-## 14. API Endpoint Draft
+## 14. API / Server Action Surface
+
+Implementasi aktual memakai Next.js App Router dengan **Server Actions** untuk mayoritas mutasi form. Route handler publik/internal yang tersedia saat ini terutama dipakai untuk export monthly report.
+
+Bagian REST di bawah dipertahankan sebagai draft konseptual, bukan kontrak API aktual.
 
 Base URL:
 
@@ -566,18 +657,24 @@ Base URL:
 
 ### 14.4 Weekly Reports
 
+Aktual: weekly report create/edit/request QA approval/co-author approve/revoke/review/revision/approve dijalankan melalui Server Actions di `src/lib/weekly-reports/*` dan `src/lib/reviews/*`.
+
 | Method | Endpoint | Fungsi |
 |---|---|---|
 | GET | /weekly-reports | List weekly report |
 | GET | /weekly-reports/:id | Detail weekly report |
 | POST | /weekly-reports | Create draft report |
 | PATCH | /weekly-reports/:id | Update draft report |
-| POST | /weekly-reports/:id/submit | Submit report |
+| POST | /weekly-reports/:id/request-qa-approval | Konsep: ajukan approval internal QA |
+| POST | /weekly-reports/:id/qa-approve | Konsep: co-author approve internal |
+| POST | /weekly-reports/:id/qa-revoke | Konsep: co-author revoke approval |
 | POST | /weekly-reports/:id/review | Mark as reviewed |
 | POST | /weekly-reports/:id/request-revision | Request revision |
 | POST | /weekly-reports/:id/approve | Approve report |
 
 ### 14.5 Dashboard
+
+Aktual: dashboard dirender server-side di `/dashboard` dan membaca query string `from` / `to` untuk date range filter.
 
 | Method | Endpoint | Fungsi |
 |---|---|---|
@@ -586,6 +683,8 @@ Base URL:
 | GET | /dashboard/project/:id | Dashboard project |
 
 ### 14.6 Monthly Reports
+
+Aktual: monthly summary dirender server-side di `/monthly-reports`; export Markdown memakai route handler.
 
 | Method | Endpoint | Fungsi |
 |---|---|---|
@@ -609,24 +708,20 @@ Komponen:
 
 Komponen:
 
-- Card assigned project
-- Card report status minggu ini
-- Table weekly report
-- Button create report
-- Button continue draft
-- Button view feedback
+- Stat card assigned projects, pending approval, need revision, approved
+- Date range filter dengan preset periode
+- Recent reports table untuk report yang user ikuti sebagai co-author
+- Empty state ketika tidak ada report dalam periode filter
 
 ### 15.3 QA Lead Dashboard
 
 Komponen:
 
-- Summary cards
-- Report status chart
-- Project table
+- Stat card active projects, pending review, need revision, approved
+- Date range filter dengan preset Minggu ini, 1 minggu lalu, Bulan ini, dan Week 1-N
 - Pending review table
-- Need revision table
-- Incident summary
-- Blocker summary
+- Coverage per project table dengan search, pagination, backend/frontend coverage, pass rate
+- Production incident summary
 
 ### 15.4 Project Detail Page
 
@@ -654,15 +749,18 @@ Section form:
 10. Next week plan
 11. Notes
 12. Save Draft button
-13. Submit button
+13. Ajukan untuk approval QA button
+14. Co-author approval panel dan activity timeline di detail page
 
 ### 15.6 Review Report Page
 
 Komponen:
 
 - Detail weekly report
+- Co-authors & approval panel
 - Calculated metrics
 - Feedback history
+- Activity timeline
 - Feedback textarea
 - Mark as reviewed button
 - Request revision button
@@ -678,8 +776,6 @@ Monthly report diambil dari kumpulan weekly report yang statusnya Approved.
 
 - Month
 - Project
-- QA Member
-- Status
 
 ### 16.2 Data Summary
 
@@ -742,7 +838,6 @@ Ringkasan progress QA selama bulan ini.
 - TypeScript
 - Tailwind CSS
 - Shadcn UI
-- React Hook Form
 - Zod
 
 ### 17.2 Backend
@@ -751,13 +846,13 @@ Opsi 1, simple full-stack:
 
 - Next.js App Router
 - Server Actions atau Route Handlers
-- Prisma ORM
+- Drizzle ORM
 - PostgreSQL
 
 Opsi 2, backend terpisah:
 
 - Express.js
-- Prisma ORM
+- Drizzle ORM
 - PostgreSQL
 - JWT Auth
 
@@ -765,7 +860,7 @@ Rekomendasi untuk MVP:
 
 - Pakai Next.js full-stack.
 - Pakai PostgreSQL.
-- Pakai Prisma.
+- Pakai Drizzle ORM.
 - Pakai Shadcn UI.
 - Deploy awal bisa di VPS atau home server via Docker.
 
@@ -803,8 +898,8 @@ qa-management-app/
 │   ├── db.ts
 │   ├── permissions.ts
 │   └── report-calculator.ts
-├── prisma/
-│   └── schema.prisma
+├── drizzle/
+│   └── *.sql
 ├── types/
 │   └── index.ts
 ├── docker-compose.yml
@@ -814,7 +909,9 @@ qa-management-app/
 
 ---
 
-## 19. Prisma Schema Draft
+## 19. Legacy Prisma Schema Draft (superseded)
+
+Bagian ini adalah referensi awal PRD dan **bukan** schema aktual. Implementasi saat ini memakai Drizzle; schema sumber kebenaran ada di `src/db/schema.ts` dan diringkas di Section 31.
 
 ```prisma
 model User {
@@ -962,10 +1059,13 @@ enum ReviewAction {
 
 ### 20.1 Report Creation
 
-- QA Member hanya bisa membuat report untuk project yang assigned ke dirinya.
-- QA Member hanya bisa punya satu report untuk project dan week yang sama.
+- QA Member hanya bisa membuat report untuk project yang assigned aktif ke dirinya.
+- Satu project hanya punya satu report untuk rentang minggu yang sama.
+- Saat draft dibuat, sistem membuat snapshot co-author dari QA aktif di project tersebut.
+- Co-author yang ada di snapshot boleh edit draft dan approve internal walaupun assignment berubah setelah snapshot dibuat.
 - QA Member bisa save draft berkali-kali.
-- QA Member tidak bisa submit jika field wajib belum lengkap.
+- QA Member tidak bisa mengajukan approval QA jika field wajib belum lengkap.
+- Edit konten saat `PENDING_QA_APPROVAL` atau setelah revision akan mereset approval internal dan mengembalikan report ke `DRAFT`.
 
 ### 20.2 Report Review
 
@@ -974,6 +1074,7 @@ enum ReviewAction {
 - QA Lead bisa request revision.
 - QA Lead bisa approve report.
 - Report yang sudah approved tidak bisa diedit oleh QA Member.
+- QA Lead hanya menerima report setelah semua co-author menyelesaikan approval internal.
 
 ### 20.3 Project Assignment
 
@@ -1001,6 +1102,8 @@ execution_coverage = total_executed / total_test_case * 100
 ```
 
 Jika total_test_case = 0, maka coverage = 0.
+
+Dashboard date range memakai logika overlap periode report: report masuk perhitungan jika periode report bersinggungan dengan filter tanggal yang dipilih.
 
 ---
 
@@ -1046,7 +1149,8 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 ### 22.3 Weekly Report
 
 - QA Member bisa membuat draft report.
-- QA Member bisa submit report.
+- QA Member bisa mengajukan report untuk approval internal QA.
+- Semua co-author wajib approve sebelum report masuk ke reviewer.
 - QA Member bisa melihat status report.
 - QA Member bisa revisi report jika status Need Revision.
 - QA Member tidak bisa edit report yang Approved.
@@ -1063,6 +1167,9 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 - QA Member bisa melihat report miliknya.
 - QA Lead bisa melihat summary semua report.
 - Dashboard menampilkan status report dengan benar.
+- Dashboard date range filter memengaruhi semua metrik berbasis report.
+- Dashboard lead menampilkan pending review, coverage per project dengan search/pagination, dan incident total.
+- Dashboard member menampilkan pending approval milik user sebagai co-author.
 
 ### 22.6 Monthly Report
 
@@ -1079,7 +1186,7 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 - Setup project Next.js.
 - Setup Tailwind dan Shadcn UI.
 - Setup PostgreSQL.
-- Setup Prisma.
+- Setup Drizzle ORM.
 - Setup authentication.
 - Setup role guard.
 
@@ -1200,7 +1307,7 @@ Saat implementasi, prioritaskan:
 
 ## 28. Implementation Status (snapshot)
 
-PRD versi: `v1.3 — 2026-06-01`.
+PRD versi: `v1.4 — 2026-06-16`.
 
 | Item | Status | Catatan |
 |---|---|---|
@@ -1220,18 +1327,20 @@ PRD versi: `v1.3 — 2026-06-01`.
 | App shell sidebar + topbar | Done | Style shadcn sidebar-07 |
 | Sidebar collapse | Done | Trigger di topbar, persist via localStorage |
 | Status badge | Done | Format title case |
-| Vitest unit tests | Done | 84 tests: flow, profile, status, calculator, transitions, permissions, schemas, action-result, rules, aggregates |
+| Vitest unit tests | Done | 196 tests: auth, dashboard, reports, transitions, permissions, schemas, calculation, aggregation, export, date range/presets |
 | Project CRUD | Done | Phase 2: list/create/edit/archive/restore, dedicated routes, archived read-only |
 | User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru, filter role/status |
 | Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
-| Weekly report CRUD | Done | Phase 5: draft create/edit, server-side coverage, unique week guard, approved lock |
-| Submit flow | Done | Phase 6: submit draft/need-revision, status guard, required fields check |
-| Review flow | Done | Phase 7: mark reviewed, request revision (feedback wajib), approve, feedback history |
-| Dashboard summary | Done | Phase 8: role-aware (lead/member), status counts, coverage per project, incidents, top blockers |
+| Weekly report CRUD | Done | Phase 5 + collaborative report: shared project/week report, co-author snapshot, server-side coverage, approved lock |
+| Submit flow | Done | Phase 6 + QA approval: ajukan approval internal, auto-submit ke reviewer setelah approval lengkap |
+| Review flow | Done | Phase 7: mark reviewed, request revision, approve, feedback history, activity timeline |
+| Dashboard summary | Done | Phase 8: role-aware (lead/member), date range filter, pending approval, coverage per project search/pagination, incidents |
 | Monthly report summary | Done | Phase 9: approved-only aggregation, month/project filter, metrics, blockers, next plan |
 | Markdown export | Done | Phase 10: `/api/monthly-reports/export`, PRD-format markdown, filter-aware |
 | Hardening | Done | Phase 11: ActionResult helpers, DB error mapper, permission audit, mapped catches |
-| Test baseline | Done | Phase 12: 84 Vitest unit tests + 24 Playwright E2E (auth, users, projects, members, reports, review, dashboard, monthly, export, access-control) |
+| Collaborative weekly report | Done | `drizzle/0004_collaborative_weekly_reports.sql`, co-author approvals, report activities |
+| Dashboard UX polish | Done | Clean stat cards, solid date-range popover, report-overlap filtering, coverage pagination |
+| Test baseline | Done | Phase 12+: 196 Vitest tests; Playwright E2E suite exists but should be run only against disposable/seeded DB |
 
 ---
 
@@ -1247,6 +1356,7 @@ PRD versi: `v1.3 — 2026-06-01`.
 | Test runner | Tidak ditentukan | Vitest unit + Playwright E2E | Cepat untuk lib helpers, browser smoke per phase |
 | Table UI | Tidak ditentukan | Reusable `DataTable` (TanStack Table) | Sorting + pagination konsisten di semua tabel |
 | Default password | Tidak ada | `DEFAULT_USER_PASSWORD` env, default `password123` | Semua user wajib ganti di login pertama, termasuk seed/admin |
+| Date range picker | Tidak ada | `react-day-picker` + Radix Popover | Range selection, preset minggu/bulan, URL-backed dashboard filter |
 
 ---
 
@@ -1276,7 +1386,11 @@ qa-management-app/
 │   │   └── page.tsx
 │   ├── components/
 │   │   ├── auth/
+│   │   ├── dashboard/
 │   │   ├── layout/
+│   │   ├── monthly-reports/
+│   │   ├── projects/
+│   │   ├── reports/
 │   │   ├── ui/
 │   │   └── users/
 │   ├── db/
@@ -1285,8 +1399,11 @@ qa-management-app/
 │   │   └── seed.ts
 │   ├── lib/
 │   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── monthly-reports/
 │   │   ├── permissions/
 │   │   ├── reports/
+│   │   ├── weekly-reports/
 │   │   ├── users/
 │   │   ├── validations/
 │   │   └── utils.ts
@@ -1321,6 +1438,8 @@ Migrasi ada di:
 drizzle/0000_remarkable_norrin_radd.sql
 drizzle/0001_amusing_yellow_claw.sql
 drizzle/0002_shocking_moira_mactaggert.sql
+drizzle/0003_strong_alex_power.sql
+drizzle/0004_collaborative_weekly_reports.sql
 ```
 
 ---
@@ -1335,9 +1454,9 @@ drizzle/0002_shocking_moira_mactaggert.sql
 | Phase 3 | User CRUD lanjutan | Edit role, deactivate, reset password |
 | Phase 4 | Project member assignment | Assign/remove + history |
 | Phase 5 | Weekly report CRUD | Form + draft + auto coverage server-side |
-| Phase 6 | Submit flow | Status `SUBMITTED` |
+| Phase 6 | Submit flow | Status `PENDING_QA_APPROVAL`, auto `SUBMITTED` setelah QA approval lengkap |
 | Phase 7 | Review flow | `REVIEWED`, `NEED_REVISION`, `APPROVED` |
-| Phase 8 | Dashboard summary | Member + Lead view |
+| Phase 8 | Dashboard summary | Member + Lead view, date range filter, coverage pagination |
 | Phase 9 | Monthly summary | Aggregate approved reports |
 | Phase 10 | Markdown export | `/api/monthly-reports/export` |
 | Phase 11 | Hardening | Permission + error + types |

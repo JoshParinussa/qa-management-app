@@ -1,12 +1,27 @@
 # QA Management App
 
-Boilerplate MVP untuk mengelola QA member, project assignment, weekly report, review flow, dashboard, dan monthly summary.
+Internal QA workflow app untuk mengelola QA member, project assignment, collaborative weekly report, review flow, dashboard operasional, monthly summary, dan Markdown export.
+
+## Current Features
+
+- Role-based auth untuk Admin, QA Lead, dan QA Member.
+- Project CRUD, archive/restore, dan assignment QA member.
+- Weekly report kolaboratif per project/minggu dengan co-author snapshot.
+- Internal QA approval sebelum report otomatis terkirim ke reviewer.
+- Review flow: mark reviewed, request revision, approve, feedback history, dan activity timeline.
+- Dashboard role-aware dengan date range filter berbasis URL.
+- Dashboard lead: pending review, need revision, approved, incident total, dan coverage per project dengan search/pagination.
+- Dashboard member: assigned projects, pending approval, need revision, approved, dan recent reports.
+- Monthly report summary dari approved weekly report.
+- Markdown export untuk monthly report.
 
 ## Stack
 
 - Next.js App Router
 - TypeScript
 - Tailwind CSS
+- Radix UI primitives
+- React DayPicker
 - Drizzle ORM
 - PostgreSQL 16
 - Zod
@@ -114,7 +129,7 @@ npm run dev
 - `npm run lint` - lint
 - `npm run typecheck` - TypeScript check
 - `npm run test` - Vitest unit tests
-- `npm run e2e` - Playwright E2E tests
+- `npm run e2e` - Playwright E2E tests. Run only against a disposable/seeded DB because global setup may reset test data.
 - `npm run db:resolve` - choose Tailscale DB first, then LAN fallback
 - `npm run db:generate` - generate Drizzle migration
 - `npm run db:migrate` - run Drizzle migration
@@ -146,9 +161,13 @@ npm run e2e
 src/app                 App Router pages/layouts
 src/components/ui       Shared UI primitives
 src/components/layout   App shell components
+src/components/dashboard Dashboard widgets and date range controls
+src/components/reports  Weekly report UI and review components
 src/lib/auth            Auth helpers
 src/db                  Drizzle schema, client, and seed
+src/lib/dashboard       Dashboard queries, date range parsing, presets
 src/lib/permissions     Role permission matrix
+src/lib/weekly-reports  Weekly report actions, transitions, co-author approvals
 src/lib/reports         Report calculation helpers
 src/lib/validations     Zod schemas
 src/types               Shared app types
@@ -161,7 +180,7 @@ drizzle                 Generated Drizzle migrations
 2. Project CRUD
 3. User CRUD
 4. Project member assignment
-5. Weekly report CRUD and submit flow
+5. Collaborative weekly report CRUD and QA approval flow
 6. Review, feedback, revision, approval flow
-7. Dashboard metrics
+7. Dashboard metrics and date range filtering
 8. Monthly summary and Markdown export
