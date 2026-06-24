@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { ReportStatus } from "@/types";
 import type { ActionState } from "@/types";
 
 export type WeeklyReportFieldErrors = Record<string, string>;
@@ -30,6 +31,21 @@ export type WeeklyReportFormValues = {
 export type WeeklyReportActionState = ActionState & {
   values?: WeeklyReportFormValues;
   fieldErrors?: WeeklyReportFieldErrors;
+  reportConflict?: WeeklyReportConflict;
+};
+
+export type ExistingWeeklyReport = {
+  id: string;
+  status: ReportStatus;
+  canEdit: boolean;
+  createdByName?: string | null;
+  createdByEmail?: string | null;
+  createdAt?: Date | string | null;
+};
+
+export type WeeklyReportConflict = {
+  type: "report";
+  report: ExistingWeeklyReport;
 };
 
 const fieldErrorMessages: Record<string, string> = {
@@ -109,10 +125,12 @@ export function weeklyReportErrorState(
   error: string,
   formData: FormData,
   fieldErrors?: WeeklyReportFieldErrors,
+  extra?: Pick<WeeklyReportActionState, "reportConflict">,
 ): WeeklyReportActionState {
   return {
     error,
     values: weeklyReportDefaultsFromFormData(formData),
     ...(fieldErrors && Object.keys(fieldErrors).length > 0 ? { fieldErrors } : {}),
+    ...extra,
   };
 }

@@ -2,8 +2,9 @@
 set -e
 
 if [ -z "$DATABASE_URL" ]; then
-  echo "ERROR: DATABASE_URL is not set."
-  exit 1
+  echo "DATABASE_URL is not set. Resolving from DATABASE_URL_TAILSCALE / DATABASE_URL_LAN..."
+  DATABASE_URL="$(npx tsx scripts/resolve-database-url.ts)"
+  export DATABASE_URL
 fi
 
 # Apply pending Drizzle migrations.

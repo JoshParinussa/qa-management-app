@@ -4,10 +4,15 @@ const mocks = vi.hoisted(() => ({
   findActiveAssignment: vi.fn(),
   listProjectMembers: vi.fn(),
   findReportForWeek: vi.fn(),
+  findReportSummaryForWeek: vi.fn(),
   getReportById: vi.fn(),
   isCoAuthor: vi.fn(),
   insert: vi.fn(),
   insertValues: vi.fn(),
+  select: vi.fn(),
+  selectFrom: vi.fn(),
+  selectWhere: vi.fn(),
+  selectLimit: vi.fn(),
   redirect: vi.fn((path: string) => {
     throw new Error(`redirect:${path}`);
   }),
@@ -23,7 +28,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("@/db/client", () => ({
-  db: { insert: mocks.insert, update: mocks.update, delete: mocks.delete },
+  db: { insert: mocks.insert, update: mocks.update, delete: mocks.delete, select: mocks.select },
 }));
 vi.mock("@/lib/auth/session", () => ({ requireUser: mocks.requireUser }));
 vi.mock("@/lib/project-members/queries", () => ({
@@ -32,6 +37,7 @@ vi.mock("@/lib/project-members/queries", () => ({
 }));
 vi.mock("@/lib/weekly-reports/queries", () => ({
   findReportForWeek: mocks.findReportForWeek,
+  findReportSummaryForWeek: mocks.findReportSummaryForWeek,
   getReportById: mocks.getReportById,
   isCoAuthor: mocks.isCoAuthor,
 }));
@@ -43,7 +49,7 @@ vi.mock("@/lib/weekly-reports/activity", async () => {
   };
 });
 
-import { createDraftAction, requestQaApprovalAction, updateDraftAction } from "./actions";
+import { checkExistingWeeklyReportAction, createDraftAction, createInitialWeeklyReportDraftAction, requestQaApprovalAction, updateDraftAction } from "./actions";
 import { ACTIVITY_ACTIONS } from "./activity";
 
 function validFormData() {
@@ -83,9 +89,14 @@ describe("weekly report actions", () => {
     mocks.findActiveAssignment.mockResolvedValue(activeAssignment());
     mocks.listProjectMembers.mockResolvedValue([projectMember(USER_ID)]);
     mocks.findReportForWeek.mockResolvedValue(null);
+    mocks.findReportSummaryForWeek.mockResolvedValue(null);
     mocks.isCoAuthor.mockResolvedValue(true);
     mocks.insert.mockReturnValue({ values: mocks.insertValues });
     mocks.insertValues.mockResolvedValue(undefined);
+    mocks.select.mockReturnValue({ from: mocks.selectFrom });
+    mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
+    mocks.selectWhere.mockReturnValue({ limit: mocks.selectLimit });
+    mocks.selectLimit.mockResolvedValue([{ status: "ACTIVE", weeklyReportRequired: true }]);
     mocks.update.mockReturnValue({ set: mocks.updateSet });
     mocks.updateSet.mockReturnValue({ where: mocks.updateWhere });
     mocks.updateWhere.mockResolvedValue(undefined);
@@ -157,6 +168,105 @@ describe("weekly report actions", () => {
     const authorRows = mocks.insertValues.mock.calls[1][0];
     expect(authorRows).toHaveLength(2);
     expect(authorRows.map((r: { userId: string }) => r.userId).sort()).toEqual([USER_ID, OTHER_QA_ID].sort());
+  });
+
+  it("rejects new drafts for projects that do not require weekly reports", async () => {
+    mocks.selectLimit.mockResolvedValue([{ status: "ACTIVE", weeklyReportRequired: false }]);
+
+    const result = await createDraftAction({}, validFormData());
+
+    expect(result.error).toMatch(/tidak mewajibkan weekly report/i);
+    expect(mocks.insert).not.toHaveBeenCalled();
+  });
+
+  it("returns the existing report when creating a duplicate draft", async () => {
+    mocks.findReportForWeek.mockResolvedValue({
+      id: "report-existing",
+      status: "DRAFT",
+    });
+
+    const result = await createDraftAction({}, validFormData());
+
+    expect(result.error).toMatch(/sudah ada/i);
+    expect(result.reportConflict).toEqual({
+      type: "report",
+      report: {
+        id: "report-existing",
+        status: "DRAFT",
+        canEdit: true,
+      },
+    });
+    expect(mocks.insert).not.toHaveBeenCalled();
+  });
+
+  it("checks existing reports for the selected project and week", async () => {
+    mocks.findReportSummaryForWeek.mockResolvedValue({
+      id: "report-existing",
+      status: "PENDING_QA_APPROVAL",
+      createdByName: "QA Member 1",
+      createdByEmail: "qa1@example.test",
+      createdAt: new Date("2026-06-01T07:00:00.000Z"),
+    });
+
+    const result = await checkExistingWeeklyReportAction(
+      "018f0b3c-1d2e-7a3b-8c4d-5e6f70819293",
+      "2026-06-01",
+      "2026-06-07",
+    );
+
+    expect(result).toEqual({
+      type: "report",
+      report: {
+        id: "report-existing",
+        status: "PENDING_QA_APPROVAL",
+        createdByName: "QA Member 1",
+        createdByEmail: "qa1@example.test",
+        createdAt: new Date("2026-06-01T07:00:00.000Z"),
+        canEdit: true,
+      },
+    });
+  });
+
+  it("does not reveal existing report checks to users outside the project", async () => {
+    mocks.findActiveAssignment.mockResolvedValue(null);
+
+    const result = await checkExistingWeeklyReportAction(
+      "018f0b3c-1d2e-7a3b-8c4d-5e6f70819293",
+      "2026-06-01",
+      "2026-06-07",
+    );
+
+    expect(result).toBeNull();
+    expect(mocks.findReportForWeek).not.toHaveBeenCalled();
+    expect(mocks.findReportSummaryForWeek).not.toHaveBeenCalled();
+  });
+
+  it("creates an initial DRAFT before opening the long report form", async () => {
+    const result = await createInitialWeeklyReportDraftAction(
+      "018f0b3c-1d2e-7a3b-8c4d-5e6f70819293",
+      "2026-06-01",
+      "2026-06-07",
+    );
+
+    expect(result.href).toMatch(/^\/weekly-reports\/.+\/edit$/);
+    expect(mocks.insert).toHaveBeenCalled();
+    const reportInsert = mocks.insertValues.mock.calls[0][0];
+    expect(reportInsert).toMatchObject({
+      projectId: "018f0b3c-1d2e-7a3b-8c4d-5e6f70819293",
+      createdBy: USER_ID,
+      status: "DRAFT",
+      summary: "",
+      nextWeekPlan: "",
+    });
+    const authorRows = mocks.insertValues.mock.calls[1][0];
+    expect(authorRows).toEqual([
+      expect.objectContaining({
+        userId: USER_ID,
+      }),
+    ]);
+    expect(mocks.insertActivity).toHaveBeenCalledWith(
+      expect.objectContaining({ action: ACTIVITY_ACTIONS.CREATED, actorId: USER_ID }),
+    );
   });
 
   it("clears nullable split fields on update when omitted from the form", async () => {

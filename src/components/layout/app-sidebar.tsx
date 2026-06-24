@@ -11,8 +11,7 @@ import {
   Settings2,
   Users,
 } from "lucide-react";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { logoutAction } from "@/lib/auth/actions";
 import type { SessionUser } from "@/lib/auth/session";
 import { getVisiblePlatformItems, type PlatformItem } from "@/lib/navigation/items";
@@ -34,21 +33,28 @@ const secondaryItems = [
 export function AppSidebar({ user }: { user: SessionUser }) {
   const pathname = usePathname();
   const platformItems = getVisiblePlatformItems(user.role);
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("qa-sidebar-collapsed") === "true";
-  });
+  const [collapsed, setCollapsed] = useState(false);
 
-  function toggleCollapsed() {
-    const next = !collapsed;
-    setCollapsed(next);
-    window.localStorage.setItem("qa-sidebar-collapsed", String(next));
-  }
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem("qa-sidebar-collapsed", String(next));
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setCollapsed(window.localStorage.getItem("qa-sidebar-collapsed") === "true");
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     window.addEventListener("qa-sidebar-toggle", toggleCollapsed);
     return () => window.removeEventListener("qa-sidebar-toggle", toggleCollapsed);
-  });
+  }, [toggleCollapsed]);
 
   return (
     <aside className={cn("hidden border-r border-slate-200 bg-slate-50/60 text-slate-950 transition-[width] duration-200 lg:block", collapsed ? "w-14" : "w-64")}>

@@ -15,6 +15,8 @@ const projectColumns = {
   code: projects.code,
   description: projects.description,
   status: projects.status,
+  weeklyReportRequired: projects.weeklyReportRequired,
+  weeklyReportDisabledReason: projects.weeklyReportDisabledReason,
   startDate: projects.startDate,
   endDate: projects.endDate,
   createdAt: projects.createdAt,

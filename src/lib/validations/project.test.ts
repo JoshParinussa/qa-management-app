@@ -8,6 +8,30 @@ describe("projectSchema", () => {
       code: "UHF",
       description: "Frontend QA coverage",
       status: "ACTIVE",
+      weeklyReportRequired: true,
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("requires a reason when weekly report is disabled", () => {
+    const result = projectSchema.safeParse({
+      name: "Maintenance Project",
+      code: "MNT",
+      status: "ACTIVE",
+      weeklyReportRequired: false,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a maintenance-only project without weekly reporting", () => {
+    const result = projectSchema.safeParse({
+      name: "Maintenance Project",
+      code: "MNT",
+      status: "ACTIVE",
+      weeklyReportRequired: false,
+      weeklyReportDisabledReason: "MAINTENANCE_ONLY",
     });
 
     expect(result.success).toBe(true);

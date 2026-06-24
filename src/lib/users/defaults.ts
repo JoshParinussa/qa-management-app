@@ -6,5 +6,9 @@
 import "server-only";
 
 export function getDefaultPassword(): string {
-  return process.env.DEFAULT_USER_PASSWORD || "password123";
+  const password = process.env.DEFAULT_USER_PASSWORD?.trim();
+  if (!password) {
+    throw new Error("DEFAULT_USER_PASSWORD is required");
+  }
+  return password;
 }

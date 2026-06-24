@@ -19,6 +19,10 @@ export type SessionUser = {
 function getSessionSecret() {
   const secret = process.env.SESSION_SECRET;
 
+  if (process.env.NODE_ENV === "production" && (!secret || secret === "change-me")) {
+    throw new Error("SESSION_SECRET is required in production");
+  }
+
   if (!secret || secret === "change-me") {
     return "dev-session-secret";
   }

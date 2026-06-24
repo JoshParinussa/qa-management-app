@@ -1,3 +1,4 @@
+import { config } from "dotenv";
 import { sql } from "drizzle-orm";
 import { db, pool } from "./client";
 import { hashPassword } from "@/lib/auth/password";
@@ -13,9 +14,21 @@ import {
   weeklyReports,
 } from "./schema";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "yehezkieljosh@gmail.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin12345!";
-const ADMIN_NAME = process.env.ADMIN_NAME || "Super Admin";
+config({ path: ".env.prod", quiet: true });
+config({ path: ".env.local", quiet: true });
+config({ quiet: true });
+
+function requiredEnv(name: string) {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+  return value;
+}
+
+const ADMIN_EMAIL = requiredEnv("ADMIN_EMAIL");
+const ADMIN_NAME = requiredEnv("ADMIN_NAME");
+const DEFAULT_USER_PASSWORD = requiredEnv("DEFAULT_USER_PASSWORD");
 
 const PROJECT_NAMES = [
   "ISAFE BIB",
@@ -67,7 +80,7 @@ async function main() {
       RESTART IDENTITY CASCADE`,
   );
 
-  const passwordHash = await hashPassword(ADMIN_PASSWORD);
+  const passwordHash = await hashPassword(DEFAULT_USER_PASSWORD);
 
   await db.insert(users).values({
     name: ADMIN_NAME,
@@ -87,7 +100,6 @@ async function main() {
 
   console.log("Database cleaned. Super admin created:");
   console.log(`  email:${ADMIN_EMAIL}`);
-  console.log(`  password: ${ADMIN_PASSWORD}`);
   console.log(`  role: ADMIN`);
   console.log(`Seeded ${PROJECT_NAMES.length} active projects.`);
 }

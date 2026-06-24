@@ -14,6 +14,7 @@ import {
 const reviewerUsers = alias(users, "reviewer_users");
 const approverUsers = alias(users, "approver_users");
 const submitterUsers = alias(users, "submitter_users");
+const creatorUsers = alias(users, "creator_users");
 
 export function listReportsByCoAuthor(userId: string) {
   return db
@@ -102,6 +103,29 @@ export async function findReportForWeek(projectId: string, weekStartDate: Date, 
   const [report] = await db
     .select()
     .from(weeklyReports)
+    .where(
+      and(
+        eq(weeklyReports.projectId, projectId),
+        eq(weeklyReports.weekStartDate, weekStartDate),
+        eq(weeklyReports.weekEndDate, weekEndDate),
+      ),
+    )
+    .limit(1);
+
+  return report ?? null;
+}
+
+export async function findReportSummaryForWeek(projectId: string, weekStartDate: Date, weekEndDate: Date) {
+  const [report] = await db
+    .select({
+      id: weeklyReports.id,
+      status: weeklyReports.status,
+      createdAt: weeklyReports.createdAt,
+      createdByName: creatorUsers.name,
+      createdByEmail: creatorUsers.email,
+    })
+    .from(weeklyReports)
+    .innerJoin(creatorUsers, eq(weeklyReports.createdBy, creatorUsers.id))
     .where(
       and(
         eq(weeklyReports.projectId, projectId),

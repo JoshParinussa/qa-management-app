@@ -21,11 +21,17 @@ async function requireProjectManager() {
 }
 
 function parseProjectForm(formData: FormData) {
+  const weeklyReportRequired = formData.get("weeklyReportRequired") !== "false";
+
   return projectSchema.safeParse({
     name: formData.get("name"),
     code: String(formData.get("code") ?? "").toUpperCase(),
     description: String(formData.get("description") ?? "") || undefined,
     status: formData.get("status") || "ACTIVE",
+    weeklyReportRequired,
+    weeklyReportDisabledReason: weeklyReportRequired
+      ? undefined
+      : String(formData.get("weeklyReportDisabledReason") ?? "") || undefined,
   });
 }
 

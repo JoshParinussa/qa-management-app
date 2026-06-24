@@ -350,7 +350,7 @@
 | 5.6 | Create draft action | DONE | 5 |
 | 5.7 | Update draft action | DONE | 5 |
 | 5.8 | Compute coverage server-side on save | DONE | 4 |
-| 5.9 | Enforce unique project/user/week | DONE | 3 |
+| 5.9 | Enforce unique project/week | DONE | 3 |
 | 5.10 | Block editing approved report | DONE | 3 |
 | 5.11 | Block creating reports for removed assignment | DONE | 4 |
 | 5.12 | Build multi-section weekly report form | DONE | 7 |
@@ -652,6 +652,8 @@
 | 13.7 | Add role-aware dashboard date range filter with presets | DONE | 5 |
 | 13.8 | Add coverage per project compact table with search and pagination | DONE | 5 |
 | 13.9 | Add solid, clean date range popover using React DayPicker + Radix Popover | DONE | 4 |
+| 13.10 | Add instant draft creation and duplicate guard for project/week report creation | DONE | 5 |
+| 13.11 | Clear weekly report validation errors responsively after fields become valid | DONE | 3 |
 
 ### Testing Tasks
 
@@ -665,10 +667,12 @@
 ### Acceptance Criteria
 
 - Weekly reports support multiple QA co-authors per project/week.
+- Creating a weekly report immediately persists a `DRAFT`, snapshots co-authors, and blocks duplicate creation for the same project/week.
+- Other QA users see the existing report creator/status instead of being allowed to start duplicate work.
 - QA Lead sees report only after all internal QA approvals are complete.
 - Dashboard date filter updates server data and is preserved in the URL.
 - Dashboard remains readable when coverage has many projects.
-- Current unit test suite has 196 passing tests.
+- Current unit test suite has 204 passing tests.
 
 ---
 

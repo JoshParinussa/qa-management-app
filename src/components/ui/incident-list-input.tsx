@@ -18,9 +18,22 @@ type IncidentListInputProps = {
   onCountChange?: (count: number) => void;
   error?: string;
   rowErrors?: Record<string, string>;
+  onValueChange?: (value: string) => void;
 };
 
-export function IncidentListInput({ name, label, defaultValue, count, onCountChange, error, rowErrors }: IncidentListInputProps) {
+function serializeVisibleItems(items: IncidentItem[]) {
+  const cleaned = items
+    .map((item) => ({
+      title: item.title.trim(),
+      description: item.description.trim(),
+      relatedTestCaseId: item.relatedTestCaseId.trim(),
+    }))
+    .filter((item) => item.title || item.description || item.relatedTestCaseId);
+
+  return cleaned.length > 0 ? JSON.stringify(cleaned) : "";
+}
+
+export function IncidentListInput({ name, label, defaultValue, count, onCountChange, error, rowErrors, onValueChange }: IncidentListInputProps) {
   const [items, setItems] = useState<IncidentItem[]>(() => {
     const parsed = parseIncidents(defaultValue);
     if (count !== undefined) return syncIncidentItemsToCount(parsed, count);
@@ -32,18 +45,14 @@ export function IncidentListInput({ name, label, defaultValue, count, onCountCha
 
   const visibleItems = count === undefined ? items : syncIncidentItemsToCount(items, count);
 
-  const cleaned = visibleItems
-    .map((item) => ({
-      title: item.title.trim(),
-      description: item.description.trim(),
-      relatedTestCaseId: item.relatedTestCaseId.trim(),
-    }))
-    .filter((item) => item.title || item.description || item.relatedTestCaseId);
+  const serializedValue = serializeVisibleItems(visibleItems);
 
   function update(index: number, key: keyof IncidentItem, value: string) {
     setItems((prev) => {
       const base = count === undefined ? prev : syncIncidentItemsToCount(prev, count);
-      return base.map((item, i) => (i === index ? { ...item, [key]: value } : item));
+      const next = base.map((item, i) => (i === index ? { ...item, [key]: value } : item));
+      onValueChange?.(serializeVisibleItems(next));
+      return next;
     });
   }
 
@@ -52,6 +61,7 @@ export function IncidentListInput({ name, label, defaultValue, count, onCountCha
       const base = count === undefined ? prev : syncIncidentItemsToCount(prev, count);
       const next = [...base, { title: "", description: "", relatedTestCaseId: "" }];
       onCountChange?.(next.length);
+      onValueChange?.(serializeVisibleItems(next));
       return next;
     });
   }
@@ -61,7 +71,9 @@ export function IncidentListInput({ name, label, defaultValue, count, onCountCha
       const base = count === undefined ? prev : syncIncidentItemsToCount(prev, count);
       const next = base.filter((_, i) => i !== index);
       onCountChange?.(next.length);
-      return count === undefined && next.length === 0 ? [{ title: "", description: "", relatedTestCaseId: "" }] : next;
+      const normalizedNext = count === undefined && next.length === 0 ? [{ title: "", description: "", relatedTestCaseId: "" }] : next;
+      onValueChange?.(serializeVisibleItems(normalizedNext));
+      return normalizedNext;
     });
   }
 
@@ -74,7 +86,7 @@ export function IncidentListInput({ name, label, defaultValue, count, onCountCha
   return (
     <div className="space-y-2">
       {label ? <Label>{label}</Label> : null}
-      <input type="hidden" name={name} value={cleaned.length > 0 ? JSON.stringify(cleaned) : ""} />
+      <input type="hidden" name={name} value={serializedValue} />
       {hasIncidentError ? (
         <p className="text-xs text-destructive">
           {error ?? "Lengkapi title, description, dan related test case ID untuk tiap incident yang ditandai."}

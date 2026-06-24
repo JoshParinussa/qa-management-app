@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weeklyReports } from "./schema";
+import { projects, weeklyReports } from "./schema";
 
 describe("weeklyReports schema", () => {
   it("keeps new optional input columns nullable without database defaults", () => {
@@ -15,5 +15,13 @@ describe("weeklyReports schema", () => {
       expect(column.notNull).toBe(false);
       expect(column.default).toBeUndefined();
     }
+  });
+});
+
+describe("projects schema", () => {
+  it("requires weekly reporting by default", () => {
+    expect(projects.weeklyReportRequired.notNull).toBe(true);
+    expect(projects.weeklyReportRequired.default).toBe(true);
+    expect(projects.weeklyReportDisabledReason.notNull).toBe(false);
   });
 });

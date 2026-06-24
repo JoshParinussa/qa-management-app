@@ -50,6 +50,7 @@ export function listAssignedProjects(userId: string) {
         eq(projectMembers.userId, userId),
         isNull(projectMembers.removedAt),
         eq(projects.status, "ACTIVE"),
+        eq(projects.weeklyReportRequired, true),
       ),
     );
 }

@@ -144,8 +144,8 @@ Weekly report memiliki status berikut:
 
 | Status | Penjelasan |
 |---|---|
-| Not Started | Report belum dibuat |
-| Draft | Report sudah dibuat tapi belum disubmit |
+| Not Started | Report belum dibuat untuk project dan week tersebut |
+| Draft | Draft report sudah dibuat saat user klik Create report, tapi belum diajukan untuk approval QA |
 | Pending QA Approval | Report sudah diajukan dan menunggu approval semua co-author QA |
 | Submitted | Semua co-author sudah approve; report dikirim ke reviewer |
 | Reviewed | Report sudah dicek oleh QA Lead |
@@ -170,7 +170,11 @@ stateDiagram-v2
     Approved --> [*]
 ```
 
-Catatan implementasi aktual: tombol submit member adalah **Ajukan untuk approval QA**. Status `SUBMITTED` terjadi otomatis setelah approval internal lengkap.
+Catatan implementasi aktual:
+
+- Tombol submit member adalah **Ajukan untuk approval QA**.
+- Status `SUBMITTED` terjadi otomatis setelah approval internal lengkap.
+- Tombol **Create report** langsung membuat row `weekly_reports` berstatus `DRAFT`, lalu membuka halaman edit draft. Sistem tidak menunggu user klik Save Draft pertama untuk menandai project/week tersebut sudah dipakai.
 
 ---
 
@@ -181,16 +185,20 @@ Catatan implementasi aktual: tombol submit member adalah **Ajukan untuk approval
 1. QA Member login.
 2. QA Member masuk ke dashboard.
 3. QA Member melihat project aktif yang assigned ke dirinya.
-4. QA Member memilih project.
-5. QA Member memilih week report.
-6. QA Member mengisi form weekly report.
-7. QA Member klik Save Draft.
-8. QA Member klik Ajukan untuk approval QA.
-9. Semua co-author QA approve internal.
-10. Setelah approval lengkap, report otomatis terkirim ke QA Lead.
-11. QA Lead review report.
-12. Jika perlu revisi, QA Member memperbaiki report dan approval internal diulang.
-13. Jika approved, report masuk ke monthly summary.
+4. QA Member klik New report atau Create dari checklist.
+5. QA Member memilih project dan week report.
+6. QA Member klik Create report.
+7. Sistem langsung membuat draft kosong untuk kombinasi project/week tersebut, snapshot co-author QA aktif, lalu membuka halaman edit draft.
+8. QA Member mengisi form weekly report.
+9. QA Member klik Save Draft untuk menyimpan isi form.
+10. QA Member klik Ajukan untuk approval QA.
+11. Semua co-author QA approve internal.
+12. Setelah approval lengkap, report otomatis terkirim ke QA Lead.
+13. QA Lead review report.
+14. Jika perlu revisi, QA Member memperbaiki report dan approval internal diulang.
+15. Jika approved, report masuk ke monthly summary.
+
+Jika QA lain memilih project dan week yang sama setelah draft dibuat, sistem menampilkan info report existing beserta pembuat dan statusnya. Tombol Create report tidak membuat draft baru untuk kombinasi yang sama.
 
 ### 8.2 Workflow QA Lead
 
@@ -333,8 +341,9 @@ Semua metrik report-based memakai logika overlap periode report: report dihitung
 ### 11.5 Weekly Report
 
 - List weekly report
-- Create report
+- Create report melalui modal pemilihan project/week yang langsung membuat draft
 - Edit draft report
+- Prevent duplicate report untuk project/week yang sama
 - Submit report
 - Review report
 - Request revision
@@ -558,11 +567,11 @@ erDiagram
 | created_at | timestamp | Yes | Auto |
 | updated_at | timestamp | Yes | Auto |
 
-Unique constraint aktual: satu weekly report per `project_id + week_start_date + week_end_date`.
+Unique constraint aktual: satu weekly report per `project_id + week_start_date + week_end_date`. Constraint ini berlaku sejak user klik **Create report**, karena action tersebut langsung membuat draft awal.
 
 ### 13.5 report_authors
 
-Snapshot co-author QA saat draft dibuat.
+Snapshot co-author QA saat draft dibuat oleh action **Create report**.
 
 | Column | Type | Required | Notes |
 |---|---|---:|---|
@@ -663,7 +672,7 @@ Aktual: weekly report create/edit/request QA approval/co-author approve/revoke/r
 |---|---|---|
 | GET | /weekly-reports | List weekly report |
 | GET | /weekly-reports/:id | Detail weekly report |
-| POST | /weekly-reports | Create draft report |
+| POST | /weekly-reports | Create initial draft report untuk project/week dan cegah duplicate |
 | PATCH | /weekly-reports/:id | Update draft report |
 | POST | /weekly-reports/:id/request-qa-approval | Konsep: ajukan approval internal QA |
 | POST | /weekly-reports/:id/qa-approve | Konsep: co-author approve internal |
@@ -1060,10 +1069,14 @@ enum ReviewAction {
 ### 20.1 Report Creation
 
 - QA Member hanya bisa membuat report untuk project yang assigned aktif ke dirinya.
-- Satu project hanya punya satu report untuk rentang minggu yang sama.
-- Saat draft dibuat, sistem membuat snapshot co-author dari QA aktif di project tersebut.
+- Satu project hanya punya satu report untuk rentang minggu yang sama, termasuk report berstatus `DRAFT`.
+- Saat user klik **Create report**, sistem langsung membuat draft awal dengan status `DRAFT`.
+- Draft awal boleh berisi nilai default/kosong, tetapi field wajib tetap harus dilengkapi sebelum report dapat diajukan untuk approval QA.
+- Saat draft awal dibuat, sistem membuat snapshot co-author dari QA aktif di project tersebut.
+- Jika QA lain mencoba membuat report untuk project/week yang sama, sistem menampilkan report existing beserta pembuat dan statusnya, lalu mencegah create duplicate.
 - Co-author yang ada di snapshot boleh edit draft dan approve internal walaupun assignment berubah setelah snapshot dibuat.
 - QA Member bisa save draft berkali-kali.
+- Error validasi field hilang secara responsif ketika user sudah memperbaiki value yang invalid.
 - QA Member tidak bisa mengajukan approval QA jika field wajib belum lengkap.
 - Edit konten saat `PENDING_QA_APPROVAL` atau setelah revision akan mereset approval internal dan mengembalikan report ke `DRAFT`.
 
@@ -1148,7 +1161,8 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 
 ### 22.3 Weekly Report
 
-- QA Member bisa membuat draft report.
+- QA Member bisa membuat draft report melalui Create report yang langsung persist `DRAFT`.
+- QA Member lain tidak bisa membuat duplicate report untuk project/week yang sama.
 - QA Member bisa mengajukan report untuk approval internal QA.
 - Semua co-author wajib approve sebelum report masuk ke reviewer.
 - QA Member bisa melihat status report.
@@ -1307,7 +1321,7 @@ Saat implementasi, prioritaskan:
 
 ## 28. Implementation Status (snapshot)
 
-PRD versi: `v1.4 — 2026-06-16`.
+PRD versi: `v1.5 — 2026-06-24`.
 
 | Item | Status | Catatan |
 |---|---|---|
@@ -1331,7 +1345,7 @@ PRD versi: `v1.4 — 2026-06-16`.
 | Project CRUD | Done | Phase 2: list/create/edit/archive/restore, dedicated routes, archived read-only |
 | User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru, filter role/status |
 | Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
-| Weekly report CRUD | Done | Phase 5 + collaborative report: shared project/week report, co-author snapshot, server-side coverage, approved lock |
+| Weekly report CRUD | Done | Phase 5 + collaborative report: shared project/week report, instant draft on Create report, duplicate guard, co-author snapshot, server-side coverage, approved lock |
 | Submit flow | Done | Phase 6 + QA approval: ajukan approval internal, auto-submit ke reviewer setelah approval lengkap |
 | Review flow | Done | Phase 7: mark reviewed, request revision, approve, feedback history, activity timeline |
 | Dashboard summary | Done | Phase 8: role-aware (lead/member), date range filter, pending approval, coverage per project search/pagination, incidents |

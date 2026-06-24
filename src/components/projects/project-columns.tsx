@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
+import { ProjectReportingBadge } from "@/components/projects/project-reporting-badge";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 
 export type ProjectRow = {
@@ -10,6 +11,8 @@ export type ProjectRow = {
   name: string;
   code: string;
   status: "ACTIVE" | "ARCHIVED";
+  weeklyReportRequired: boolean;
+  weeklyReportDisabledReason?: string | null;
 };
 
 type BuildArgs = {
@@ -31,10 +34,20 @@ export function buildProjectColumns({ canManage, archiveAction, restoreAction }:
       cell: ({ row }) => <span className="text-muted-foreground">{row.original.code}</span>,
     },
     {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => <ProjectStatusBadge status={row.original.status} />,
-  },
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <ProjectStatusBadge status={row.original.status} />,
+    },
+    {
+      id: "reporting",
+      header: "Weekly report",
+      cell: ({ row }) => (
+        <ProjectReportingBadge
+          required={row.original.weeklyReportRequired}
+          reason={row.original.weeklyReportDisabledReason}
+        />
+      ),
+    },
     {
       id: "action",
       enableSorting: false,

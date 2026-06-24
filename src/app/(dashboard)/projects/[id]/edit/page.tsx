@@ -47,6 +47,8 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
               code: project.code,
               description: project.description,
               status: project.status,
+              weeklyReportRequired: project.weeklyReportRequired,
+              weeklyReportDisabledReason: project.weeklyReportDisabledReason,
             }}
           />
         </CardContent>

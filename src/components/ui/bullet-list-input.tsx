@@ -14,6 +14,7 @@ type BulletListInputProps = {
   placeholder?: string;
   required?: boolean;
   error?: string;
+  onValueChange?: (value: string) => void;
 };
 
 function parseRows(value?: string | null): string[] {
@@ -21,7 +22,7 @@ function parseRows(value?: string | null): string[] {
   return rows.length > 0 ? rows : [""];
 }
 
-export function BulletListInput({ name, label, defaultValue, placeholder, required, error }: BulletListInputProps) {
+export function BulletListInput({ name, label, defaultValue, placeholder, required, error, onValueChange }: BulletListInputProps) {
   const [rows, setRows] = useState<string[]>(() => parseRows(defaultValue));
   const labelText = label.trim();
   const errorId = error ? `${name}-error` : undefined;
@@ -29,15 +30,27 @@ export function BulletListInput({ name, label, defaultValue, placeholder, requir
   const joined = serializeBulletItems(rows);
 
   function update(index: number, value: string) {
-    setRows((prev) => prev.map((row, i) => (i === index ? value : row)));
+    setRows((prev) => {
+      const next = prev.map((row, i) => (i === index ? value : row));
+      onValueChange?.(serializeBulletItems(next));
+      return next;
+    });
   }
 
   function addRow() {
-    setRows((prev) => [...prev, ""]);
+    setRows((prev) => {
+      const next = [...prev, ""];
+      onValueChange?.(serializeBulletItems(next));
+      return next;
+    });
   }
 
   function removeRow(index: number) {
-    setRows((prev) => (prev.length <= 1 ? [""] : prev.filter((_, i) => i !== index)));
+    setRows((prev) => {
+      const next = prev.length <= 1 ? [""] : prev.filter((_, i) => i !== index);
+      onValueChange?.(serializeBulletItems(next));
+      return next;
+    });
   }
 
   return (

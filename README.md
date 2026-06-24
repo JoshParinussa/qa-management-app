@@ -6,7 +6,7 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 
 - Role-based auth untuk Admin, QA Lead, dan QA Member.
 - Project CRUD, archive/restore, dan assignment QA member.
-- Weekly report kolaboratif per project/minggu dengan co-author snapshot.
+- Weekly report kolaboratif per project/minggu dengan instant draft on create, duplicate guard, dan co-author snapshot.
 - Internal QA approval sebelum report otomatis terkirim ke reviewer.
 - Review flow: mark reviewed, request revision, approve, feedback history, dan activity timeline.
 - Dashboard role-aware dengan date range filter berbasis URL.
@@ -14,6 +14,15 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 - Dashboard member: assigned projects, pending approval, need revision, approved, dan recent reports.
 - Monthly report summary dari approved weekly report.
 - Markdown export untuk monthly report.
+
+## Weekly Report Creation Flow
+
+1. QA klik `New report` atau `Create` dari checklist dashboard.
+2. QA memilih project dan week.
+3. Klik `Create report` langsung membuat draft awal berstatus `DRAFT` untuk kombinasi project/week tersebut.
+4. Sistem melakukan snapshot co-author dari QA aktif di project dan redirect ke halaman edit draft.
+5. QA lain yang memilih project/week yang sama akan melihat report existing beserta pembuat dan statusnya; create duplicate dicegah.
+6. Field wajib boleh kosong pada draft awal, tetapi harus valid sebelum report dapat diajukan ke approval QA.
 
 ## Stack
 
@@ -29,35 +38,54 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 
 ## Run with Docker
 
-Full stack (PostgreSQL + app) via Docker Compose:
+Production uses `.env.prod` as the environment source and connects to an
+external PostgreSQL database through `DATABASE_URL`, `DATABASE_URL_TAILSCALE`,
+or `DATABASE_URL_LAN`.
 
 ```bash
 # Build and start (migrations run automatically on boot)
-docker compose up -d --build
+npm run prod:up
 
-# First run: also seed initial users/projects
-SEED_ON_START=true docker compose up -d --build
+# Logs
+npm run prod:logs
+
+# Stop
+npm run prod:down
 
 # App: http://localhost:3000
-# Stop + remove volumes
-docker compose down -v
 ```
 
-Environment overrides (optional, via shell or `.env` next to compose):
+Required `.env.prod` values:
 
 | Var | Default | Notes |
 |---|---|---|
-| `POSTGRES_DB` | `qa_management` | Database name |
-| `POSTGRES_USER` | `qa_user` | DB user |
-| `POSTGRES_PASSWORD` | `qa_password` | DB password |
-| `POSTGRES_PORT` | `5433` | Host port mapped to container 5432 |
-| `SESSION_SECRET` | `change-me-in-production` | Set a strong value in prod |
-| `DEFAULT_USER_PASSWORD` | `password123` | Default password for new users |
-| `SEED_ON_START` | `false` | Seed DB on container start |
+| `DATABASE_URL` | empty | Optional explicit DB URL |
+| `DATABASE_URL_TAILSCALE` | empty | Preferred homeserver DB URL |
+| `DATABASE_URL_LAN` | empty | LAN fallback DB URL |
+| `APP_URL` | empty | Public app URL |
+| `APP_PORT` | empty | Host port mapped to container 3000 |
+| `SESSION_SECRET` | empty | Required in production |
+| `DEFAULT_USER_PASSWORD` | empty | Initial password for new users and seeded superadmin |
+| `SEED_ON_START` | `false` | Keep false in production |
+| `ADMIN_EMAIL` | empty | Used by initial setup seed |
+| `ADMIN_NAME` | empty | Used by initial setup seed |
 
 The image uses Next.js standalone output (multi-stage build). The entrypoint
-(`docker-entrypoint.sh`) runs `drizzle-kit migrate` before starting the server,
-and seeds when `SEED_ON_START=true`.
+(`docker-entrypoint.sh`) resolves `DATABASE_URL` from the env above, runs
+`drizzle-kit migrate`, then starts the server.
+
+Initial setup for an empty production database:
+
+```bash
+# Run once only. This truncates all data, creates the superadmin, and seeds
+# the initial project list.
+npm run db:clean-admin
+```
+
+The seeded superadmin uses `DEFAULT_USER_PASSWORD` as the initial password and
+must change it on first login.
+
+Do not set `SEED_ON_START=true` for production restarts.
 
 ## Setup Local
 

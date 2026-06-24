@@ -45,6 +45,8 @@ export const projects = pgTable("projects", {
   code: varchar("code", { length: 24 }).notNull().unique(),
   description: text("description"),
   status: projectStatusEnum("status").notNull().default("ACTIVE"),
+  weeklyReportRequired: boolean("weekly_report_required").notNull().default(true),
+  weeklyReportDisabledReason: varchar("weekly_report_disabled_reason", { length: 40 }),
   startDate: timestamp("start_date", { withTimezone: true }),
   endDate: timestamp("end_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -109,6 +111,21 @@ export const weeklyReports = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex("weekly_reports_project_week_unique").on(table.projectId, table.weekStartDate, table.weekEndDate)],
+);
+
+export const weeklyReportReservations = pgTable(
+  "weekly_report_reservations",
+  {
+    id: uuid("id").primaryKey().$defaultFn(() => uuidv7()),
+    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    weekStartDate: timestamp("week_start_date", { withTimezone: true }).notNull(),
+    weekEndDate: timestamp("week_end_date", { withTimezone: true }).notNull(),
+    reservedBy: uuid("reserved_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("weekly_report_reservations_project_week_unique").on(table.projectId, table.weekStartDate, table.weekEndDate)],
 );
 
 export const reportFeedbacks = pgTable("report_feedbacks", {
@@ -179,11 +196,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   reportApprovals: many(reportQaApprovals),
   reportActivities: many(reportActivities),
   feedbacks: many(reportFeedbacks, { relationName: "feedbackReviewer" }),
+  weeklyReportReservations: many(weeklyReportReservations),
 }));
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   members: many(projectMembers),
   weeklyReports: many(weeklyReports),
+  weeklyReportReservations: many(weeklyReportReservations),
 }));
 
 export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
@@ -218,6 +237,11 @@ export const weeklyReportsRelations = relations(weeklyReports, ({ one, many }) =
   activities: many(reportActivities),
   feedbacks: many(reportFeedbacks),
   attachments: many(reportAttachments),
+}));
+
+export const weeklyReportReservationsRelations = relations(weeklyReportReservations, ({ one }) => ({
+  project: one(projects, { fields: [weeklyReportReservations.projectId], references: [projects.id] }),
+  user: one(users, { fields: [weeklyReportReservations.reservedBy], references: [users.id] }),
 }));
 
 export const reportFeedbacksRelations = relations(reportFeedbacks, ({ one }) => ({

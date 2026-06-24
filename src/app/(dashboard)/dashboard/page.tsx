@@ -5,9 +5,12 @@ import { StatCards } from "@/components/dashboard/stat-cards";
 import { DashboardReportTable } from "@/components/dashboard/dashboard-report-table";
 import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { CoverageProjectList } from "@/components/dashboard/coverage-project-list";
+import { WeeklyReportChecklistCard } from "@/components/dashboard/weekly-report-checklist-card";
 import { requireUser } from "@/lib/auth/session";
 import { defaultDashboardDateValues, parseDashboardDateRange } from "@/lib/dashboard/date-range";
 import { can } from "@/lib/permissions/roles";
+import { listWeeklyReportChecklist } from "@/lib/weekly-reports/checklist";
+import { createInitialWeeklyReportDraftAction } from "@/lib/weekly-reports/actions";
 import {
   getDashboardSummary,
   getIncidentTotal,
@@ -29,11 +32,12 @@ export default async function DashboardPage({
   const isReviewer = can(user.role, "dashboard:all");
 
   if (isReviewer) {
-    const [summary, pending, coverage, incidentTotal] = await Promise.all([
+    const [summary, pending, coverage, incidentTotal, checklist] = await Promise.all([
       getDashboardSummary(dateRange),
       listPendingReviewReports(dateRange),
       listCoverageByProject(dateRange),
       getIncidentTotal(dateRange),
+      listWeeklyReportChecklist(dateRange),
     ]);
 
     return (
@@ -55,6 +59,12 @@ export default async function DashboardPage({
             { label: "Need revision", value: summary.needRevision, icon: RotateCcw, subtitle: summary.needRevision === 0 ? "No issues" : "Action required" },
             { label: "Approved", value: summary.approved, icon: CheckCircle2, subtitle: "Completed" },
           ]}
+        />
+        <WeeklyReportChecklistCard
+          currentUserId={user.id}
+          createInitialDraft={createInitialWeeklyReportDraftAction}
+          items={checklist}
+          range={{ from: dateRange.from, to: dateRange.to }}
         />
         <Card className="gap-0 overflow-hidden py-0 shadow-none">
           <CardHeader className="border-b px-6 py-5">

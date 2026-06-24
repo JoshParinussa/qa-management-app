@@ -1,7 +1,12 @@
+import { config } from "dotenv";
 import { and, eq } from "drizzle-orm";
 import { db, pool } from "./client";
 import { hashPassword } from "@/lib/auth/password";
 import { projectMembers, projects, users } from "./schema";
+
+config({ path: ".env.prod", quiet: true });
+config({ path: ".env.local", quiet: true });
+config({ quiet: true });
 
 async function upsertUser(input: typeof users.$inferInsert) {
   const [existing] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
@@ -36,7 +41,12 @@ async function upsertProjectMember(input: typeof projectMembers.$inferInsert) {
 }
 
 async function main() {
-  const passwordHash = await hashPassword("password123");
+  const defaultPassword = process.env.DEFAULT_USER_PASSWORD?.trim();
+  if (!defaultPassword) {
+    throw new Error("DEFAULT_USER_PASSWORD is required");
+  }
+
+  const passwordHash = await hashPassword(defaultPassword);
 
   await upsertUser({ name: "Jopa", email: "jopa@example.com", role: "ADMIN", passwordHash, mustChangePassword: true });
   const lead = await upsertUser({ name: "QA Lead", email: "lead@example.com", role: "QA_LEAD", passwordHash, mustChangePassword: true });

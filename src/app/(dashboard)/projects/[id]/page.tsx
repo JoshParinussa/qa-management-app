@@ -8,6 +8,7 @@ import { assignMemberAction, removeMemberAction, updateMemberRoleAction } from "
 import { listAssignableUsers, listProjectMembers } from "@/lib/project-members/queries";
 import { ProjectMemberForm } from "@/components/projects/project-member-form";
 import { ProjectMemberDataTable } from "@/components/projects/project-member-data-table";
+import { ProjectReportingBadge } from "@/components/projects/project-reporting-badge";
 import { ProjectStatusBadge } from "@/components/projects/project-status-badge";
 import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
@@ -92,6 +93,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
             <ProjectStatusBadge status={project.status} />
+            <ProjectReportingBadge
+              required={project.weeklyReportRequired}
+              reason={project.weeklyReportDisabledReason}
+            />
           </div>
           <p className="text-sm text-slate-600">{project.description ?? "Tidak ada deskripsi."}</p>
         </CardContent>

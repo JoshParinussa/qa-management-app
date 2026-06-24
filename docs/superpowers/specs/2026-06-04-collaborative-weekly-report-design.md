@@ -11,6 +11,14 @@ Update 2026-06-16:
 - Dashboard lead view uses compact pending review, coverage per project search/pagination, and production incident summary.
 - Date range picker uses React DayPicker + Radix Popover with presets for Minggu ini, 1 minggu lalu, Bulan ini, and Week 1-N for the current month.
 
+Update 2026-06-24:
+
+- `New report` now opens a project/week modal; clicking `Create report` immediately inserts a `DRAFT` weekly report and redirects to edit.
+- Dashboard checklist `Create` uses the same action, so all creation entry points mark the project/week as used by creating the actual draft row.
+- Duplicate prevention is based on the existing `weekly_reports` row and the unique `(project_id, week_start_date, week_end_date)` constraint, not on a temporary reservation/slot concept.
+- If another QA selects the same project/week, the UI shows the existing report creator and status, then disables duplicate creation.
+- Validation errors on the form clear responsively after the related field becomes valid.
+
 ## 1. Problem & Goal
 
 Weekly report saat ini terikat ke satu QA per project per minggu. Dua kebutuhan baru:
@@ -101,6 +109,7 @@ Tabel lama dipertahankan untuk read-only kompat saat migrasi. Stop write setelah
 ### 4.1 Transitions
 
 ```
+NOT_STARTED --(QA klik Create report)--> DRAFT (draft row langsung dibuat)
 DRAFT --(QA "Ajukan untuk approval QA")--> PENDING_QA_APPROVAL
 PENDING_QA_APPROVAL --(ada edit konten)--> DRAFT (semua approval direset)
 PENDING_QA_APPROVAL --(QA approve internal, belum lengkap)--> PENDING_QA_APPROVAL
@@ -135,12 +144,29 @@ Reviewer `requestRevisionAction` juga melakukan reset semua approval.
 
 ### 4.4 Snapshot author rule
 
-Snapshot co-author diambil saat `createDraftAction`: semua QA aktif (assignment dengan `removedAt IS NULL`) di project target.
+Snapshot co-author diambil saat initial create action (`createInitialWeeklyReportDraftAction`): semua QA aktif (assignment dengan `removedAt IS NULL`) di project target.
 
 - Minimal berisi creator sendiri.
 - `created_by` selalu masuk ke `report_authors`.
 - Tolak create jika project tidak punya QA aktif sama sekali.
 - Snapshot sekali, tidak berubah meski assignment berubah setelahnya (kecuali manual edit di masa depan — out of scope).
+
+### 4.5 Initial draft and duplicate guard
+
+Semua entry point create harus memakai flow yang sama:
+
+1. User memilih project dan week di modal `New report` atau klik `Create` dari dashboard checklist.
+2. Server action mengecek active assignment dan `weeklyReportRequired`.
+3. Server action mencari report existing untuk `(project_id, week_start_date, week_end_date)`.
+4. Jika report existing ada, action mengembalikan conflict berisi `id`, `status`, `createdByName/email`, dan `createdAt`.
+5. Jika belum ada, action insert row `weekly_reports` berstatus `DRAFT` dengan nilai default/kosong untuk field konten, insert `report_authors`, insert activity `CREATED`, lalu return href edit.
+6. Jika terjadi race condition, unique constraint menang; action membaca ulang report existing dan mengembalikan conflict.
+
+Konsekuensi UX:
+
+- QA lain tidak perlu menunggu expiry/timeout; begitu draft dibuat, project/week dianggap sudah memiliki report.
+- Tombol create duplicate disable ketika conflict ditemukan.
+- Field wajib tetap boleh kosong pada initial draft, tetapi `requestQaApprovalAction` menolak submit sampai summary dan next week plan valid.
 
 ## 5. Permissions
 
@@ -303,6 +329,7 @@ Operations:
   - New query: `getReportQaApprovals(weeklyReportId: string)`.
   - New query: `getReportActivities(weeklyReportId: string)` — return semua activity, join users untuk nama.
 - `src/lib/weekly-reports/actions.ts`:
+  - Primary create flow: `createInitialWeeklyReportDraftAction` insert initial `DRAFT`, snapshot authors, return edit href, and return conflict for duplicate project/week.
   - Refactor `createDraftAction`:
     - Snapshot author dari semua QA aktif di project (via `findActiveAssignment` semua QA).
     - Insert `weekly_reports` dengan `createdBy = user.id`.
@@ -419,6 +446,7 @@ Sebelum deploy:
 ### 9.2 Action tests
 
 - `src/lib/weekly-reports/actions.test.ts`:
+  - `createInitialWeeklyReportDraftAction` — inserts initial `DRAFT`, snapshots authors, and returns edit href/conflict.
   - `createDraftAction` — snapshot 1 / 2 / 3 QA, verify `report_authors` rows.
   - `updateDraftAction` — edit content field triggers reset approval + status DRAFT.
 - `src/lib/weekly-reports/co-author-actions.test.ts` (new):
