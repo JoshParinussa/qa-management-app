@@ -8,7 +8,9 @@ RUN apk add --no-cache libc6-compat
 # ---- Dependencies ----
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci
+# Coolify may pass NODE_ENV=production during image build. Tailwind/PostCSS and
+# other build tools are devDependencies, so install them explicitly here.
+RUN npm ci --include=dev
 
 # ---- Builder ----
 FROM base AS builder
