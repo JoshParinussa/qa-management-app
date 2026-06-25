@@ -22,6 +22,7 @@
     "db:studio:prod": "node --env-file=.env.prod scripts/run-with-resolved-database.mjs drizzle-kit studio --host 127.0.0.1 --port 4983",
     "db:studio:stop": "lsof -tiTCP:4983 -sTCP:LISTEN | xargs -r kill",
     "db:seed": "node --env-file=.env.local scripts/run-with-resolved-database.mjs tsx src/db/seed.ts",
+    "db:seed:demo": "node --env-file=.env.local scripts/run-with-resolved-database.mjs tsx scripts/seed-local-demo.ts",
     "db:seed:prod": "node --env-file=.env.prod scripts/run-with-resolved-database.mjs tsx src/db/seed.ts",
     "db:clean-admin": "node --env-file=.env.local scripts/run-with-resolved-database.mjs tsx src/db/clean-and-seed-admin.ts",
     "db:clean-admin:prod": "node --env-file=.env.prod scripts/run-with-resolved-database.mjs tsx src/db/clean-and-seed-admin.ts",

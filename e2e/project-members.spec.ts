@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, SEEDED } from "./helpers";
+import { loginAs, SEEDED, selectAssignableUser } from "./helpers";
 
 async function createProject(page: import("@playwright/test").Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -44,7 +44,7 @@ test("admin can assign a member to a project", async ({ page }) => {
   await createProject(page, projectName, code);
   await openProjectDetail(page, projectName);
 
-  await page.getByLabel("User").selectOption({ label: `${memberName} (${memberEmail})` });
+  await selectAssignableUser(page, `${memberName} (${memberEmail})`);
   await page.getByLabel("Role", { exact: true }).selectOption("QA_MEMBER");
   await page.getByRole("button", { name: /^assign$/i }).click();
 
@@ -67,7 +67,7 @@ test("admin can remove an assigned member", async ({ page }) => {
   await createProject(page, projectName, code);
   await openProjectDetail(page, projectName);
 
-  await page.getByLabel("User").selectOption({ label: `${memberName} (${memberEmail})` });
+  await selectAssignableUser(page, `${memberName} (${memberEmail})`);
   await page.getByRole("button", { name: /^assign$/i }).click();
 
   const memberRow = page.getByRole("row").filter({ hasText: memberEmail });

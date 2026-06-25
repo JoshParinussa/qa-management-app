@@ -21,7 +21,7 @@ export const SEEDED = {
 export async function loginAs(page: Page, email: string, password: string = STABLE_PASSWORD) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.getByRole("textbox", { name: "Password" }).fill(password);
   await page.getByRole("button", { name: /login/i }).click();
   await page.waitForURL("**/dashboard", { timeout: 15_000 });
 }
@@ -38,13 +38,23 @@ export async function loginAndChangePassword(
 ) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(currentPassword);
+  await page.getByRole("textbox", { name: "Password" }).fill(currentPassword);
   await page.getByRole("button", { name: /login/i }).click();
   await page.waitForURL("**/change-password", { timeout: 15_000 });
-  await page.getByLabel("Password Baru").fill(newPassword);
-  await page.getByLabel("Konfirmasi Password").fill(newPassword);
+  await page.getByRole("textbox", { name: "Password Baru" }).fill(newPassword);
+  await page.getByRole("textbox", { name: "Konfirmasi Password" }).fill(newPassword);
   await page.getByRole("button", { name: /simpan password baru/i }).click();
   await page.waitForURL("**/dashboard", { timeout: 15_000 });
+}
+
+export async function selectAssignableUser(page: Page, userLabel: string) {
+  const emailMatch = userLabel.match(/\(([^)]+)\)/)?.[1];
+  const searchValue = emailMatch ?? userLabel;
+  const optionPattern = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+
+  await page.getByRole("combobox", { name: /user/i }).click();
+  await page.getByPlaceholder("Cari nama atau email...").fill(searchValue);
+  await page.getByRole("option", { name: optionPattern }).click();
 }
 
 export async function startWeeklyReportDraft(

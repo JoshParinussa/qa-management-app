@@ -4,8 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { changePasswordAction } from "@/lib/auth/actions";
 import { logoutAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { LogOut } from "lucide-react";
 
 export function ChangePasswordPanel() {
@@ -42,16 +42,16 @@ export function ChangePasswordPanel() {
         ) : null}
         <div className="space-y-2">
    <Label htmlFor="currentPassword">Password saat ini</Label>
-  <Input id="currentPassword" name="currentPassword" type="password" autoComplete="current-password" required />
+  <PasswordInput id="currentPassword" name="currentPassword" autoComplete="current-password" required />
        </div>
        <div className="grid gap-3 sm:grid-cols-2">
        <div className="space-y-2">
    <Label htmlFor="password">Password baru</Label>
-  <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} required />
+  <PasswordInput id="password" name="password" autoComplete="new-password" minLength={8} required />
        </div>
        <div className="space-y-2">
    <Label htmlFor="confirmPassword">Konfirmasi password baru</Label>
-   <Input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" minLength={8} required />
+   <PasswordInput id="confirmPassword" name="confirmPassword" autoComplete="new-password" minLength={8} required />
   </div>
    </div>
         <p className="text-xs text-muted-foreground">Minimal 8 karakter.</p>

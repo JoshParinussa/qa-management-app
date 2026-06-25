@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, SEEDED, startWeeklyReportDraft } from "./helpers";
+import { loginAs, SEEDED, selectAssignableUser, startWeeklyReportDraft } from "./helpers";
 
 async function createProject(page: import("@playwright/test").Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -19,7 +19,7 @@ async function assignLead(page: import("@playwright/test").Page, projectName: st
     ),
     row.getByRole("link", { name: "View" }).click(),
   ]);
-  await page.getByLabel("User").selectOption({ label: "QA Lead (lead@example.com)" });
+  await selectAssignableUser(page, "QA Lead (lead@example.com)");
   await page.getByRole("button", { name: /^assign$/i }).click();
   await expect(page.getByRole("row").filter({ hasText: "lead@example.com" })).toBeVisible({ timeout: 15_000 });
 }

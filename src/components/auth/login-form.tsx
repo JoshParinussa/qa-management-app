@@ -5,6 +5,7 @@ import { loginAction } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(loginAction, {});
@@ -26,12 +27,11 @@ export function LoginForm() {
   </div>
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
- <Input
-       id="password"
-        name="password"
-    type="password"
-    autoComplete="current-password"
-    required
+        <PasswordInput
+          id="password"
+          name="password"
+          autoComplete="current-password"
+          required
         />
       </div>
       <Button className="w-full" type="submit" disabled={pending}>

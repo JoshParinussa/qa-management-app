@@ -58,7 +58,7 @@ test("admin can reset a user's password and login with new password", async ({ p
   // resetPasswordAction set must_change_password=true
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(newPassword);
+  await page.getByRole("textbox", { name: "Password" }).fill(newPassword);
   await page.getByRole("button", { name: /login/i }).click();
 
   await page.waitForURL("**/change-password", { timeout: 15_000 });

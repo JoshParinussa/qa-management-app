@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { loginAs, SEEDED, startWeeklyReportDraft } from "./helpers";
+import { loginAs, SEEDED, selectAssignableUser, startWeeklyReportDraft } from "./helpers";
 
 async function createProject(page: Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -23,7 +23,7 @@ async function openProjectDetail(page: Page, projectName: string) {
 
 async function assignMember(page: Page, projectName: string, userLabel: string) {
   await openProjectDetail(page, projectName);
-  await page.getByLabel("User").selectOption({ label: userLabel });
+  await selectAssignableUser(page, userLabel);
   await page.getByRole("button", { name: /^assign$/i }).click();
   const emailMatch = userLabel.match(/\(([^)]+)\)/)?.[1] ?? userLabel;
   await expect(page.getByRole("row").filter({ hasText: emailMatch })).toBeVisible({ timeout: 15_000 });
@@ -164,7 +164,7 @@ test("two co-authors must both approve before report goes to reviewer", async ({
   // Assign QA1 first via lead's session.
   await assignMember(page, projectName, "QA Lead (lead@example.com)");
   await openProjectDetail(page, projectName);
-  await page.getByLabel("User").selectOption({ label: "QA Member 1 (qa1@example.com)" });
+  await selectAssignableUser(page, "QA Member 1 (qa1@example.com)");
   await page.getByRole("button", { name: /^assign$/i }).click();
   await expect(page.getByRole("row").filter({ hasText: "qa1@example.com" })).toBeVisible({ timeout: 15_000 });
 

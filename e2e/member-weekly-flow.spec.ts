@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, loginAndChangePassword, SEEDED, SEEDED_INITIAL_PASSWORD, startWeeklyReportDraft } from "./helpers";
+import { loginAs, loginAndChangePassword, SEEDED, SEEDED_INITIAL_PASSWORD, selectAssignableUser, startWeeklyReportDraft } from "./helpers";
 
 const MEMBER_PASSWORD = "MemberPass123!";
 
@@ -34,7 +34,7 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
     ),
     projectRow.getByRole("link", { name: "View" }).click(),
   ]);
-  await page.getByLabel("User").selectOption({ label: `${memberName} (${memberEmail})` });
+  await selectAssignableUser(page, `${memberName} (${memberEmail})`);
   await page.getByRole("button", { name: /^assign$/i }).click();
   await expect(page.getByRole("row").filter({ hasText: memberEmail })).toBeVisible({ timeout: 15_000 });
 
