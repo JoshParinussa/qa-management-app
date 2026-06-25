@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, SEEDED } from "./helpers";
+import { loginAs, SEEDED, startWeeklyReportDraft } from "./helpers";
 
 async function createProject(page: import("@playwright/test").Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -25,10 +25,7 @@ async function assignLead(page: import("@playwright/test").Page, projectName: st
 }
 
 async function createAndSubmitReport(page: import("@playwright/test").Page, projectName: string) {
-  await page.goto("/weekly-reports/new");
-  await page.getByLabel("Project").selectOption({ label: projectName });
-  await page.getByLabel("Week start").fill("2026-05-04");
-  await page.getByLabel("Week end").fill("2026-05-10");
+  await startWeeklyReportDraft(page, projectName);
   await page.getByLabel("summary item 1", { exact: true }).fill("Weekly QA progress summary.");
   await page.getByLabel("Bug document URL").fill("https://example.test/bugs/weekly");
   await page.getByLabel("Test case total").fill("200");
@@ -41,8 +38,9 @@ async function createAndSubmitReport(page: import("@playwright/test").Page, proj
   await page.getByLabel("FE passed", { exact: true }).fill("45");
   await page.getByLabel("FE failed", { exact: true }).fill("5");
   await page.getByLabel("Next week plan item 1", { exact: true }).fill("Continue regression suite.");
-  await page.getByRole("button", { name: /save draft/i }).click();
-  await page.waitForURL("**/weekly-reports");
+  await page.getByRole("button", { name: /save changes/i }).click();
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
+  await page.goto("/weekly-reports");
 
   const reportRow = page.getByRole("row").filter({ hasText: projectName });
   await reportRow.getByRole("link", { name: "View" }).click();

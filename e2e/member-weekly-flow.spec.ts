@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, loginAndChangePassword, SEEDED, SEEDED_INITIAL_PASSWORD } from "./helpers";
+import { loginAs, loginAndChangePassword, SEEDED, SEEDED_INITIAL_PASSWORD, startWeeklyReportDraft } from "./helpers";
 
 const MEMBER_PASSWORD = "MemberPass123!";
 
@@ -44,13 +44,7 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
   await loginAndChangePassword(page, memberEmail, SEEDED_INITIAL_PASSWORD, MEMBER_PASSWORD);
 
   // 3. Member buat weekly report untuk project yang di-assign.
-  await page.goto("/weekly-reports");
-  await page.getByRole("link", { name: /new report/i }).click();
-  await page.waitForURL("**/weekly-reports/new");
-
-  await page.getByLabel("Project").selectOption({ label: projectName });
-  await page.getByLabel("Week start").fill("2026-05-04");
-  await page.getByLabel("Week end").fill("2026-05-10");
+  await startWeeklyReportDraft(page, projectName);
   await page.getByLabel("summary item 1", { exact: true }).fill("QA member weekly progress.");
   await page.getByLabel("Bug document URL").fill("https://example.test/bugs/weekly");
   await page.getByLabel("Test case total").fill("100");
@@ -63,9 +57,10 @@ test("qa member completes onboarding and creates a weekly report", async ({ page
   await page.getByLabel("FE passed", { exact: true }).fill("17");
   await page.getByLabel("FE failed", { exact: true }).fill("3");
   await page.getByLabel("Next week plan item 1", { exact: true }).fill("Finish remaining backend cases.");
-  await page.getByRole("button", { name: /save draft/i }).click();
+  await page.getByRole("button", { name: /save changes/i }).click();
 
-  await page.waitForURL("**/weekly-reports");
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
+  await page.goto("/weekly-reports");
   const reportRow = page.getByRole("row").filter({ hasText: projectName });
   await expect(reportRow).toBeVisible({ timeout: 15_000 });
   await expect(reportRow.getByText("Draft")).toBeVisible();

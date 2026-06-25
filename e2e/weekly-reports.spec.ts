@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { loginAs, SEEDED } from "./helpers";
+import { loginAs, SEEDED, startWeeklyReportDraft } from "./helpers";
 
 async function createProject(page: Page, name: string, code: string) {
   await page.goto("/projects/new");
@@ -29,10 +29,7 @@ async function assignMember(page: Page, projectName: string, userLabel: string) 
   await expect(page.getByRole("row").filter({ hasText: emailMatch })).toBeVisible({ timeout: 15_000 });
 }
 
-async function fillReportForm(page: Page, projectName: string) {
-  await page.getByLabel("Project").selectOption({ label: projectName });
-  await page.getByLabel("Week start").fill("2026-05-04");
-  await page.getByLabel("Week end").fill("2026-05-10");
+async function fillReportForm(page: Page) {
   await page.getByLabel("summary item 1", { exact: true }).fill("Weekly QA progress summary.");
   await page.getByLabel("Bug document URL").fill("https://example.test/bugs/weekly");
   await page.getByLabel("Test case total").fill("200");
@@ -65,14 +62,42 @@ test("qa lead can create a draft weekly report", async ({ page }) => {
   await createProject(page, projectName, code);
   await assignMember(page, projectName, "QA Lead (lead@example.com)");
 
-  await page.goto("/weekly-reports/new");
-  await fillReportForm(page, projectName);
-  await page.getByRole("button", { name: /save draft/i }).click();
+  await startWeeklyReportDraft(page, projectName);
+  await fillReportForm(page);
+  await page.getByRole("button", { name: /save changes/i }).click();
 
-  await page.waitForURL("**/weekly-reports");
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
+  await page.goto("/weekly-reports");
   const reportRow = page.getByRole("row").filter({ hasText: projectName });
   await expect(reportRow).toBeVisible({ timeout: 15_000 });
   await expect(reportRow.getByText("Draft")).toBeVisible();
+});
+
+test("new report creates an initial draft and blocks duplicate project-week creation", async ({ page }) => {
+  await loginAs(page, SEEDED.lead.email);
+
+  const stamp = Date.now();
+  const projectName = `Duplicate Guard ${stamp}`;
+  const code = `DUP${stamp}`.slice(0, 24);
+
+  await createProject(page, projectName, code);
+  await assignMember(page, projectName, "QA Lead (lead@example.com)");
+
+  await startWeeklyReportDraft(page, projectName);
+
+  await page.goto("/weekly-reports");
+  await page.getByRole("button", { name: /^new report$/i }).click();
+  const dialog = page.getByRole("dialog", { name: "Start weekly report" });
+  await expect(dialog).toBeVisible({ timeout: 15_000 });
+  await dialog.getByRole("combobox", { name: "Project" }).click();
+  await page.getByRole("option", { name: projectName }).click();
+  await dialog.getByLabel("Week start").fill("2026-05-04");
+  await dialog.getByLabel("Week end").fill("2026-05-10");
+
+  await expect(dialog.getByText("Report minggu ini sudah ada.")).toBeVisible({ timeout: 15_000 });
+  await expect(dialog.getByText("Draft", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /create report/i })).toBeDisabled();
+  await expect(dialog.getByRole("link", { name: /lihat report/i })).toBeVisible();
 });
 
 test("qa lead can edit a draft report", async ({ page }) => {
@@ -85,10 +110,10 @@ test("qa lead can edit a draft report", async ({ page }) => {
   await createProject(page, projectName, code);
   await assignMember(page, projectName, "QA Lead (lead@example.com)");
 
-  await page.goto("/weekly-reports/new");
-  await fillReportForm(page, projectName);
-  await page.getByRole("button", { name: /save draft/i }).click();
-  await page.waitForURL("**/weekly-reports");
+  await startWeeklyReportDraft(page, projectName);
+  await fillReportForm(page);
+  await page.getByRole("button", { name: /save changes/i }).click();
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
 
   await openOwnReport(page, projectName);
   await page.getByRole("link", { name: /^edit$/i }).click();
@@ -112,10 +137,10 @@ test("sole co-author auto-submits to reviewer after self-approval", async ({ pag
   await createProject(page, projectName, code);
   await assignMember(page, projectName, "QA Lead (lead@example.com)");
 
-  await page.goto("/weekly-reports/new");
-  await fillReportForm(page, projectName);
-  await page.getByRole("button", { name: /save draft/i }).click();
-  await page.waitForURL("**/weekly-reports");
+  await startWeeklyReportDraft(page, projectName);
+  await fillReportForm(page);
+  await page.getByRole("button", { name: /save changes/i }).click();
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
 
   await openOwnReport(page, projectName);
 
@@ -144,10 +169,10 @@ test("two co-authors must both approve before report goes to reviewer", async ({
   await expect(page.getByRole("row").filter({ hasText: "qa1@example.com" })).toBeVisible({ timeout: 15_000 });
 
   // Lead creates the draft.
-  await page.goto("/weekly-reports/new");
-  await fillReportForm(page, projectName);
-  await page.getByRole("button", { name: /save draft/i }).click();
-  await page.waitForURL("**/weekly-reports");
+  await startWeeklyReportDraft(page, projectName);
+  await fillReportForm(page);
+  await page.getByRole("button", { name: /save changes/i }).click();
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
 
   await openOwnReport(page, projectName);
   const reportUrl = page.url();
@@ -185,10 +210,10 @@ test("editing a pending report resets approvals back to draft", async ({ page })
   await createProject(page, projectName, code);
   await assignMember(page, projectName, "QA Lead (lead@example.com)");
 
-  await page.goto("/weekly-reports/new");
-  await fillReportForm(page, projectName);
-  await page.getByRole("button", { name: /save draft/i }).click();
-  await page.waitForURL("**/weekly-reports");
+  await startWeeklyReportDraft(page, projectName);
+  await fillReportForm(page);
+  await page.getByRole("button", { name: /save changes/i }).click();
+  await page.waitForURL(/\/weekly-reports\/[^/]+$/);
 
   await openOwnReport(page, projectName);
 

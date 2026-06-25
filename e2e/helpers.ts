@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 // Default password baked into seed.ts for seeded users on creation.
 export const SEEDED_INITIAL_PASSWORD = "password123";
@@ -45,4 +45,29 @@ export async function loginAndChangePassword(
   await page.getByLabel("Konfirmasi Password").fill(newPassword);
   await page.getByRole("button", { name: /simpan password baru/i }).click();
   await page.waitForURL("**/dashboard", { timeout: 15_000 });
+}
+
+export async function startWeeklyReportDraft(
+  page: Page,
+  projectName: string,
+  weekStartDate = "2026-05-04",
+  weekEndDate = "2026-05-10",
+) {
+  await page.goto("/weekly-reports");
+  await page.getByRole("button", { name: /^new report$/i }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Start weekly report" });
+  await expect(dialog).toBeVisible({ timeout: 15_000 });
+
+  await dialog.getByRole("combobox", { name: "Project" }).click();
+  await page.getByRole("option", { name: projectName }).click();
+  await dialog.getByLabel("Week start").fill(weekStartDate);
+  await dialog.getByLabel("Week end").fill(weekEndDate);
+  await expect(dialog.getByText(`Belum ada report untuk ${projectName}`)).toBeVisible({ timeout: 15_000 });
+
+  await Promise.all([
+    page.waitForURL(/\/weekly-reports\/[^/]+\/edit$/, { timeout: 15_000 }),
+    dialog.getByRole("button", { name: /create report/i }).click(),
+  ]);
+  await expect(page.getByRole("heading", { name: "Edit weekly report" })).toBeVisible({ timeout: 15_000 });
 }

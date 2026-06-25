@@ -7,8 +7,9 @@ test("lead dashboard shows QA stat cards and sections", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Active projects")).toBeVisible();
   await expect(page.getByText("Pending review").first()).toBeVisible();
+  await expect(page.getByText(/weekly report checklist/i)).toBeVisible();
   await expect(page.getByText(/coverage per project/i)).toBeVisible();
-  await expect(page.getByText(/top blockers/i)).toBeVisible();
+  await expect(page.getByText(/production incidents/i)).toBeVisible();
 });
 
 test("admin dashboard shows reviewer view", async ({ page }) => {
