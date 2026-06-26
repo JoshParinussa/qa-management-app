@@ -51,6 +51,23 @@ describe("buildWeeklyReportsMarkdown", () => {
     expect(md).toContain("## Reports (1)");
   });
 
+  it("shows the period label when provided, defaulting to All time", () => {
+    const withPeriod = buildWeeklyReportsMarkdown({
+      projectLabel: "All projects",
+      statusLabel: "All status",
+      periodLabel: "1 Jun 2026 – 30 Jun 2026",
+      reports: [makeReport()],
+    });
+    expect(withPeriod).toContain("- Period: 1 Jun 2026 – 30 Jun 2026");
+
+    const withoutPeriod = buildWeeklyReportsMarkdown({
+      projectLabel: "All projects",
+      statusLabel: "All status",
+      reports: [makeReport()],
+    });
+    expect(withoutPeriod).toContain("- Period: All time");
+  });
+
   it("renders a per-report heading with project and week dates", () => {
     const md = buildWeeklyReportsMarkdown({
       projectLabel: "All projects",

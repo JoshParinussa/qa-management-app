@@ -37,6 +37,7 @@ export type WeeklyReportExportRow = {
 type BuildArgs = {
   projectLabel: string;
   statusLabel: string;
+  periodLabel?: string;
   reports: WeeklyReportExportRow[];
 };
 
@@ -111,7 +112,7 @@ function renderReport(report: WeeklyReportExportRow): string[] {
   ];
 }
 
-export function buildWeeklyReportsMarkdown({ projectLabel, statusLabel, reports }: BuildArgs) {
+export function buildWeeklyReportsMarkdown({ projectLabel, statusLabel, periodLabel, reports }: BuildArgs) {
   const generatedAt = new Date().toISOString().slice(0, 10);
   const lines: string[] = [
     "# Weekly QA Reports",
@@ -119,6 +120,7 @@ export function buildWeeklyReportsMarkdown({ projectLabel, statusLabel, reports 
     "## Filter",
     `- Project: ${projectLabel}`,
     `- Status: ${statusLabel}`,
+    `- Period: ${periodLabel ?? "All time"}`,
     `- Generated: ${generatedAt}`,
     "",
     `## Reports (${reports.length})`,

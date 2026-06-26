@@ -12,6 +12,7 @@ type ExportRequestBody = {
   ids?: unknown;
   projectLabel?: unknown;
   statusLabel?: unknown;
+  periodLabel?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -33,10 +34,11 @@ export async function POST(request: Request) {
     : [];
   const projectLabel = typeof body.projectLabel === "string" && body.projectLabel.trim() ? body.projectLabel.trim() : "All projects";
   const statusLabel = typeof body.statusLabel === "string" && body.statusLabel.trim() ? body.statusLabel.trim() : "All status";
+  const periodLabel = typeof body.periodLabel === "string" && body.periodLabel.trim() ? body.periodLabel.trim() : undefined;
 
   const reports = ids.length > 0 ? await listReportsForExportByIds(ids) : [];
 
-  const markdown = buildWeeklyReportsMarkdown({ projectLabel, statusLabel, reports });
+  const markdown = buildWeeklyReportsMarkdown({ projectLabel, statusLabel, periodLabel, reports });
   const filename = weeklyExportFilename(projectLabel, statusLabel);
 
   return new Response(markdown, {
