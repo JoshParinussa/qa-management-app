@@ -1,10 +1,8 @@
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
 import { listReportsForExportByIds } from "@/lib/weekly-reports/queries";
-import {
-  buildWeeklyReportsMarkdown,
-  weeklyExportFilename,
-} from "@/lib/weekly-reports/export-markdown";
+import { buildWeeklyReportsExportData, weeklyExportFilename } from "@/lib/weekly-reports/export-data";
+import { renderWeeklyReportsPdf } from "@/lib/weekly-reports/export-pdf";
 
 const UUID_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
@@ -38,12 +36,13 @@ export async function POST(request: Request) {
 
   const reports = ids.length > 0 ? await listReportsForExportByIds(ids) : [];
 
-  const markdown = buildWeeklyReportsMarkdown({ projectLabel, statusLabel, periodLabel, reports });
+  const data = buildWeeklyReportsExportData({ projectLabel, statusLabel, periodLabel, reports });
+  const buffer = await renderWeeklyReportsPdf(data);
   const filename = weeklyExportFilename(projectLabel, statusLabel);
 
-  return new Response(markdown, {
+  return new Response(new Uint8Array(buffer), {
     headers: {
-      "Content-Type": "text/markdown; charset=utf-8",
+      "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });

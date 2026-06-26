@@ -88,7 +88,7 @@ export function WeeklyReportsDataTable({
       const blob = await response.blob();
       const disposition = response.headers.get("Content-Disposition") ?? "";
       const match = disposition.match(/filename="([^"]+)"/);
-      const filename = match?.[1] ?? "weekly-reports.md";
+      const filename = match?.[1] ?? "weekly-reports.pdf";
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -146,7 +146,7 @@ export function WeeklyReportsDataTable({
               disabled={isExporting || filteredRows.length === 0}
             >
               <Download className="size-4" />
-              {isExporting ? "Exporting..." : `Export Markdown (${filteredRows.length})`}
+              {isExporting ? "Exporting..." : `Export PDF (${filteredRows.length})`}
             </Button>
           ) : null}
         </div>
