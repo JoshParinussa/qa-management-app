@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { listApprovedReportsForExport, listReportsByCoAuthor } from "./queries";
+import { listReportsByCoAuthor, listReportsForExportByIds } from "./queries";
 
 describe("listReportsByCoAuthor", () => {
   it("joins report authors instead of using a single-row subquery", () => {
@@ -12,35 +12,21 @@ describe("listReportsByCoAuthor", () => {
   });
 });
 
-describe("listApprovedReportsForExport", () => {
-  const range = {
-    start: new Date("2026-06-01T00:00:00.000Z"),
-    end: new Date("2026-06-30T23:59:59.999Z"),
-  };
+describe("listReportsForExportByIds", () => {
+  it("filters by the provided report ids", () => {
+    const ids = [
+      "018f0b3c-1d2e-7a3b-8c4d-5e6f70819294",
+      "018f0b3c-1d2e-7a3b-8c4d-5e6f70819295",
+    ];
+    const query = listReportsForExportByIds(ids).toSQL();
 
-  it("filters by approved status and week overlap", () => {
-    const query = listApprovedReportsForExport({ ...range }).toSQL();
-
-    expect(query.sql).toContain('"weekly_reports"."status" = $1');
-    expect(query.params).toContain("APPROVED");
-    expect(query.sql).toContain('"weekly_reports"."week_start_date" <=');
-    expect(query.sql).toContain('"weekly_reports"."week_end_date" >=');
+    expect(query.sql).toContain('"weekly_reports"."id" in');
+    expect(query.params).toEqual(expect.arrayContaining(ids));
   });
 
-  it("adds a project filter when projectId is provided", () => {
-    const query = listApprovedReportsForExport({
-      ...range,
-      projectId: "018f0b3c-1d2e-7a3b-8c4d-5e6f70819294",
-    }).toSQL();
+  it("orders by project name then week start date", () => {
+    const query = listReportsForExportByIds(["018f0b3c-1d2e-7a3b-8c4d-5e6f70819294"]).toSQL();
 
-    expect(query.sql).toContain('"weekly_reports"."project_id" = $');
-    expect(query.params).toContain("018f0b3c-1d2e-7a3b-8c4d-5e6f70819294");
-  });
-
-  it("omits the project filter when projectId is absent", () => {
-    const query = listApprovedReportsForExport({ ...range }).toSQL();
-
-    // Only status + range params (no extra project_id equality param).
-    expect(query.params).toHaveLength(3);
+    expect(query.sql).toContain('order by "projects"."name", "weekly_reports"."week_start_date"');
   });
 });

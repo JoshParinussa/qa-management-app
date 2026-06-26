@@ -36,6 +36,7 @@ type DataTableProps<TData, TValue> = {
   paginationValue?: PaginationState;
   onGlobalFilterChange?: (value: string) => void;
   onPaginationChange?: (pagination: PaginationState) => void;
+  onFilteredDataChange?: (rows: TData[]) => void;
   resetPageKey?: string;
 };
 
@@ -55,6 +56,7 @@ export function DataTable<TData, TValue>({
   paginationValue,
   onGlobalFilterChange,
   onPaginationChange,
+  onFilteredDataChange,
   resetPageKey,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -104,9 +106,19 @@ export function DataTable<TData, TValue>({
 
   const pageIndex = table.getState().pagination.pageIndex;
   const totalPages = table.getPageCount();
-  const totalRows = table.getFilteredRowModel().rows.length;
+  const filteredRows = table.getFilteredRowModel().rows;
+  const totalRows = filteredRows.length;
   const pages = getPaginationRange(pageIndex + 1, totalPages);
   const pageSizeVisible = showPageSize ?? searchable;
+
+  const filteredData = React.useMemo(
+    () => filteredRows.map((row) => row.original),
+    [filteredRows],
+  );
+
+  React.useEffect(() => {
+    onFilteredDataChange?.(filteredData);
+  }, [filteredData, onFilteredDataChange]);
 
   React.useEffect(() => {
     if (totalPages > 0 && pageIndex >= totalPages) {

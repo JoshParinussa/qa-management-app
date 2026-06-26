@@ -38,26 +38,23 @@ function makeReport(overrides: Partial<WeeklyReportExportRow> = {}): WeeklyRepor
 }
 
 describe("buildWeeklyReportsMarkdown", () => {
-  it("includes scope name and period header", () => {
+  it("includes filter header and report count", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "Payment Gateway",
+      projectLabel: "Payment Gateway",
+      statusLabel: "Approved",
       reports: [makeReport()],
     });
 
     expect(md).toContain("# Weekly QA Reports");
-    expect(md).toContain("Payment Gateway");
-    expect(md).toContain("2026-06-01");
-    expect(md).toContain("2026-06-30");
+    expect(md).toContain("- Project: Payment Gateway");
+    expect(md).toContain("- Status: Approved");
     expect(md).toContain("## Reports (1)");
   });
 
   it("renders a per-report heading with project and week dates", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "Payment Gateway",
+      projectLabel: "All projects",
+      statusLabel: "All status",
       reports: [makeReport()],
     });
 
@@ -68,9 +65,8 @@ describe("buildWeeklyReportsMarkdown", () => {
 
   it("renders metrics computed from report inputs", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "Payment Gateway",
+      projectLabel: "All projects",
+      statusLabel: "All status",
       reports: [makeReport()],
     });
 
@@ -83,9 +79,8 @@ describe("buildWeeklyReportsMarkdown", () => {
 
   it("renders summary, blocker and next plan bullets", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "Payment Gateway",
+      projectLabel: "All projects",
+      statusLabel: "All status",
       reports: [makeReport()],
     });
 
@@ -96,9 +91,8 @@ describe("buildWeeklyReportsMarkdown", () => {
 
   it("falls back to placeholder when blocker is empty", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "Payment Gateway",
+      projectLabel: "All projects",
+      statusLabel: "All status",
       reports: [makeReport({ blocker: null })],
     });
 
@@ -107,9 +101,8 @@ describe("buildWeeklyReportsMarkdown", () => {
 
   it("renders production incidents with title and description", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "Payment Gateway",
+      projectLabel: "All projects",
+      statusLabel: "All status",
       reports: [
         makeReport({
           productionIncidentCount: 1,
@@ -128,27 +121,26 @@ describe("buildWeeklyReportsMarkdown", () => {
 
   it("handles an empty report set", () => {
     const md = buildWeeklyReportsMarkdown({
-      from: "2026-06-01",
-      to: "2026-06-30",
-      projectName: "All projects",
+      projectLabel: "All projects",
+      statusLabel: "All status",
       reports: [],
     });
 
     expect(md).toContain("## Reports (0)");
-    expect(md).toContain("Tidak ada approved report pada periode ini.");
+    expect(md).toContain("Tidak ada report yang cocok dengan filter ini.");
   });
 });
 
 describe("weeklyExportFilename", () => {
-  it("builds filename from project name and range", () => {
-    expect(weeklyExportFilename("Payment Gateway", "2026-06-01", "2026-06-30")).toBe(
-      "payment-gateway-2026-06-01-to-2026-06-30.md",
+  it("builds filename from project and status labels", () => {
+    expect(weeklyExportFilename("Payment Gateway", "Approved")).toMatch(
+      /^weekly-reports-payment-gateway-approved-\d{4}-\d{2}-\d{2}\.md$/,
     );
   });
 
-  it("uses all-projects when no project name", () => {
-    expect(weeklyExportFilename(undefined, "2026-06-01", "2026-06-30")).toBe(
-      "all-projects-2026-06-01-to-2026-06-30.md",
+  it("falls back to all when labels slug to empty", () => {
+    expect(weeklyExportFilename("All projects", "All status")).toMatch(
+      /^weekly-reports-all-projects-all-status-\d{4}-\d{2}-\d{2}\.md$/,
     );
   });
 });

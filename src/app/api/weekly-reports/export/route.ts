@@ -1,48 +1,43 @@
 import { requireUser } from "@/lib/auth/session";
 import { can } from "@/lib/permissions/roles";
-import { parseDashboardDateRange } from "@/lib/dashboard/date-range";
-import {
-  listApprovedReportsForExport,
-  listProjectsForExportFilter,
-} from "@/lib/weekly-reports/queries";
+import { listReportsForExportByIds } from "@/lib/weekly-reports/queries";
 import {
   buildWeeklyReportsMarkdown,
   weeklyExportFilename,
 } from "@/lib/weekly-reports/export-markdown";
 
-export async function GET(request: Request) {
+const UUID_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+type ExportRequestBody = {
+  ids?: unknown;
+  projectLabel?: unknown;
+  statusLabel?: unknown;
+};
+
+export async function POST(request: Request) {
   const user = await requireUser();
 
   if (!can(user.role, "report:export")) {
     return new Response("Forbidden", { status: 403 });
   }
 
-  const url = new URL(request.url);
-  const range = parseDashboardDateRange(
-    url.searchParams.get("from") ?? undefined,
-    url.searchParams.get("to") ?? undefined,
-  );
-  const projectId = url.searchParams.get("projectId") || undefined;
-
-  const reports = await listApprovedReportsForExport({
-    start: range.start,
-    end: range.end,
-    projectId,
-  });
-
-  let projectName = "All projects";
-  if (projectId) {
-    const projects = await listProjectsForExportFilter();
-    projectName = projects.find((p) => p.id === projectId)?.name ?? "All projects";
+  let body: ExportRequestBody;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response("Invalid JSON body", { status: 400 });
   }
 
-  const markdown = buildWeeklyReportsMarkdown({
-    from: range.from,
-    to: range.to,
-    projectName,
-    reports,
-  });
-  const filename = weeklyExportFilename(projectId ? projectName : undefined, range.from, range.to);
+  const ids = Array.isArray(body.ids)
+    ? body.ids.filter((id): id is string => typeof id === "string" && UUID_PATTERN.test(id))
+    : [];
+  const projectLabel = typeof body.projectLabel === "string" && body.projectLabel.trim() ? body.projectLabel.trim() : "All projects";
+  const statusLabel = typeof body.statusLabel === "string" && body.statusLabel.trim() ? body.statusLabel.trim() : "All status";
+
+  const reports = ids.length > 0 ? await listReportsForExportByIds(ids) : [];
+
+  const markdown = buildWeeklyReportsMarkdown({ projectLabel, statusLabel, reports });
+  const filename = weeklyExportFilename(projectLabel, statusLabel);
 
   return new Response(markdown, {
     headers: {

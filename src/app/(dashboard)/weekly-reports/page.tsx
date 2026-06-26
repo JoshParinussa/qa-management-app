@@ -1,39 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NewReportDialog } from "@/components/reports/new-report-dialog";
 import { WeeklyReportsDataTable } from "@/components/reports/weekly-reports-data-table";
-import { ExportWeeklyControls } from "@/components/reports/export-weekly-controls";
 import { PageHeader } from "@/components/layout/page-header";
 import { requireUser } from "@/lib/auth/session";
 import { can, canViewWeeklyReports } from "@/lib/permissions/roles";
 import { listAssignedProjects } from "@/lib/project-members/queries";
 import { checkExistingWeeklyReportAction, createInitialWeeklyReportDraftAction } from "@/lib/weekly-reports/actions";
-import { listAllReports, listProjectsForExportFilter, listReportsByCoAuthor } from "@/lib/weekly-reports/queries";
+import { listAllReports, listReportsByCoAuthor } from "@/lib/weekly-reports/queries";
 import { canEditReport } from "@/lib/weekly-reports/rules";
-import { defaultDashboardDateValues, parseDashboardDateRange } from "@/lib/dashboard/date-range";
 import { redirect } from "next/navigation";
 
-export default async function WeeklyReportsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ from?: string; to?: string; projectId?: string }>;
-}) {
+export default async function WeeklyReportsPage() {
   const user = await requireUser();
 
   if (!canViewWeeklyReports(user.role)) {
     redirect("/dashboard");
   }
 
-  const params = await searchParams;
   const isReviewer = can(user.role, "report:review");
   const canCreate = can(user.role, "report:create");
   const canExport = can(user.role, "report:export");
-  const range = parseDashboardDateRange(params.from, params.to);
-  const defaults = defaultDashboardDateValues();
 
-  const [reports, assignedProjects, exportProjects] = await Promise.all([
+  const [reports, assignedProjects] = await Promise.all([
     isReviewer ? listAllReports() : listReportsByCoAuthor(user.id),
     canCreate ? listAssignedProjects(user.id) : Promise.resolve([]),
-    canExport ? listProjectsForExportFilter() : Promise.resolve([]),
   ]);
   const reportRows = reports.map((report) => ({
     ...report,
@@ -55,29 +45,12 @@ export default async function WeeklyReportsPage({
           ) : null
         }
       />
-      {canExport ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Export</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ExportWeeklyControls
-              projects={exportProjects}
-              from={range.from}
-              to={range.to}
-              defaultFrom={defaults.from}
-              defaultTo={defaults.to}
-              projectId={params.projectId}
-            />
-          </CardContent>
-        </Card>
-      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>{isReviewer ? "All reports" : "My reports"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <WeeklyReportsDataTable reports={reportRows} />
+          <WeeklyReportsDataTable reports={reportRows} canExport={canExport} />
         </CardContent>
       </Card>
     </div>

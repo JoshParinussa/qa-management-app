@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db/client";
 import {
@@ -74,23 +74,7 @@ export function listAllReports() {
     .orderBy(desc(weeklyReports.createdAt));
 }
 
-export type WeeklyReportExportRange = {
-  start: Date;
-  end: Date;
-  projectId?: string;
-};
-
-export function listApprovedReportsForExport({ start, end, projectId }: WeeklyReportExportRange) {
-  const conditions = [
-    eq(weeklyReports.status, "APPROVED"),
-    lte(weeklyReports.weekStartDate, end),
-    gte(weeklyReports.weekEndDate, start),
-  ];
-
-  if (projectId) {
-    conditions.push(eq(weeklyReports.projectId, projectId));
-  }
-
+export function listReportsForExportByIds(ids: string[]) {
   return db
     .select({
       projectName: projects.name,
@@ -124,15 +108,8 @@ export function listApprovedReportsForExport({ start, end, projectId }: WeeklyRe
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
     .leftJoin(reviewerUsers, eq(weeklyReports.reviewedBy, reviewerUsers.id))
     .leftJoin(approverUsers, eq(weeklyReports.approvedBy, approverUsers.id))
-    .where(and(...conditions))
+    .where(inArray(weeklyReports.id, ids))
     .orderBy(projects.name, weeklyReports.weekStartDate);
-}
-
-export function listProjectsForExportFilter() {
-  return db
-    .select({ id: projects.id, name: projects.name })
-    .from(projects)
-    .orderBy(projects.name);
 }
 
 export async function getReportById(id: string) {

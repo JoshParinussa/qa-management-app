@@ -35,9 +35,8 @@ export type WeeklyReportExportRow = {
 };
 
 type BuildArgs = {
-  from: string;
-  to: string;
-  projectName: string;
+  projectLabel: string;
+  statusLabel: string;
   reports: WeeklyReportExportRow[];
 };
 
@@ -112,22 +111,22 @@ function renderReport(report: WeeklyReportExportRow): string[] {
   ];
 }
 
-export function buildWeeklyReportsMarkdown({ from, to, projectName, reports }: BuildArgs) {
+export function buildWeeklyReportsMarkdown({ projectLabel, statusLabel, reports }: BuildArgs) {
+  const generatedAt = new Date().toISOString().slice(0, 10);
   const lines: string[] = [
     "# Weekly QA Reports",
     "",
-    "## Scope",
-    projectName,
-    "",
-    "## Period",
-    `${from} – ${to}`,
+    "## Filter",
+    `- Project: ${projectLabel}`,
+    `- Status: ${statusLabel}`,
+    `- Generated: ${generatedAt}`,
     "",
     `## Reports (${reports.length})`,
     "",
   ];
 
   if (reports.length === 0) {
-    lines.push("Tidak ada approved report pada periode ini.", "");
+    lines.push("Tidak ada report yang cocok dengan filter ini.", "");
     return lines.join("\n");
   }
 
@@ -138,10 +137,12 @@ export function buildWeeklyReportsMarkdown({ from, to, projectName, reports }: B
   return lines.join("\n");
 }
 
-export function weeklyExportFilename(projectName: string | undefined, from: string, to: string) {
-  const base = (projectName ?? "All projects")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${base}-${from}-to-${to}.md`;
+export function weeklyExportFilename(projectLabel: string, statusLabel: string) {
+  const slug = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  const date = new Date().toISOString().slice(0, 10);
+  return `weekly-reports-${slug(projectLabel) || "all"}-${slug(statusLabel) || "all"}-${date}.md`;
 }

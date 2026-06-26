@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { and, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, gte, inArray, lte } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 import { db, pool } from "@/db/client";
 import {
