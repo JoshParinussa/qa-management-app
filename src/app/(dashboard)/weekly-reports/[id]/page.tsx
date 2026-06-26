@@ -316,10 +316,6 @@ function BulletField({ label, value }: { label: string; value: string | null }) 
 function IncidentsList({ count, value, bugDocumentUrl }: { count: number; value: string | null; bugDocumentUrl: string | null }) {
   const incidents = parseIncidents(value);
 
-  if (count <= 0 && incidents.length === 0) {
-    return <p className="text-muted-foreground">Tidak ada production incident minggu ini.</p>;
-  }
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -339,7 +335,9 @@ function IncidentsList({ count, value, bugDocumentUrl }: { count: number; value:
           </a>
         ) : null}
       </div>
-      {incidents.length === 0 ? (
+      {count <= 0 && incidents.length === 0 ? (
+        <p className="text-muted-foreground">Tidak ada production incident minggu ini.</p>
+      ) : incidents.length === 0 ? (
         <p className="text-muted-foreground">Belum ada detail incident.</p>
       ) : (
         <ul className="space-y-2">

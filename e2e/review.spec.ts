@@ -63,6 +63,8 @@ test("qa lead can review and approve a submitted report", async ({ page }) => {
   await assignLead(page, projectName);
   await createAndSubmitReport(page, projectName);
 
+  await expect(page.getByText("Tidak ada production incident minggu ini.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /bug document/i })).toHaveAttribute("href", "https://example.test/bugs/weekly");
   await expect(page.getByRole("button", { name: /mark as reviewed/i })).toHaveCount(0);
   await page.getByRole("button", { name: /^approve$/i }).click();
   await expect(page.getByText("Approved")).toBeVisible({ timeout: 15_000 });
