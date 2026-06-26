@@ -16,9 +16,10 @@ type DateRangeFilterProps = {
   to: string;
   defaultFrom: string;
   defaultTo: string;
+  onChange?: (from: string, to: string) => void;
 };
 
-export function DateRangeFilter({ from, to, defaultTo }: DateRangeFilterProps) {
+export function DateRangeFilter({ from, to, defaultTo, onChange }: DateRangeFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -38,6 +39,12 @@ export function DateRangeFilter({ from, to, defaultTo }: DateRangeFilterProps) {
   }
 
   function updateUrl(nextFrom: string, nextTo: string) {
+    if (onChange) {
+      setOpen(false);
+      onChange(nextFrom, nextTo);
+      return;
+    }
+
     const params = new URLSearchParams(searchParams.toString());
 
     params.set("from", nextFrom);

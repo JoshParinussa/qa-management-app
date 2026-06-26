@@ -8,6 +8,7 @@ import { listAssignedProjects } from "@/lib/project-members/queries";
 import { checkExistingWeeklyReportAction, createInitialWeeklyReportDraftAction } from "@/lib/weekly-reports/actions";
 import { listAllReports, listReportsByCoAuthor } from "@/lib/weekly-reports/queries";
 import { canEditReport } from "@/lib/weekly-reports/rules";
+import { defaultDashboardDateValues } from "@/lib/dashboard/date-range";
 import { redirect } from "next/navigation";
 
 export default async function WeeklyReportsPage() {
@@ -20,6 +21,7 @@ export default async function WeeklyReportsPage() {
   const isReviewer = can(user.role, "report:review");
   const canCreate = can(user.role, "report:create");
   const canExport = can(user.role, "report:export");
+  const dateDefaults = defaultDashboardDateValues();
 
   const [reports, assignedProjects] = await Promise.all([
     isReviewer ? listAllReports() : listReportsByCoAuthor(user.id),
@@ -50,7 +52,7 @@ export default async function WeeklyReportsPage() {
           <CardTitle>{isReviewer ? "All reports" : "My reports"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <WeeklyReportsDataTable reports={reportRows} canExport={canExport} />
+          <WeeklyReportsDataTable reports={reportRows} canExport={canExport} dateDefaults={dateDefaults} />
         </CardContent>
       </Card>
     </div>

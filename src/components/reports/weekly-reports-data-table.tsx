@@ -5,8 +5,8 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { formatReportDate } from "@/lib/reports/format";
 import { formatReportStatus } from "@/lib/reports/status";
 import { reportStatuses } from "@/types";
@@ -17,6 +17,8 @@ const selectClass =
 
 const ALL_STATUS = "ALL";
 
+type DateDefaults = { from: string; to: string };
+
 function toDateValue(date: Date): string {
   return new Date(date).toISOString().slice(0, 10);
 }
@@ -24,15 +26,17 @@ function toDateValue(date: Date): string {
 export function WeeklyReportsDataTable({
   reports,
   canExport = false,
+  dateDefaults,
 }: {
   reports: WeeklyReportRow[];
   canExport?: boolean;
+  dateDefaults: DateDefaults;
 }) {
   const [status, setStatus] = useState<string>(ALL_STATUS);
   const [search, setSearch] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [filteredRows, setFilteredRows] = useState<WeeklyReportRow[]>(reports);
+  const [from, setFrom] = useState(dateDefaults.from);
+  const [to, setTo] = useState(dateDefaults.to);
+  const [filteredRows, setFilteredRows] = useState<WeeklyReportRow[]>([]);
   const [isExporting, setIsExporting] = useState(false);
 
   const preFiltered = useMemo(() => {
@@ -49,11 +53,13 @@ export function WeeklyReportsDataTable({
     setFilteredRows(rows);
   }, []);
 
-  function periodLabel(): string | undefined {
-    if (from && to) return `${formatReportDate(`${from}T00:00:00.000Z`)} – ${formatReportDate(`${to}T00:00:00.000Z`)}`;
-    if (from) return `Sejak ${formatReportDate(`${from}T00:00:00.000Z`)}`;
-    if (to) return `Sampai ${formatReportDate(`${to}T00:00:00.000Z`)}`;
-    return undefined;
+  function handleRangeChange(nextFrom: string, nextTo: string) {
+    setFrom(nextFrom);
+    setTo(nextTo);
+  }
+
+  function periodLabel(): string {
+    return `${formatReportDate(`${from}T00:00:00.000Z`)} – ${formatReportDate(`${to}T00:00:00.000Z`)}`;
   }
 
   async function handleExport() {
@@ -111,28 +117,6 @@ export function WeeklyReportsDataTable({
       toolbar={(
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-2">
-            <Label htmlFor="filterReportFrom">From (week)</Label>
-            <Input
-              id="filterReportFrom"
-              type="date"
-              value={from}
-              max={to || undefined}
-              onChange={(e) => setFrom(e.target.value)}
-              className="h-9 w-40"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="filterReportTo">To (week)</Label>
-            <Input
-              id="filterReportTo"
-              type="date"
-              value={to}
-              min={from || undefined}
-              onChange={(e) => setTo(e.target.value)}
-              className="h-9 w-40"
-            />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="filterReportStatus">Filter status</Label>
             <select
               id="filterReportStatus"
@@ -146,24 +130,18 @@ export function WeeklyReportsDataTable({
               ))}
             </select>
           </div>
-          {(from || to) ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-9"
-              onClick={() => {
-                setFrom("");
-                setTo("");
-              }}
-            >
-              Reset tanggal
-            </Button>
-          ) : null}
+          <DateRangeFilter
+            from={from}
+            to={to}
+            defaultFrom={dateDefaults.from}
+            defaultTo={dateDefaults.to}
+            onChange={handleRangeChange}
+          />
           {canExport ? (
             <Button
               type="button"
               variant="outline"
-              className="h-9"
+              className="h-10"
               onClick={handleExport}
               disabled={isExporting || filteredRows.length === 0}
             >
