@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { archiveProjectAction, restoreProjectAction } from "@/lib/projects/actions";
@@ -14,8 +15,22 @@ import { requireUser } from "@/lib/auth/session";
 import { canManageProjects } from "@/lib/permissions/roles";
 import type { ActionState } from "@/types";
 
-export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+function safeProjectsReturnTo(value?: string) {
+  if (!value || !value.startsWith("/projects")) return "/projects";
+  if (value.startsWith("//")) return "/projects";
+  return value;
+}
+
+export default async function ProjectDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
+  const returnTo = safeProjectsReturnTo(query.returnTo);
   const user = await requireUser();
   const project = await getProjectByIdForUser(id, user);
 
@@ -56,6 +71,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <Button asChild variant="ghost" size="sm" className="-ml-2">
+        <Link href={returnTo}>
+          <ChevronLeft className="size-4" />
+          Back to projects
+        </Link>
+      </Button>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">{project.name}</h2>

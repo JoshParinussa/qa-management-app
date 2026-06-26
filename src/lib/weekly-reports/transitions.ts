@@ -1,6 +1,6 @@
 import type { ReportStatus } from "@/types";
 
-export type ReviewAction = "REVIEWED" | "NEED_REVISION" | "APPROVED";
+export type ReviewAction = "NEED_REVISION" | "APPROVED";
 
 export function canStartQaApproval(status: ReportStatus): boolean {
   return status === "DRAFT" || status === "NEED_REVISION";

@@ -114,10 +114,9 @@ DRAFT --(QA "Ajukan untuk approval QA")--> PENDING_QA_APPROVAL
 PENDING_QA_APPROVAL --(ada edit konten)--> DRAFT (semua approval direset)
 PENDING_QA_APPROVAL --(QA approve internal, belum lengkap)--> PENDING_QA_APPROVAL
 PENDING_QA_APPROVAL --(QA terakhir approve)--> SUBMITTED (auto, set submitted_by)
-SUBMITTED --(reviewer mark reviewed)--> REVIEWED
 SUBMITTED --(reviewer minta revision)--> NEED_REVISION (semua approval direset)
 NEED_REVISION --(QA edit/save)--> DRAFT (semua approval direset lagi)
-SUBMITTED / REVIEWED --(reviewer approve)--> APPROVED (terminal)
+SUBMITTED --(reviewer approve)--> APPROVED (terminal)
 ```
 
 ### 4.2 Auto-submit trigger
@@ -177,7 +176,7 @@ Tambah permission action baru:
 
 Existing:
 - `report:create` (QA_MEMBER & QA_LEAD) — bikin draft, edit draft project yang dia ter-assign aktif.
-- `report:review` (QA_LEAD) — review/revision/approve di status SUBMITTED atau REVIEWED.
+- `report:review` (QA_LEAD) — request revision atau approve di status SUBMITTED.
 
 ### 5.2 Co-author eligibility helper
 
@@ -357,10 +356,9 @@ Operations:
 - `src/lib/reviews/actions.ts`:
   - `requestRevisionAction`: reset approvals (delete all), update status ke NEED_REVISION, insert activity `REVISION_REQUESTED`.
   - `approveReportAction`: insert activity `APPROVED`.
-  - `markReviewedAction`: insert activity `REVIEWED`.
 - New file: `src/lib/weekly-reports/activity.ts`:
   - Helper `insertActivity(weeklyReportId, actorId, action, changedFields?, note?)`.
-  - Action enum const: `ACTIVITY_ACTIONS = { CREATED, EDITED, QA_APPROVAL_REQUESTED, QA_APPROVED, QA_APPROVAL_REVOKED, SUBMITTED_TO_REVIEWER, REVIEWED, REVISION_REQUESTED, APPROVED }`.
+  - Action enum const: `ACTIVITY_ACTIONS = { CREATED, EDITED, QA_APPROVAL_REQUESTED, QA_APPROVED, QA_APPROVAL_REVOKED, SUBMITTED_TO_REVIEWER, REVIEWED, REVISION_REQUESTED, APPROVED }`. `REVIEWED` dipertahankan untuk kompatibilitas data lama, bukan action baru di UI.
 
 ### 7.4 UI components
 

@@ -23,7 +23,6 @@ async function requireReviewer() {
 }
 
 const REVIEW_ACTIVITY: Record<ReviewAction, ActivityAction> = {
-  REVIEWED: ACTIVITY_ACTIONS.REVIEWED,
   NEED_REVISION: ACTIVITY_ACTIONS.REVISION_REQUESTED,
   APPROVED: ACTIVITY_ACTIONS.APPROVED,
 };
@@ -95,10 +94,6 @@ async function applyReview(id: string, action: ReviewAction, feedback: string): 
   });
 
   redirect(`/weekly-reports/${id}`);
-}
-
-export async function markReviewedAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
-  return applyReview(id, "REVIEWED", String(formData.get("feedback") ?? ""));
 }
 
 export async function requestRevisionAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {

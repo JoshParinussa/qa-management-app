@@ -1,4 +1,4 @@
-export type ReviewAction = "REVIEWED" | "NEED_REVISION" | "APPROVED";
+import type { ReviewAction } from "@/lib/weekly-reports/transitions";
 
 type Result = { ok: true } | { ok: false; error: string };
 

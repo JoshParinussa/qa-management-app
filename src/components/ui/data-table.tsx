@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   type ColumnDef,
+  type PaginationState,
   type SortingState,
   flexRender,
   getCoreRowModel,
@@ -29,6 +30,13 @@ type DataTableProps<TData, TValue> = {
   searchPlaceholder?: string;
   showPageSize?: boolean;
   toolbar?: React.ReactNode;
+  initialGlobalFilter?: string;
+  initialPageIndex?: number;
+  globalFilterValue?: string;
+  paginationValue?: PaginationState;
+  onGlobalFilterChange?: (value: string) => void;
+  onPaginationChange?: (pagination: PaginationState) => void;
+  resetPageKey?: string;
 };
 
 export function DataTable<TData, TValue>({
@@ -41,23 +49,57 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Search...",
   showPageSize,
   toolbar,
+  initialGlobalFilter = "",
+  initialPageIndex = 0,
+  globalFilterValue,
+  paginationValue,
+  onGlobalFilterChange,
+  onPaginationChange,
+  resetPageKey,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [internalGlobalFilter, setInternalGlobalFilter] = React.useState(initialGlobalFilter);
+  const [internalPagination, setInternalPagination] = React.useState<PaginationState>({
+    pageIndex: initialPageIndex,
+    pageSize,
+  });
+  const previousResetPageKeyRef = React.useRef(resetPageKey);
+  const globalFilter = globalFilterValue ?? internalGlobalFilter;
+  const pagination = paginationValue ?? internalPagination;
+  const isGlobalFilterControlled = globalFilterValue !== undefined;
+  const isPaginationControlled = paginationValue !== undefined;
+
+  function handleGlobalFilterChange(value: string) {
+    if (!isGlobalFilterControlled) {
+      setInternalGlobalFilter(value);
+    }
+    if (!isPaginationControlled) {
+      setInternalPagination((current) => ({ ...current, pageIndex: 0 }));
+    }
+    onGlobalFilterChange?.(value);
+  }
+
+  function handlePaginationChange(updater: PaginationState | ((old: PaginationState) => PaginationState)) {
+    const next = typeof updater === "function" ? updater(pagination) : updater;
+    if (!isPaginationControlled) {
+      setInternalPagination(next);
+    }
+    onPaginationChange?.(next);
+  }
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table API is intentionally used here.
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter },
+    state: { sorting, globalFilter, pagination },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: handleGlobalFilterChange,
+    onPaginationChange: handlePaginationChange,
     globalFilterFn: "includesString",
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize } },
   });
 
   const pageIndex = table.getState().pagination.pageIndex;
@@ -65,6 +107,23 @@ export function DataTable<TData, TValue>({
   const totalRows = table.getFilteredRowModel().rows.length;
   const pages = getPaginationRange(pageIndex + 1, totalPages);
   const pageSizeVisible = showPageSize ?? searchable;
+
+  React.useEffect(() => {
+    if (totalPages > 0 && pageIndex >= totalPages) {
+      table.setPageIndex(totalPages - 1);
+    }
+  }, [pageIndex, table, totalPages]);
+
+  React.useEffect(() => {
+    if (previousResetPageKeyRef.current === resetPageKey) {
+      return;
+    }
+
+    previousResetPageKeyRef.current = resetPageKey;
+    if (!isPaginationControlled) {
+      setInternalPagination((current) => ({ ...current, pageIndex: 0 }));
+    }
+  }, [isPaginationControlled, resetPageKey]);
 
   return (
     <div className="space-y-4">
@@ -75,7 +134,7 @@ export function DataTable<TData, TValue>({
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={globalFilter}
-                onChange={(e) => setGlobalFilter(e.target.value)}
+                onChange={(e) => handleGlobalFilterChange(e.target.value)}
                 placeholder={searchPlaceholder}
                 className="pl-9"
               />

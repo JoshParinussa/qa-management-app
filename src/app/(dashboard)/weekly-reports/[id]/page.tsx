@@ -30,7 +30,7 @@ import {
   approveAsCoAuthorAction,
   revokeMyApprovalAction,
 } from "@/lib/weekly-reports/co-author-actions";
-import { markReviewedAction, requestRevisionAction, approveReportAction } from "@/lib/reviews/actions";
+import { requestRevisionAction, approveReportAction } from "@/lib/reviews/actions";
 import {
   canApproveAsCoAuthor,
   canReviewReport,
@@ -125,11 +125,6 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
     return revokeMyApprovalAction(id);
   }
 
-  async function markReviewed(formData: FormData) {
-    "use server";
-    await markReviewedAction(id, {}, formData);
-  }
-
   async function requestRevision(formData: FormData) {
     "use server";
     await requestRevisionAction(id, {}, formData);
@@ -186,7 +181,7 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
             <CardTitle>Review</CardTitle>
           </CardHeader>
           <CardContent>
-            <ReviewActions markReviewed={markReviewed} requestRevision={requestRevision} approve={approve} />
+            <ReviewActions requestRevision={requestRevision} approve={approve} />
           </CardContent>
         </Card>
       ) : null}

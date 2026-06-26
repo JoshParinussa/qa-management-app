@@ -90,8 +90,7 @@ describe("isTerminalStatus", () => {
 });
 
 describe("nextStatusForAction", () => {
-  it("maps review actions 1:1 to status", () => {
-    expect(nextStatusForAction("REVIEWED")).toBe("REVIEWED");
+  it("maps reviewer decisions to the next status", () => {
     expect(nextStatusForAction("NEED_REVISION")).toBe("NEED_REVISION");
     expect(nextStatusForAction("APPROVED")).toBe("APPROVED");
   });

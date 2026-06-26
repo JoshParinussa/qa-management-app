@@ -52,6 +52,16 @@ test("admin can assign a member to a project", async ({ page }) => {
   await expect(memberRow).toBeVisible({ timeout: 15_000 });
   // Role rendered sebagai <select> editable; cek value-nya QA_MEMBER.
   await expect(memberRow.getByRole("combobox")).toHaveValue("QA_MEMBER");
+  await expect(memberRow.getByRole("button", { name: /^save$/i })).toHaveCount(0);
+
+  await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/projects/")),
+    memberRow.getByRole("combobox").selectOption("QA_PIC"),
+  ]);
+  await page.reload();
+  await expect(page.getByRole("row").filter({ hasText: memberEmail }).getByRole("combobox")).toHaveValue("QA_PIC", {
+    timeout: 15_000,
+  });
 });
 
 test("admin can remove an assigned member", async ({ page }) => {

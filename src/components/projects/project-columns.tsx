@@ -19,9 +19,10 @@ type BuildArgs = {
   canManage: boolean;
   archiveAction?: (formData: FormData) => void | Promise<void>;
   restoreAction?: (formData: FormData) => void | Promise<void>;
+  getViewHref?: (projectId: string) => string;
 };
 
-export function buildProjectColumns({ canManage, archiveAction, restoreAction }: BuildArgs): ColumnDef<ProjectRow>[] {
+export function buildProjectColumns({ canManage, archiveAction, restoreAction, getViewHref }: BuildArgs): ColumnDef<ProjectRow>[] {
   return [
     {
       accessorKey: "name",
@@ -55,7 +56,7 @@ export function buildProjectColumns({ canManage, archiveAction, restoreAction }:
       cell: ({ row }) => (
         <div className="flex justify-end gap-1">
           <Button asChild variant="ghost" size="sm">
-            <Link href={`/projects/${row.original.id}`}>View</Link>
+            <Link href={getViewHref?.(row.original.id) ?? `/projects/${row.original.id}`}>View</Link>
           </Button>
           {canManage && row.original.status === "ACTIVE" ? (
             <Button asChild variant="ghost" size="sm">

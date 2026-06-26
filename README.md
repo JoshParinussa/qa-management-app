@@ -8,7 +8,7 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 - Project CRUD, archive/restore, dan assignment QA member.
 - Weekly report kolaboratif per project/minggu dengan instant draft on create, duplicate guard, dan co-author snapshot.
 - Internal QA approval sebelum report otomatis terkirim ke reviewer.
-- Review flow: mark reviewed, request revision, approve, feedback history, dan activity timeline.
+- Review flow: request revision atau approve, feedback history, dan activity timeline.
 - Dashboard role-aware dengan date range filter berbasis URL.
 - Dashboard lead: pending review, need revision, approved, incident total, dan coverage per project dengan search/pagination.
 - Dashboard member: assigned projects, pending approval, need revision, approved, dan recent reports.

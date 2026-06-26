@@ -46,12 +46,13 @@ export function buildMemberColumns({ canManage, removeAction, updateRoleAction }
             <select
               name="assignmentRole"
               defaultValue={row.original.assignmentRole}
+              aria-label={`Role for ${row.original.name}`}
               className="h-8 rounded-md border border-input bg-transparent px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              onChange={(event) => event.currentTarget.form?.requestSubmit()}
             >
               <option value="QA_MEMBER">QA Member</option>
               <option value="QA_PIC">QA PIC</option>
             </select>
-            <Button type="submit" variant="ghost" size="sm">Save</Button>
           </form>
         ) : (
           <Badge variant="secondary">{row.original.assignmentRole === "QA_PIC" ? "QA PIC" : "QA Member"}</Badge>

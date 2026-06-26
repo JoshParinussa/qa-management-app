@@ -10,8 +10,7 @@ describe("review transitions", () => {
     expect(canReviewReport("APPROVED")).toBe(false);
   });
 
-  it("maps review actions to next status", () => {
-    expect(nextStatusForAction("REVIEWED")).toBe("REVIEWED");
+  it("maps reviewer decisions to next status", () => {
     expect(nextStatusForAction("NEED_REVISION")).toBe("NEED_REVISION");
     expect(nextStatusForAction("APPROVED")).toBe("APPROVED");
   });

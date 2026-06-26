@@ -18,10 +18,6 @@ describe("validateReviewFeedback", () => {
     expect(validateReviewFeedback("NEED_REVISION", "Please fix coverage")).toEqual({ ok: true });
   });
 
-  it("allows mark reviewed without feedback", () => {
-    expect(validateReviewFeedback("REVIEWED", "")).toEqual({ ok: true });
-  });
-
   it("allows approve without feedback", () => {
     expect(validateReviewFeedback("APPROVED", "")).toEqual({ ok: true });
   });

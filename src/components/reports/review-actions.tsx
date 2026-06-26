@@ -5,13 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 type ReviewActionFn = (formData: FormData) => void;
 
 type ReviewActionsProps = {
-  markReviewed: ReviewActionFn;
   requestRevision: ReviewActionFn;
   approve: ReviewActionFn;
   error?: string;
 };
 
-export function ReviewActions({ markReviewed, requestRevision, approve, error }: ReviewActionsProps) {
+export function ReviewActions({ requestRevision, approve, error }: ReviewActionsProps) {
   return (
     <form className="space-y-4">
       {error ? <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
@@ -22,9 +21,6 @@ export function ReviewActions({ markReviewed, requestRevision, approve, error }:
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" variant="outline" formAction={markReviewed}>
-          Mark as reviewed
-        </Button>
         <Button type="submit" variant="outline" formAction={requestRevision}>
           Request revision
         </Button>
