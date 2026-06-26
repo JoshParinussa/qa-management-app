@@ -8,6 +8,8 @@
 
 **Post-implementation update 2026-06-24:** Weekly report creation now uses an initial draft flow. `New report` and dashboard checklist `Create` call `createInitialWeeklyReportDraftAction`, which immediately inserts a `DRAFT` row for the selected project/week, snapshots co-authors, logs `CREATED`, and redirects to edit. The older `createDraftAction` still exists for the long-form create route/backward compatibility, but primary UI entry points no longer wait for the first Save Draft to create the row. Duplicate prevention is based on the existing `weekly_reports` row and the unique `(project_id, week_start_date, week_end_date)` constraint.
 
+**Current implementation update 2026-06-26:** This plan is historical. The active reviewer flow no longer includes `Mark as reviewed`; QA Lead can only `Request revision` or `Approve`. The `REVIEWED` enum/action remains only for legacy data compatibility. Project reporting policy now uses `weekly_report_required` plus disabled reasons for active maintenance/no-active-QA/paused projects. Event timestamps render in WIB, while report periods remain date-only.
+
 ---
 
 ## Phase 1: Database & Schema
@@ -218,7 +220,7 @@ If duplicates exist, manually deduplicate (merge or delete) before running `db:m
 
 ### Task 2: State Machine & Rules
 
-**Goal:** Implement state machine helpers for the new approval workflow (`DRAFT → PENDING_QA_APPROVAL → SUBMITTED → REVIEWED/APPROVED`), and content field detection logic.
+**Goal:** Implement state machine helpers for the approval workflow (`DRAFT → PENDING_QA_APPROVAL → SUBMITTED → NEED_REVISION/APPROVED`; `REVIEWED` is legacy compatibility), and content field detection logic.
 
 **Files:**
 - `src/lib/weekly-reports/transitions.ts` (extend)

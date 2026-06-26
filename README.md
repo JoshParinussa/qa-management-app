@@ -5,15 +5,17 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 ## Current Features
 
 - Role-based auth untuk Admin, QA Lead, dan QA Member.
-- Project CRUD, archive/restore, dan assignment QA member.
+- Project CRUD, archive/restore, assignment QA member, dan flag `Weekly report required` untuk project active yang maintenance-only.
 - Weekly report kolaboratif per project/minggu dengan instant draft on create, duplicate guard, dan co-author snapshot.
 - Internal QA approval sebelum report otomatis terkirim ke reviewer.
 - Review flow: request revision atau approve, feedback history, dan activity timeline.
 - Dashboard role-aware dengan date range filter berbasis URL.
+- Weekly report checklist untuk project active yang wajib report, dengan status `Not reported`, `Reported`, dan `Assigned to me`.
 - Dashboard lead: pending review, need revision, approved, incident total, dan coverage per project dengan search/pagination.
 - Dashboard member: assigned projects, pending approval, need revision, approved, dan recent reports.
 - Monthly report summary dari approved weekly report.
 - Markdown export untuk monthly report.
+- Timestamp event report ditampilkan dalam WIB; periode report tetap date-only agar tidak bergeser timezone.
 
 ## Weekly Report Creation Flow
 
@@ -23,6 +25,16 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 4. Sistem melakukan snapshot co-author dari QA aktif di project dan redirect ke halaman edit draft.
 5. QA lain yang memilih project/week yang sama akan melihat report existing beserta pembuat dan statusnya; create duplicate dicegah.
 6. Field wajib boleh kosong pada draft awal, tetapi harus valid sebelum report dapat diajukan ke approval QA.
+7. Jika report punya 0 production incident, link `Bug document` tetap ditampilkan di halaman view report.
+
+## Project Reporting Policy
+
+- Project `ACTIVE` + `weeklyReportRequired=true` masuk ke checklist weekly report dan dapat dibuatkan report.
+- Project `ACTIVE` + `weeklyReportRequired=false` dipakai untuk project maintenance-only/no active QA/project paused yang masih aktif di master data, tetapi tidak wajib weekly report.
+- Project `ARCHIVED` dipakai untuk project drop/tidak dipakai lagi; edit, assign member, ubah role member, dan remove member dinonaktifkan sampai project di-restore.
+- Role assignment project:
+  - `QA Member`: co-author report biasa.
+  - `QA PIC`: co-author yang menjadi PIC project; saat ini ikut flow report/approval yang sama seperti QA Member.
 
 ## Stack
 
@@ -77,9 +89,9 @@ The image uses Next.js standalone output (multi-stage build). The entrypoint
 Initial setup for an empty production database:
 
 ```bash
-# Run once only. This truncates all data, creates the superadmin, and seeds
-# the initial project list.
-npm run db:clean-admin
+# Run once only against production/staging env.
+# This truncates all data, creates the superadmin, and seeds the initial project list.
+npm run db:clean-admin:prod
 ```
 
 The seeded superadmin uses `DEFAULT_USER_PASSWORD` as the initial password and
@@ -131,6 +143,12 @@ npm run db:migrate
 npm run db:seed
 ```
 
+For a richer localhost demo database:
+
+```bash
+npm run db:seed:demo
+```
+
 8. Start Drizzle Studio:
 
 ```bash
@@ -145,10 +163,14 @@ npm run dev
 
 ## Seed Accounts
 
+Default seed (`npm run db:seed`) creates:
+
 - `jopa@example.com` / `password123` / `ADMIN`
 - `lead@example.com` / `password123` / `QA_LEAD`
 - `qa1@example.com` / `password123` / `QA_MEMBER` (must change password)
 - `qa2@example.com` / `password123` / `QA_MEMBER` (must change password)
+
+Local demo seed (`npm run db:seed:demo`) uses `DEFAULT_USER_PASSWORD` from `.env.local`, creates admin `yehezkieljosh@gmail.com`, dummy lead/member users, and the curated project list.
 
 ## Scripts
 
@@ -165,7 +187,10 @@ npm run dev
 - `npm run db:studio` - open Drizzle Studio
 - `npm run db:studio:stop` - stop Drizzle Studio (free port 4983)
 - `npm run db:seed` - seed initial data
+- `npm run db:seed:demo` - reset local demo data with admin, dummy users, and curated projects
+- `npm run db:seed:prod` - seed initial data using `.env.prod`
 - `npm run db:reset:home` - drop & recreate `public` + `drizzle` schemas
+- `npm run db:clean-admin:prod` - destructive initial setup for staging/prod DB; creates superadmin and curated projects
 
 ## CI Pipeline
 

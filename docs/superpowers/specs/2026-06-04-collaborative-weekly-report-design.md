@@ -19,6 +19,16 @@ Update 2026-06-24:
 - If another QA selects the same project/week, the UI shows the existing report creator and status, then disables duplicate creation.
 - Validation errors on the form clear responsively after the related field becomes valid.
 
+Update 2026-06-26:
+
+- Reviewer flow was simplified: `Mark as reviewed` was removed from the UI and server action surface. QA Lead now chooses only `Request revision` or `Approve`.
+- `REVIEWED` remains in DB enums/activity labels only for historical compatibility; new reviewer decisions no longer create that status.
+- Project reporting policy now distinguishes active projects that require weekly reports from active maintenance-only/no-active-QA/project-paused projects via `weekly_report_required` and `weekly_report_disabled_reason`.
+- Assigned member role changes auto-save when the role dropdown changes.
+- Report event timestamps render in WIB; report week/date ranges remain date-only and timezone-stable.
+- Production incident view always shows the Bug document link, even when incident count is 0.
+- Form labels for custom controls use `aria-labelledby` instead of invalid `label for` pairs.
+
 ## 1. Problem & Goal
 
 Weekly report saat ini terikat ke satu QA per project per minggu. Dua kebutuhan baru:
@@ -100,9 +110,9 @@ Event log untuk audit trail.
 
 Action values: `CREATED`, `EDITED`, `QA_APPROVAL_REQUESTED`, `QA_APPROVED`, `QA_APPROVAL_REVOKED`, `SUBMITTED_TO_REVIEWER`, `REVIEWED`, `REVISION_REQUESTED`, `APPROVED`.
 
-### 3.5 report_feedbacks (deprecate)
+### 3.5 report_feedbacks
 
-Tabel lama dipertahankan untuk read-only kompat saat migrasi. Stop write setelah migrasi. Datanya di-backfill ke `report_activities` sebagai event `REVIEWED` / `REVISION_REQUESTED` / `APPROVED` dengan `note` berisi feedback teks lama.
+Tabel feedback tetap dipakai untuk feedback history ketika reviewer mengisi catatan pada `Request revision` atau `Approve`. `report_activities` menyimpan audit event paralel dengan `note` yang sama agar timeline tetap lengkap. Action `REVIEWED` hanya untuk kompatibilitas data lama.
 
 ## 4. State Machine
 
@@ -245,7 +255,7 @@ Section dari atas:
 
 3. **Reviewer panel** (existing, card `ReviewActions`).
    - Hanya muncul saat status `SUBMITTED` dan user punya `report:review`.
-   - Tombol `Mark reviewed` / `Need revision` / `Approve`.
+   - Tombol `Request revision` / `Approve`.
 
 4. **Activity timeline** (baru, komponen `ActivityTimeline`).
    - Kartu di bawah, list event dari `report_activities` desc.
@@ -257,7 +267,7 @@ Section dari atas:
 ### 6.3 Create & edit page
 
 - Form sama seperti sekarang.
-- Setelah create: redirect ke detail. Snapshot author dibuat di server-action.
+- Setelah create: redirect ke halaman edit draft. Snapshot author dibuat di server-action.
 - Setelah edit di status PENDING_QA_APPROVAL: tampilkan banner peringatan di form "Mengedit akan membatalkan approval QA yang sudah ada" sebelum submit. Setelah save, status balik ke DRAFT.
 
 ### 6.4 Button labels & states
@@ -267,7 +277,6 @@ Section dari atas:
 | DRAFT | `Edit`, `Ajukan untuk approval QA` | Edit draft, request internal approval |
 | PENDING_QA_APPROVAL | `Edit`, `Approve`, `Revoke approval` (di panel) | Edit (turun ke DRAFT), approve/revoke internal |
 | SUBMITTED | (none for co-author) | Locked, waiting reviewer |
-| REVIEWED | (none for co-author, reviewer can approve) | Reviewer approve |
 | NEED_REVISION | `Edit` (turun ke DRAFT saat save) | Edit, reset approval |
 | APPROVED | (none) | Terminal, read-only |
 
@@ -414,7 +423,7 @@ Existing reports (single-author model) akan di-migrate jadi single-author single
 - `report_activities`:
   - Minimum: 1 event `CREATED` (actor = creator, created_at = createdAt report).
   - Map `report_feedbacks` lama → event `REVIEWED` / `REVISION_REQUESTED` / `APPROVED` dengan `note` berisi feedback teks.
-  - `report_feedbacks` lama tetap di-preserve, tapi read-only setelah migrasi.
+  - `report_feedbacks` tetap di-preserve dan masih dipakai untuk feedback history ketika reviewer mengisi catatan.
 
 ### 8.2 Rollback plan
 
@@ -452,7 +461,7 @@ Sebelum deploy:
   - `revokeMyApprovalAction` — revoke saat PENDING_QA_APPROVAL.
   - Edge: approve saat belum co-author → error; revoke saat belum approve → error.
 
-Coverage target: snapshot semua 9 cabang state machine (DRAFT, PENDING_QA_APPROVAL, SUBMITTED, REVIEWED, NEED_REVISION, APPROVED, plus edge transitions).
+Coverage target: snapshot semua cabang state machine aktif (DRAFT, PENDING_QA_APPROVAL, SUBMITTED, NEED_REVISION, APPROVED, plus legacy REVIEWED read-only compatibility dan edge transitions).
 
 ### 9.3 Integration tests
 

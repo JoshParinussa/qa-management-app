@@ -8,6 +8,7 @@ Fokus utama aplikasi:
 
 - Mengelola QA member.
 - Mengelola project aktif.
+- Menandai project active yang wajib weekly report atau maintenance-only.
 - Mengatur assignment QA ke project.
 - Membuat weekly report.
 - Mengelola weekly report kolaboratif per project/minggu dengan co-author approval internal QA.
@@ -148,9 +149,10 @@ Weekly report memiliki status berikut:
 | Draft | Draft report sudah dibuat saat user klik Create report, tapi belum diajukan untuk approval QA |
 | Pending QA Approval | Report sudah diajukan dan menunggu approval semua co-author QA |
 | Submitted | Semua co-author sudah approve; report dikirim ke reviewer |
-| Reviewed | Report sudah dicek oleh QA Lead |
 | Need Revision | QA Lead meminta revisi |
 | Approved | Report sudah final |
+
+Catatan kompatibilitas: enum database masih mengenali `REVIEWED` untuk data historis/legacy, tetapi UI reviewer saat ini tidak lagi menyediakan aksi **Mark as reviewed**. Reviewer hanya dapat memilih **Request revision** atau **Approve**.
 
 ### 7.1 Flow Status
 
@@ -161,11 +163,8 @@ stateDiagram-v2
     Draft --> PendingQAApproval
     PendingQAApproval --> Submitted: Semua co-author approve
     PendingQAApproval --> Draft: Ada edit konten
-    Submitted --> Reviewed
-    Reviewed --> NeedRevision
-    NeedRevision --> Draft
-    Reviewed --> Approved
     Submitted --> NeedRevision
+    NeedRevision --> Draft
     Submitted --> Approved
     Approved --> [*]
 ```
@@ -209,11 +208,18 @@ Jika QA lain memilih project dan week yang sama setelah draft dibuat, sistem men
 5. QA Lead membuka detail report.
 6. QA Lead memberi feedback.
 7. QA Lead memilih:
-   - Mark as Reviewed
    - Request Revision
    - Approve
 8. QA Lead melihat monthly summary.
 9. QA Lead export report jika dibutuhkan.
+
+### 8.3 Workflow Project Maintenance / No Active QA
+
+1. Admin/QA Lead membuka edit project.
+2. Jika project masih aktif dipakai tetapi tidak ada development/QA report, matikan **Weekly report required**.
+3. Pilih reason: `MAINTENANCE_ONLY`, `NO_ACTIVE_QA`, `PROJECT_PAUSED`, atau `OTHER`.
+4. Project tetap `ACTIVE`, tetap muncul di master project, tetapi tidak masuk checklist weekly report dan tidak bisa dibuatkan weekly report baru.
+5. Jika project benar-benar tidak dipakai/drop, gunakan `ARCHIVED`.
 
 ---
 
@@ -228,16 +234,17 @@ Jika QA lain memilih project dan week yang sama setelah draft dibuat, sistem men
 | Week End Date | Date | Yes | Tanggal akhir minggu |
 | Summary | Textarea | Yes | Ringkasan pekerjaan minggu ini |
 | Production Incident | Number | Yes | Jumlah incident production |
-| Production Incident Notes | Textarea | No | Detail incident |
-| Bug Document URL | URL | No | Link dokumen bug |
+| Production Incident Notes | Structured list | Conditional | Detail incident wajib jika jumlah incident > 0; setiap item berisi title, description, related test case ID |
+| Bug Document URL | URL | Yes | Link dokumen bug, tetap ditampilkan walau incident 0 |
+| Test Case Total | Number | Yes | Total test case manual |
 | Test Case BE Total | Number | Yes | Total test case backend |
-| Test Case BE Executed | Number | Yes | Test case backend yang dieksekusi |
 | Test Case FE Total | Number | Yes | Total test case frontend |
-| Test Case FE Executed | Number | Yes | Test case frontend yang dieksekusi |
 | Automation BE Total | Number | Yes | Total automation backend |
+| Automation BE Passed | Number | No | Automation backend passed |
+| Automation BE Failed | Number | No | Automation backend failed |
 | Automation FE Total | Number | Yes | Total automation frontend |
-| Automation Passed | Number | No | Total automation passed |
-| Automation Failed | Number | No | Total automation failed |
+| Automation FE Passed | Number | No | Automation frontend passed |
+| Automation FE Failed | Number | No | Automation frontend failed |
 | Blocker | Textarea | No | Kendala utama |
 | Next Week Plan | Textarea | Yes | Rencana minggu depan |
 | Notes | Textarea | No | Catatan tambahan |
@@ -246,19 +253,22 @@ Jika QA lain memilih project dan week yang sama setelah draft dibuat, sistem men
 
 | Field | Formula |
 |---|---|
-| Total Test Case | Test Case BE Total + Test Case FE Total |
-| Total Executed Test Case | Test Case BE Executed + Test Case FE Executed |
+| Total Test Case | Input `Test Case Total`; BE + FE tidak boleh kurang dari total |
 | Total Automation | Automation BE Total + Automation FE Total |
 | Automation Coverage | Total Automation / Total Test Case * 100 |
-| Execution Coverage | Total Executed Test Case / Total Test Case * 100 |
-| Automation Pass Rate | Automation Passed / Total Automation Run * 100 |
+| Automation BE Coverage | Automation BE Total / Test Case BE Total * 100 |
+| Automation FE Coverage | Automation FE Total / Test Case FE Total * 100 |
+| Automation BE Pass Rate | Automation BE Passed / Automation BE Total * 100 |
+| Automation FE Pass Rate | Automation FE Passed / Automation FE Total * 100 |
 
 ### 9.3 Validasi Form
 
 - Week Start Date harus lebih kecil dari Week End Date.
-- Total executed tidak boleh lebih besar dari total test case.
+- BE + FE total tidak boleh kurang dari total test case.
 - Automation total tidak boleh lebih besar dari total test case.
-- URL harus valid jika diisi.
+- Automation passed + failed per area tidak boleh lebih besar dari automation total area.
+- Bug Document URL wajib dan harus valid.
+- Jika production incident > 0, setiap incident wajib punya title, description, dan related test case ID.
 - Next Week Plan wajib diisi sebelum submit.
 - Summary wajib diisi sebelum submit.
 - Report tidak bisa diedit setelah Approved.
@@ -337,6 +347,8 @@ Semua metrik report-based memakai logika overlap periode report: report dihitung
 - Archive project
 - Restore archived project to active
 - Assign QA member
+- Ubah role assigned member dengan auto-save dropdown
+- Tandai project active sebagai weekly-report-required atau maintenance-only/no-active-QA/project-paused/other
 
 ### 11.5 Weekly Report
 
@@ -380,6 +392,8 @@ erDiagram
         string code
         string description
         string status
+        boolean weekly_report_required
+        string weekly_report_disabled_reason
         date start_date
         date end_date
         datetime created_at
@@ -389,8 +403,7 @@ erDiagram
     PROJECT_MEMBERS {
         uuid id PK
         uuid project_id FK
-        uuid created_by FK
-        uuid submitted_by FK
+        uuid user_id FK
         string assignment_role
         datetime assigned_at
         datetime removed_at
@@ -399,7 +412,8 @@ erDiagram
     WEEKLY_REPORTS {
         uuid id PK
         uuid project_id FK
-        uuid user_id FK
+        uuid created_by FK
+        uuid submitted_by FK
         date week_start_date
         date week_end_date
         string status
@@ -407,15 +421,24 @@ erDiagram
         int production_incident_count
         text production_incident_notes
         string bug_document_url
+        int test_case_total
         int test_case_be_total
         int test_case_be_executed
         int test_case_fe_total
         int test_case_fe_executed
         int automation_be_total
         int automation_fe_total
+        int automation_be_passed
+        int automation_be_failed
+        int automation_fe_passed
+        int automation_fe_failed
         int automation_passed
         int automation_failed
+        decimal automation_be_coverage
+        decimal automation_fe_coverage
         decimal automation_coverage
+        decimal automation_be_pass_rate
+        decimal automation_fe_pass_rate
         decimal execution_coverage
         text blocker
         text next_week_plan
@@ -515,6 +538,8 @@ erDiagram
 | code | varchar | Yes | Unique project code |
 | description | text | No | Detail project |
 | status | varchar | Yes | active, archived |
+| weekly_report_required | boolean | Yes | Jika false, project active tidak masuk checklist/report creation |
+| weekly_report_disabled_reason | varchar | No | MAINTENANCE_ONLY, NO_ACTIVE_QA, PROJECT_PAUSED, OTHER |
 | start_date | date | No | Tanggal mulai |
 | end_date | date | No | Tanggal selesai |
 | created_at | timestamp | Yes | Auto |
@@ -541,21 +566,30 @@ erDiagram
 | submitted_by | uuid | No | FK users.id, co-author terakhir yang membuat approval lengkap |
 | week_start_date | date | Yes | Awal periode |
 | week_end_date | date | Yes | Akhir periode |
-| status | varchar | Yes | draft, pending_qa_approval, submitted, reviewed, need_revision, approved |
+| status | varchar | Yes | draft, pending_qa_approval, submitted, reviewed legacy, need_revision, approved |
 | summary | text | Yes | Ringkasan pekerjaan |
 | production_incident_count | int | Yes | Default 0 |
-| production_incident_notes | text | No | Detail incident |
-| bug_document_url | text | No | URL dokumen bug |
+| production_incident_notes | text/json | No | Detail incident structured jika count > 0 |
+| bug_document_url | text | Yes | URL dokumen bug |
+| test_case_total | int | Yes | Total test case manual |
 | test_case_be_total | int | Yes | Default 0 |
-| test_case_be_executed | int | Yes | Default 0 |
+| test_case_be_executed | int | Yes | Legacy/default 0 |
 | test_case_fe_total | int | Yes | Default 0 |
-| test_case_fe_executed | int | Yes | Default 0 |
+| test_case_fe_executed | int | Yes | Legacy/default 0 |
 | automation_be_total | int | Yes | Default 0 |
 | automation_fe_total | int | Yes | Default 0 |
-| automation_passed | int | No | Default 0 |
-| automation_failed | int | No | Default 0 |
+| automation_be_passed | int | No | Passed backend automation |
+| automation_be_failed | int | No | Failed backend automation |
+| automation_fe_passed | int | No | Passed frontend automation |
+| automation_fe_failed | int | No | Failed frontend automation |
+| automation_passed | int | Yes | Legacy aggregate/default 0 |
+| automation_failed | int | Yes | Legacy aggregate/default 0 |
+| automation_be_coverage | decimal | No | Auto calculated |
+| automation_fe_coverage | decimal | No | Auto calculated |
 | automation_coverage | decimal | No | Auto calculated |
-| execution_coverage | decimal | No | Auto calculated |
+| automation_be_pass_rate | decimal | No | Auto calculated |
+| automation_fe_pass_rate | decimal | No | Auto calculated |
+| execution_coverage | decimal | No | Legacy/auto calculated |
 | blocker | text | No | Blocker minggu ini |
 | next_week_plan | text | Yes | Plan minggu depan |
 | notes | text | No | Catatan tambahan |
@@ -677,7 +711,6 @@ Aktual: weekly report create/edit/request QA approval/co-author approve/revoke/r
 | POST | /weekly-reports/:id/request-qa-approval | Konsep: ajukan approval internal QA |
 | POST | /weekly-reports/:id/qa-approve | Konsep: co-author approve internal |
 | POST | /weekly-reports/:id/qa-revoke | Konsep: co-author revoke approval |
-| POST | /weekly-reports/:id/review | Mark as reviewed |
 | POST | /weekly-reports/:id/request-revision | Request revision |
 | POST | /weekly-reports/:id/approve | Approve report |
 
@@ -738,9 +771,8 @@ Komponen:
 
 - Project information
 - Assigned QA member
-- Weekly report history
-- Automation coverage trend
-- Test case execution summary
+- Back to projects button that preserves list filter/pagination state
+- Assigned member role dropdown auto-save
 
 ### 15.5 Weekly Report Form
 
@@ -757,8 +789,8 @@ Section form:
 9. Blocker
 10. Next week plan
 11. Notes
-12. Save Draft button
-13. Ajukan untuk approval QA button
+12. Save Draft / Save Changes button
+13. Ajukan untuk approval QA button di detail page
 14. Co-author approval panel dan activity timeline di detail page
 
 ### 15.6 Review Report Page
@@ -771,9 +803,9 @@ Komponen:
 - Feedback history
 - Activity timeline
 - Feedback textarea
-- Mark as reviewed button
 - Request revision button
 - Approve button
+- Timestamp feedback/activity ditampilkan dalam WIB; periode report tetap date-only.
 
 ---
 
@@ -1152,11 +1184,12 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 
 ### 22.2 Project Management
 
-- QA Lead bisa membuat project.
-- QA Lead bisa edit project.
-- QA Lead bisa archive project.
-- QA Lead bisa restore archived project menjadi active.
-- QA Lead bisa assign QA member ke project.
+- QA Lead/Admin bisa membuat project.
+- QA Lead/Admin bisa edit project.
+- QA Lead/Admin bisa archive project.
+- QA Lead/Admin bisa restore archived project menjadi active.
+- QA Lead/Admin bisa assign QA member ke project dan mengubah role assignment.
+- QA Lead/Admin bisa menandai project active sebagai tidak wajib weekly report dengan reason yang jelas.
 - Archived project bersifat read-only: tidak bisa edit project, assign member, ubah role member, atau remove member sampai di-restore.
 
 ### 22.3 Weekly Report
@@ -1215,7 +1248,8 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 
 - Weekly report form.
 - Save draft.
-- Submit report.
+- Ajukan approval internal QA.
+- Auto-submit ke reviewer setelah semua co-author approve.
 - Status report.
 - Validation.
 
@@ -1321,7 +1355,7 @@ Saat implementasi, prioritaskan:
 
 ## 28. Implementation Status (snapshot)
 
-PRD versi: `v1.5 — 2026-06-24`.
+PRD versi: `v1.6 — 2026-06-26`.
 
 | Item | Status | Catatan |
 |---|---|---|
@@ -1341,20 +1375,22 @@ PRD versi: `v1.5 — 2026-06-24`.
 | App shell sidebar + topbar | Done | Style shadcn sidebar-07 |
 | Sidebar collapse | Done | Trigger di topbar, persist via localStorage |
 | Status badge | Done | Format title case |
-| Vitest unit tests | Done | 196 tests: auth, dashboard, reports, transitions, permissions, schemas, calculation, aggregation, export, date range/presets |
-| Project CRUD | Done | Phase 2: list/create/edit/archive/restore, dedicated routes, archived read-only |
+| Vitest unit tests | Done | Unit tests cover auth, dashboard, reports, transitions, permissions, schemas, calculation, aggregation, export, date range/presets, and WIB timestamp formatting |
+| Project CRUD | Done | Phase 2: list/create/edit/archive/restore, dedicated routes, archived read-only, back button preserves list state |
 | User CRUD lanjutan | Done | Phase 3: edit user, deactivate (last-admin guard), reset password generate baru, filter role/status |
-| Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved |
+| Project member assignment | Done | Phase 4: assign/remove (soft delete), duplicate guard, history preserved, role dropdown auto-save |
 | Weekly report CRUD | Done | Phase 5 + collaborative report: shared project/week report, instant draft on Create report, duplicate guard, co-author snapshot, server-side coverage, approved lock |
 | Submit flow | Done | Phase 6 + QA approval: ajukan approval internal, auto-submit ke reviewer setelah approval lengkap |
-| Review flow | Done | Phase 7: mark reviewed, request revision, approve, feedback history, activity timeline |
-| Dashboard summary | Done | Phase 8: role-aware (lead/member), date range filter, pending approval, coverage per project search/pagination, incidents |
+| Review flow | Done | Phase 7: request revision, approve, feedback history, activity timeline; `REVIEWED` hanya legacy compatibility |
+| Dashboard summary | Done | Phase 8: role-aware (lead/member), date range filter, weekly checklist, pending approval, coverage per project search/pagination, incidents |
 | Monthly report summary | Done | Phase 9: approved-only aggregation, month/project filter, metrics, blockers, next plan |
 | Markdown export | Done | Phase 10: `/api/monthly-reports/export`, PRD-format markdown, filter-aware |
 | Hardening | Done | Phase 11: ActionResult helpers, DB error mapper, permission audit, mapped catches |
 | Collaborative weekly report | Done | `drizzle/0004_collaborative_weekly_reports.sql`, co-author approvals, report activities |
-| Dashboard UX polish | Done | Clean stat cards, solid date-range popover, report-overlap filtering, coverage pagination |
-| Test baseline | Done | Phase 12+: 196 Vitest tests; Playwright E2E suite exists but should be run only against disposable/seeded DB |
+| Dashboard UX polish | Done | Clean stat cards, solid date-range popover, report-overlap filtering, coverage pagination, shadcn-style date/month filters |
+| Project reporting policy | Done | `weekly_report_required` + reason separates active reportable projects from maintenance/no-active-QA/paused projects |
+| Timestamp policy | Done | Event timestamps render in WIB; report periods remain date-only |
+| Test baseline | Done | Phase 12+: Vitest suite + Playwright E2E suite; E2E should run only against disposable/seeded DB |
 
 ---
 
@@ -1371,6 +1407,7 @@ PRD versi: `v1.5 — 2026-06-24`.
 | Table UI | Tidak ditentukan | Reusable `DataTable` (TanStack Table) | Sorting + pagination konsisten di semua tabel |
 | Default password | Tidak ada | `DEFAULT_USER_PASSWORD` env, default `password123` | Semua user wajib ganti di login pertama, termasuk seed/admin |
 | Date range picker | Tidak ada | `react-day-picker` + Radix Popover | Range selection, preset minggu/bulan, URL-backed dashboard filter |
+| Timestamp timezone | Tidak ada | Event timestamp fixed `Asia/Jakarta`/WIB | Tim internal butuh referensi waktu yang sama |
 
 ---
 
@@ -1469,7 +1506,7 @@ drizzle/0004_collaborative_weekly_reports.sql
 | Phase 4 | Project member assignment | Assign/remove + history |
 | Phase 5 | Weekly report CRUD | Form + draft + auto coverage server-side |
 | Phase 6 | Submit flow | Status `PENDING_QA_APPROVAL`, auto `SUBMITTED` setelah QA approval lengkap |
-| Phase 7 | Review flow | `REVIEWED`, `NEED_REVISION`, `APPROVED` |
+| Phase 7 | Review flow | `NEED_REVISION`, `APPROVED`; `REVIEWED` hanya legacy |
 | Phase 8 | Dashboard summary | Member + Lead view, date range filter, coverage pagination |
 | Phase 9 | Monthly summary | Aggregate approved reports |
 | Phase 10 | Markdown export | `/api/monthly-reports/export` |
