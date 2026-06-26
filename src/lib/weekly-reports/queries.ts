@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db/client";
 import {
@@ -72,6 +72,67 @@ export function listAllReports() {
     .leftJoin(approverUsers, eq(weeklyReports.approvedBy, approverUsers.id))
     .leftJoin(submitterUsers, eq(weeklyReports.submittedBy, submitterUsers.id))
     .orderBy(desc(weeklyReports.createdAt));
+}
+
+export type WeeklyReportExportRange = {
+  start: Date;
+  end: Date;
+  projectId?: string;
+};
+
+export function listApprovedReportsForExport({ start, end, projectId }: WeeklyReportExportRange) {
+  const conditions = [
+    eq(weeklyReports.status, "APPROVED"),
+    lte(weeklyReports.weekStartDate, end),
+    gte(weeklyReports.weekEndDate, start),
+  ];
+
+  if (projectId) {
+    conditions.push(eq(weeklyReports.projectId, projectId));
+  }
+
+  return db
+    .select({
+      projectName: projects.name,
+      weekStartDate: weeklyReports.weekStartDate,
+      weekEndDate: weeklyReports.weekEndDate,
+      status: weeklyReports.status,
+      reviewerName: reviewerUsers.name,
+      approverName: approverUsers.name,
+      summary: weeklyReports.summary,
+      testCaseTotal: weeklyReports.testCaseTotal,
+      testCaseBeTotal: weeklyReports.testCaseBeTotal,
+      testCaseBeExecuted: weeklyReports.testCaseBeExecuted,
+      testCaseFeTotal: weeklyReports.testCaseFeTotal,
+      testCaseFeExecuted: weeklyReports.testCaseFeExecuted,
+      automationBeTotal: weeklyReports.automationBeTotal,
+      automationFeTotal: weeklyReports.automationFeTotal,
+      automationBePassed: weeklyReports.automationBePassed,
+      automationBeFailed: weeklyReports.automationBeFailed,
+      automationFePassed: weeklyReports.automationFePassed,
+      automationFeFailed: weeklyReports.automationFeFailed,
+      automationPassed: weeklyReports.automationPassed,
+      automationFailed: weeklyReports.automationFailed,
+      productionIncidentCount: weeklyReports.productionIncidentCount,
+      productionIncidentNotes: weeklyReports.productionIncidentNotes,
+      bugDocumentUrl: weeklyReports.bugDocumentUrl,
+      blocker: weeklyReports.blocker,
+      nextWeekPlan: weeklyReports.nextWeekPlan,
+      notes: weeklyReports.notes,
+    })
+    .from(weeklyReports)
+    .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
+    .leftJoin(reviewerUsers, eq(weeklyReports.reviewedBy, reviewerUsers.id))
+    .leftJoin(approverUsers, eq(weeklyReports.approvedBy, approverUsers.id))
+    .where(and(...conditions))
+    .orderBy(projects.name, weeklyReports.weekStartDate);
+}
+
+export function listProjectsForExportFilter() {
+  return db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .orderBy(projects.name);
 }
 
 export async function getReportById(id: string) {
