@@ -6,9 +6,11 @@ export function formatReportTimestamp(value: Date | string): string {
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "short",
-year: "numeric",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+    timeZoneName: "short",
   }).format(new Date(value));
 }
 
