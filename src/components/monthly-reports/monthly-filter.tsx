@@ -56,11 +56,17 @@ export function MonthlyFilter({ projects, month, projectId }: { projects: Projec
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
       <div className="space-y-2">
-        <Label htmlFor="month">Month</Label>
+        <Label id="month-label">Month</Label>
         <Popover open={monthOpen} onOpenChange={handleMonthOpenChange}>
           <PopoverTrigger asChild>
-            <Button id="month" type="button" variant="outline" className="h-9 w-44 justify-between px-3 font-normal shadow-xs">
-              <span className="tabular-nums">{formatMonthLabel(month)}</span>
+            <Button
+              id="month"
+              type="button"
+              variant="outline"
+              aria-labelledby="month-label month-value"
+              className="h-9 w-44 justify-between px-3 font-normal shadow-xs"
+            >
+              <span id="month-value" className="tabular-nums">{formatMonthLabel(month)}</span>
               <CalendarDays className="size-4 text-muted-foreground" />
             </Button>
           </PopoverTrigger>
@@ -120,12 +126,12 @@ export function MonthlyFilter({ projects, month, projectId }: { projects: Projec
         </Popover>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="projectId">Project</Label>
+        <Label id="monthly-project-label">Project</Label>
         <Select
           value={projectId ?? ALL_PROJECTS_VALUE}
           onValueChange={(value) => update("projectId", value === ALL_PROJECTS_VALUE ? "" : value)}
         >
-          <SelectTrigger id="projectId" className="h-9 w-56 shadow-xs">
+          <SelectTrigger id="monthly-project" aria-labelledby="monthly-project-label" className="h-9 w-56 shadow-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="start">

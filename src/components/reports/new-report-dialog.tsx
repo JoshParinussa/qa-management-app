@@ -149,7 +149,7 @@ export function NewReportDialog({ projects, checkReportConflict, createInitialDr
 
         <div className="grid gap-4">
           <div className="space-y-2">
-            <Label htmlFor="new-report-project">Project</Label>
+            <Label id="new-report-project-label">Project</Label>
             <Select
               value={projectId}
               onValueChange={(value) => {
@@ -157,7 +157,7 @@ export function NewReportDialog({ projects, checkReportConflict, createInitialDr
                 resetLookup();
               }}
             >
-              <SelectTrigger id="new-report-project" className="w-full">
+              <SelectTrigger id="new-report-project" aria-labelledby="new-report-project-label" className="w-full">
                 <SelectValue placeholder="Pilih project" />
               </SelectTrigger>
               <SelectContent>

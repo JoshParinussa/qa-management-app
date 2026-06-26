@@ -263,7 +263,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
 
       return (
         <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
+          <Label id={`${row.original.id}-reviewer-label`} className="sr-only">
             Reviewer
           </Label>
           <Select>
@@ -271,6 +271,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
               className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
               size="sm"
               id={`${row.original.id}-reviewer`}
+              aria-labelledby={`${row.original.id}-reviewer-label`}
             >
               <SelectValue placeholder="Assign reviewer" />
             </SelectTrigger>
@@ -408,7 +409,7 @@ export function DataTable({
       className="w-full flex-col justify-start gap-6"
     >
       <div className="flex items-center justify-between px-4 lg:px-6">
-        <Label htmlFor="view-selector" className="sr-only">
+        <Label id="view-selector-label" className="sr-only">
           View
         </Label>
         <Select defaultValue="outline">
@@ -416,6 +417,7 @@ export function DataTable({
             className="flex w-fit @4xl/main:hidden"
             size="sm"
             id="view-selector"
+            aria-labelledby="view-selector-label"
           >
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
@@ -538,7 +540,7 @@ export function DataTable({
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              <Label id="rows-per-page-label" className="text-sm font-medium">
                 Rows per page
               </Label>
               <Select
@@ -547,7 +549,7 @@ export function DataTable({
                   table.setPageSize(Number(value))
                 }}
               >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectTrigger size="sm" className="w-20" id="rows-per-page" aria-labelledby="rows-per-page-label">
                   <SelectValue
                     placeholder={table.getState().pagination.pageSize}
                   />
@@ -730,9 +732,9 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
-                <Label htmlFor="type">Type</Label>
+                <Label id="type-label">Type</Label>
                 <Select defaultValue={item.type}>
-                  <SelectTrigger id="type" className="w-full">
+                  <SelectTrigger id="type" aria-labelledby="type-label" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -756,9 +758,9 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
                 </Select>
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="status">Status</Label>
+                <Label id="status-label">Status</Label>
                 <Select defaultValue={item.status}>
-                  <SelectTrigger id="status" className="w-full">
+                  <SelectTrigger id="status" aria-labelledby="status-label" className="w-full">
                     <SelectValue placeholder="Select a status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -780,9 +782,9 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
+              <Label id="reviewer-label">Reviewer</Label>
               <Select defaultValue={item.reviewer}>
-                <SelectTrigger id="reviewer" className="w-full">
+                <SelectTrigger id="reviewer" aria-labelledby="reviewer-label" className="w-full">
                   <SelectValue placeholder="Select a reviewer" />
                 </SelectTrigger>
                 <SelectContent>

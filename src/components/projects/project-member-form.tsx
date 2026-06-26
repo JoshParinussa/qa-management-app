@@ -111,8 +111,8 @@ export function ProjectMemberForm({ action, users }: ProjectMemberFormProps) {
     <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
       {state.error ? <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive sm:w-full">{state.error}</p> : null}
       <div className="flex-1 space-y-2">
-        <Label id="userId-label" htmlFor="userId">User</Label>
-        <input id="userId" name="userId" type="hidden" value={selectedUserId} />
+        <Label id="userId-label">User</Label>
+        <input name="userId" type="hidden" value={selectedUserId} />
         <UserCombobox users={users} value={selectedUserId} onValueChange={setSelectedUserId} />
       </div>
       <div className="space-y-2">
