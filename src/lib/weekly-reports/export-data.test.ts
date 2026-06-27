@@ -128,4 +128,10 @@ describe("weeklyExportFilename", () => {
       /^weekly-reports-all-projects-all-status-\d{4}-\d{2}-\d{2}\.pdf$/,
     );
   });
+
+  it("uses the requested extension for docx", () => {
+    expect(weeklyExportFilename("Payment Gateway", "Approved", "docx")).toMatch(
+      /^weekly-reports-payment-gateway-approved-\d{4}-\d{2}-\d{2}\.docx$/,
+    );
+  });
 });

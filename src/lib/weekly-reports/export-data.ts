@@ -122,12 +122,14 @@ export function buildWeeklyReportsExportData({
   };
 }
 
-export function weeklyExportFilename(projectLabel: string, statusLabel: string) {
+export type ExportFormat = "pdf" | "docx";
+
+export function weeklyExportFilename(projectLabel: string, statusLabel: string, format: ExportFormat = "pdf") {
   const slug = (value: string) =>
     value
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
   const date = new Date().toISOString().slice(0, 10);
-  return `weekly-reports-${slug(projectLabel) || "all"}-${slug(statusLabel) || "all"}-${date}.pdf`;
+  return `weekly-reports-${slug(projectLabel) || "all"}-${slug(statusLabel) || "all"}-${date}.${format}`;
 }

@@ -1,15 +1,22 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { ChevronDown, Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DataTable } from "@/components/ui/data-table";
 import { Label } from "@/components/ui/label";
 import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { formatReportDate } from "@/lib/reports/format";
 import { formatReportStatus } from "@/lib/reports/status";
 import { reportStatuses } from "@/types";
+import type { ExportFormat } from "@/lib/weekly-reports/export-data";
 import { weeklyReportColumns, type WeeklyReportRow } from "./weekly-report-columns";
 
 const selectClass =
@@ -62,7 +69,7 @@ export function WeeklyReportsDataTable({
     return `${formatReportDate(`${from}T00:00:00.000Z`)} – ${formatReportDate(`${to}T00:00:00.000Z`)}`;
   }
 
-  async function handleExport() {
+  async function handleExport(format: ExportFormat) {
     if (filteredRows.length === 0) {
       toast.error("Tidak ada report untuk diexport dengan filter ini.");
       return;
@@ -78,6 +85,7 @@ export function WeeklyReportsDataTable({
           projectLabel: search.trim() ? `Search: "${search.trim()}"` : "All projects",
           statusLabel: status === ALL_STATUS ? "All status" : formatReportStatus(status as WeeklyReportRow["status"]),
           periodLabel: periodLabel(),
+          format,
         }),
       });
 
@@ -88,7 +96,7 @@ export function WeeklyReportsDataTable({
       const blob = await response.blob();
       const disposition = response.headers.get("Content-Disposition") ?? "";
       const match = disposition.match(/filename="([^"]+)"/);
-      const filename = match?.[1] ?? "weekly-reports.pdf";
+      const filename = match?.[1] ?? `weekly-reports.${format}`;
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -138,16 +146,30 @@ export function WeeklyReportsDataTable({
             onChange={handleRangeChange}
           />
           {canExport ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10"
-              onClick={handleExport}
-              disabled={isExporting || filteredRows.length === 0}
-            >
-              <Download className="size-4" />
-              {isExporting ? "Exporting..." : `Export PDF (${filteredRows.length})`}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10"
+                  disabled={isExporting || filteredRows.length === 0}
+                >
+                  <Download className="size-4" />
+                  {isExporting ? "Exporting..." : `Export (${filteredRows.length})`}
+                  <ChevronDown className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => handleExport("pdf")}>
+                  <FileText className="size-4" />
+                  PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleExport("docx")}>
+                  <FileText className="size-4" />
+                  Docs (.docx)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
         </div>
       )}
