@@ -3,12 +3,11 @@
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { reportQaApprovals, weeklyReports } from "@/db/schema";
+import { reportQaApprovals } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { ACTIVITY_ACTIONS, insertActivity } from "@/lib/weekly-reports/activity";
+import { submitReportIfApprovalComplete } from "@/lib/weekly-reports/approval-workflow";
 import {
-  countApprovals,
-  countAuthors,
   getReportById,
   hasUserApproved,
   isCoAuthor,
@@ -21,7 +20,7 @@ import type { ActionState } from "@/types";
 
 /**
  * QA co-author records their approval on a PENDING_QA_APPROVAL report.
- * If this approval makes the count match the total co-authors, the report
+ * If this approval completes all active co-author requirements, the report
  * is automatically transitioned to SUBMITTED (auto-submit to reviewer).
  */
 export async function approveAsCoAuthorAction(id: string): Promise<ActionState> {
@@ -52,26 +51,7 @@ export async function approveAsCoAuthorAction(id: string): Promise<ActionState> 
     action: ACTIVITY_ACTIONS.QA_APPROVED,
   });
 
-  const [approvals, authors] = await Promise.all([countApprovals(id), countAuthors(id)]);
-
-  if (approvals >= authors && authors > 0) {
-    const now = new Date();
-    await db
-      .update(weeklyReports)
-      .set({
-        status: "SUBMITTED",
-        submittedAt: now,
-        submittedBy: user.id,
-        updatedAt: now,
-      })
-      .where(eq(weeklyReports.id, id));
-
-    await insertActivity({
-      weeklyReportId: id,
-      actorId: user.id,
-      action: ACTIVITY_ACTIONS.SUBMITTED_TO_REVIEWER,
-    });
-  }
+  await submitReportIfApprovalComplete(id, user.id);
 
   redirect(`/weekly-reports/${id}`);
 }

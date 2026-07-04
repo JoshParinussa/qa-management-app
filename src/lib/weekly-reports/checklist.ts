@@ -60,7 +60,13 @@ export async function listWeeklyReportChecklist(range: DashboardDateRange): Prom
       })
       .from(projectMembers)
       .innerJoin(users, eq(projectMembers.userId, users.id))
-      .where(and(inArray(projectMembers.projectId, projectIds), isNull(projectMembers.removedAt)))
+      .where(
+        and(
+          inArray(projectMembers.projectId, projectIds),
+          isNull(projectMembers.removedAt),
+          eq(users.isActive, true),
+        ),
+      )
       .orderBy(asc(projectMembers.assignmentRole), asc(users.name)),
   ]);
 

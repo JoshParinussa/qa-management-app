@@ -93,8 +93,9 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
     getReportReviewNames(report.reviewedBy, report.approvedBy),
   ]);
 
-  const approvedCount = authors.filter((a) => a.approvedAt != null).length;
-  const totalCount = authors.length;
+  const requiredAuthors = authors.filter((author) => author.isActive && author.removedAt == null);
+  const approvedCount = requiredAuthors.filter((author) => author.approvedAt != null).length;
+  const totalCount = requiredAuthors.length;
 
   const canEdit = userIsCoAuthor && canEditReport(report.status);
   const canRequestApproval = userIsCoAuthor && canStartQaApproval(report.status);

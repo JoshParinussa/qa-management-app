@@ -11,6 +11,7 @@ import { buildResetPasswordUpdate, canDeactivateUser } from "@/lib/users/rules";
 import { userSchema } from "@/lib/validations/user";
 import { mapDbError } from "@/lib/action-result";
 import { getDefaultPassword } from "@/lib/users/defaults";
+import { reconcileReportsAfterUserDeactivation } from "@/lib/weekly-reports/approval-workflow";
 import type { ActionState } from "@/types";
 
 export async function createUserAction(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -41,7 +42,12 @@ export async function createUserAction(_state: ActionState, formData: FormData):
 }
 
 export async function updateUserAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
+  const target = await getUserById(id);
+
+  if (!target) {
+    return { error: "User tidak ditemukan." };
+  }
 
   const parsed = userSchema.safeParse({
     name: formData.get("name"),
@@ -63,11 +69,15 @@ export async function updateUserAction(id: string, _state: ActionState, formData
     return { error: mapDbError(error, "Email sudah dipakai.") };
   }
 
+  if (target.isActive && !parsed.data.isActive) {
+    await reconcileReportsAfterUserDeactivation(id, admin.id);
+  }
+
   redirect(`/users`);
 }
 
 export async function deactivateUserAction(id: string): Promise<ActionState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const target = await getUserById(id);
 
@@ -82,6 +92,9 @@ export async function deactivateUserAction(id: string): Promise<ActionState> {
   }
 
   await db.update(users).set({ isActive: false, updatedAt: new Date() }).where(eq(users.id, id));
+  if (target.isActive) {
+    await reconcileReportsAfterUserDeactivation(id, admin.id);
+  }
 
   redirect("/users");
 }

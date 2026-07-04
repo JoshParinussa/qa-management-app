@@ -14,7 +14,13 @@ export function listProjectMembers(projectId: string) {
     })
     .from(projectMembers)
     .innerJoin(users, eq(projectMembers.userId, users.id))
-    .where(and(eq(projectMembers.projectId, projectId), isNull(projectMembers.removedAt)));
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        isNull(projectMembers.removedAt),
+        eq(users.isActive, true),
+      ),
+    );
 }
 
 export async function findActiveAssignment(projectId: string, userId: string) {

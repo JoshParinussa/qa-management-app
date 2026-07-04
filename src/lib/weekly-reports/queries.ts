@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db/client";
 import {
@@ -203,6 +203,7 @@ export function listReportAuthors(weeklyReportId: string) {
       assignmentRole: reportAuthors.assignmentRole,
       addedAt: reportAuthors.addedAt,
       removedAt: reportAuthors.removedAt,
+      isActive: users.isActive,
       approvedAt: reportQaApprovals.approvedAt,
     })
     .from(reportAuthors)
@@ -247,7 +248,21 @@ export async function countApprovals(weeklyReportId: string): Promise<number> {
   const [row] = await db
     .select({ value: count() })
     .from(reportQaApprovals)
-    .where(eq(reportQaApprovals.weeklyReportId, weeklyReportId));
+    .innerJoin(
+      reportAuthors,
+      and(
+        eq(reportAuthors.weeklyReportId, reportQaApprovals.weeklyReportId),
+        eq(reportAuthors.userId, reportQaApprovals.userId),
+      ),
+    )
+    .innerJoin(users, eq(reportAuthors.userId, users.id))
+    .where(
+      and(
+        eq(reportQaApprovals.weeklyReportId, weeklyReportId),
+        isNull(reportAuthors.removedAt),
+        eq(users.isActive, true),
+      ),
+    );
   return Number(row?.value ?? 0);
 }
 
@@ -255,8 +270,28 @@ export async function countAuthors(weeklyReportId: string): Promise<number> {
   const [row] = await db
     .select({ value: count() })
     .from(reportAuthors)
-    .where(eq(reportAuthors.weeklyReportId, weeklyReportId));
+    .innerJoin(users, eq(reportAuthors.userId, users.id))
+    .where(
+      and(
+        eq(reportAuthors.weeklyReportId, weeklyReportId),
+        isNull(reportAuthors.removedAt),
+        eq(users.isActive, true),
+      ),
+    );
   return Number(row?.value ?? 0);
+}
+
+export function listPendingReportIdsByAuthor(userId: string) {
+  return db
+    .select({ id: weeklyReports.id })
+    .from(reportAuthors)
+    .innerJoin(weeklyReports, eq(reportAuthors.weeklyReportId, weeklyReports.id))
+    .where(
+      and(
+        eq(reportAuthors.userId, userId),
+        eq(weeklyReports.status, "PENDING_QA_APPROVAL"),
+      ),
+    );
 }
 
 export function listReportActivities(weeklyReportId: string) {

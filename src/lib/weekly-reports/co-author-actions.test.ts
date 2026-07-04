@@ -4,8 +4,7 @@ const mocks = vi.hoisted(() => ({
   getReportById: vi.fn(),
   isCoAuthor: vi.fn(),
   hasUserApproved: vi.fn(),
-  countApprovals: vi.fn(),
-  countAuthors: vi.fn(),
+  submitReportIfApprovalComplete: vi.fn(),
   insert: vi.fn(),
   insertValues: vi.fn(),
   update: vi.fn(),
@@ -29,8 +28,9 @@ vi.mock("@/lib/weekly-reports/queries", () => ({
   getReportById: mocks.getReportById,
   isCoAuthor: mocks.isCoAuthor,
   hasUserApproved: mocks.hasUserApproved,
-  countApprovals: mocks.countApprovals,
-  countAuthors: mocks.countAuthors,
+}));
+vi.mock("@/lib/weekly-reports/approval-workflow", () => ({
+  submitReportIfApprovalComplete: mocks.submitReportIfApprovalComplete,
 }));
 vi.mock("@/lib/weekly-reports/activity", async () => {
   const actual = await vi.importActual<typeof import("./activity")>("./activity");
@@ -65,14 +65,12 @@ describe("co-author actions", () => {
     mocks.insertActivity.mockResolvedValue(undefined);
     mocks.isCoAuthor.mockResolvedValue(true);
     mocks.hasUserApproved.mockResolvedValue(false);
+    mocks.submitReportIfApprovalComplete.mockResolvedValue(false);
   });
 
   describe("approveAsCoAuthorAction", () => {
     it("inserts an approval and logs QA_APPROVED when not last approver", async () => {
       mocks.getReportById.mockResolvedValue({ id: "r-1", status: "PENDING_QA_APPROVAL" });
-      mocks.countApprovals.mockResolvedValue(1);
-      mocks.countAuthors.mockResolvedValue(2);
-
       await expect(approveAsCoAuthorAction("r-1")).rejects.toThrow("redirect:/weekly-reports/r-1");
 
       expect(mocks.insertValues).toHaveBeenCalledWith({
@@ -81,25 +79,16 @@ describe("co-author actions", () => {
       });
       const actions = mocks.insertActivity.mock.calls.map((c) => (c[0] as { action: string }).action);
       expect(actions).toContain(ACTIVITY_ACTIONS.QA_APPROVED);
-      expect(actions).not.toContain(ACTIVITY_ACTIONS.SUBMITTED_TO_REVIEWER);
-      expect(mocks.updateSet).not.toHaveBeenCalled();
+      expect(mocks.submitReportIfApprovalComplete).toHaveBeenCalledWith("r-1", USER_ID);
     });
 
-    it("auto-submits the report when the last approval lands", async () => {
+    it("checks whether the report can auto-submit after approval", async () => {
       mocks.getReportById.mockResolvedValue({ id: "r-1", status: "PENDING_QA_APPROVAL" });
-      mocks.countApprovals.mockResolvedValue(2);
-      mocks.countAuthors.mockResolvedValue(2);
+      mocks.submitReportIfApprovalComplete.mockResolvedValue(true);
 
       await expect(approveAsCoAuthorAction("r-1")).rejects.toThrow("redirect:/weekly-reports/r-1");
 
-      const updateValues = mocks.updateSet.mock.calls[0][0];
-      expect(updateValues).toMatchObject({
-        status: "SUBMITTED",
-        submittedBy: USER_ID,
-      });
-      const actions = mocks.insertActivity.mock.calls.map((c) => (c[0] as { action: string }).action);
-      expect(actions).toContain(ACTIVITY_ACTIONS.QA_APPROVED);
-      expect(actions).toContain(ACTIVITY_ACTIONS.SUBMITTED_TO_REVIEWER);
+      expect(mocks.submitReportIfApprovalComplete).toHaveBeenCalledWith("r-1", USER_ID);
     });
 
     it("rejects when not in PENDING_QA_APPROVAL", async () => {
