@@ -8,6 +8,8 @@
 
 **Tech Stack:** Next.js App Router, React Server Components, Client Components, Drizzle ORM, Vitest.
 
+**Post-implementation update 2026-07-07:** App shell navigation now has device-aware behavior. The topbar trigger collapses the persistent sidebar on desktop (`>=1024px`) and opens a controlled Radix `Sheet` drawer on mobile/tablet (`<1024px`). Both surfaces reuse the same role-aware navigation content, and the mobile drawer closes after route selection. Regression coverage lives in `e2e/mobile-sidebar.spec.ts` at a `390x844` viewport.
+
 ---
 
 ### Task 1: Role-Aware Helpers

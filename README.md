@@ -5,6 +5,7 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 ## Current Features
 
 - Role-based auth untuk Admin, QA Lead, dan QA Member.
+- Responsive app shell: sidebar collapsible di desktop dan drawer navigation di mobile.
 - Project CRUD, archive/restore, assignment QA member, dan flag `Weekly report required` untuk project active yang maintenance-only.
 - Weekly report kolaboratif per project/minggu dengan instant draft on create, duplicate guard, dan co-author snapshot.
 - Internal QA approval sebelum report otomatis terkirim ke reviewer.
@@ -16,6 +17,13 @@ Internal QA workflow app untuk mengelola QA member, project assignment, collabor
 - Monthly report summary dari approved weekly report.
 - Markdown export untuk monthly report.
 - Timestamp event report ditampilkan dalam WIB; periode report tetap date-only agar tidak bergeser timezone.
+
+## Responsive Navigation
+
+- Pada viewport di bawah breakpoint `lg` (`1024px`), tombol sidebar di topbar membuka navigation drawer dari kiri.
+- Drawer menampilkan menu yang sama dan tetap mengikuti permission role user.
+- Drawer dapat ditutup melalui tombol close, overlay, atau setelah user memilih menu.
+- Pada desktop, tombol yang sama tetap mengubah sidebar antara expanded dan collapsed; state collapse disimpan di `localStorage`.
 
 ## Weekly Report Creation Flow
 

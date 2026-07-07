@@ -102,6 +102,7 @@ MVP fokus pada fitur utama yang langsung berguna untuk operasional QA.
 10. Dashboard summary
 11. Monthly report summary
 12. Export report ke Markdown
+13. Responsive app shell dengan sidebar desktop dan navigation drawer mobile
 
 ### 5.2 Out of Scope MVP
 
@@ -368,6 +369,14 @@ Semua metrik report-based memakai logika overlap periode report: report dihitung
 - Select project
 - View summary
 - Export summary
+
+### 11.7 App Shell dan Navigation
+
+- Topbar menyediakan satu tombol toggle navigation pada semua ukuran viewport.
+- Pada desktop (`>=1024px`), sidebar selalu tersedia dan dapat diubah antara expanded dan collapsed.
+- Pada mobile/tablet (`<1024px`), sidebar desktop disembunyikan dan tombol topbar membuka drawer dari kiri.
+- Drawer mobile menampilkan menu role-aware yang sama dengan desktop.
+- Drawer dapat ditutup melalui tombol close, overlay, atau otomatis setelah user memilih menu.
 
 ---
 
@@ -1224,6 +1233,13 @@ Untuk MVP, notification bisa tampil di dalam aplikasi.
 - Sistem menampilkan summary dari report Approved.
 - Sistem bisa export summary minimal ke Markdown.
 
+### 22.7 Responsive Navigation
+
+- Tombol sidebar di topbar dapat membuka navigation drawer pada viewport di bawah `1024px`.
+- Semua menu yang diizinkan untuk role user dapat diakses dari drawer mobile.
+- Memilih menu menavigasikan user dan menutup drawer.
+- Pada desktop, tombol sidebar tetap mengubah state expanded/collapsed tanpa membuka drawer.
+
 ---
 
 ## 23. Development Phase
@@ -1355,7 +1371,7 @@ Saat implementasi, prioritaskan:
 
 ## 28. Implementation Status (snapshot)
 
-PRD versi: `v1.6 — 2026-06-26`.
+PRD versi: `v1.7 — 2026-07-07`.
 
 | Item | Status | Catatan |
 |---|---|---|
@@ -1374,6 +1390,7 @@ PRD versi: `v1.6 — 2026-06-26`.
 | Profile page | Done | `/profile` |
 | App shell sidebar + topbar | Done | Style shadcn sidebar-07 |
 | Sidebar collapse | Done | Trigger di topbar, persist via localStorage |
+| Responsive mobile navigation | Done | Topbar trigger membuka Radix Sheet drawer di bawah breakpoint `lg`; drawer menutup setelah navigasi |
 | Status badge | Done | Format title case |
 | Vitest unit tests | Done | Unit tests cover auth, dashboard, reports, transitions, permissions, schemas, calculation, aggregation, export, date range/presets, and WIB timestamp formatting |
 | Project CRUD | Done | Phase 2: list/create/edit/archive/restore, dedicated routes, archived read-only, back button preserves list state |
