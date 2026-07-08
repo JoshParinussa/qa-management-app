@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
+  getReportByIdQuery,
   listPendingReportIdsByAuthor,
   listReportAuthors,
   listReportsByCoAuthor,
   listReportsForExportByIds,
 } from "./queries";
+
+describe("getReportByIdQuery", () => {
+  it("loads the related project identity for detail pages", () => {
+    const query = getReportByIdQuery("018f0b3c-1d2e-7a3b-8c4d-5e6f70819294").toSQL();
+
+    expect(query.sql).toContain('inner join "projects"');
+    expect(query.sql).toContain('"projects"."name"');
+    expect(query.sql).toContain('"projects"."code"');
+  });
+});
 
 describe("listReportsByCoAuthor", () => {
   it("joins report authors instead of using a single-row subquery", () => {

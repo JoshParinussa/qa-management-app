@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, getTableColumns, inArray, isNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db/client";
 import {
@@ -112,8 +112,21 @@ export function listReportsForExportByIds(ids: string[]) {
     .orderBy(projects.name, weeklyReports.weekStartDate);
 }
 
+export function getReportByIdQuery(id: string) {
+  return db
+    .select({
+      ...getTableColumns(weeklyReports),
+      projectName: projects.name,
+      projectCode: projects.code,
+    })
+    .from(weeklyReports)
+    .innerJoin(projects, eq(weeklyReports.projectId, projects.id))
+    .where(eq(weeklyReports.id, id))
+    .limit(1);
+}
+
 export async function getReportById(id: string) {
-  const [report] = await db.select().from(weeklyReports).where(eq(weeklyReports.id, id)).limit(1);
+  const [report] = await getReportByIdQuery(id);
   return report ?? null;
 }
 
