@@ -13,7 +13,6 @@ describe("getReportByIdQuery", () => {
 
     expect(query.sql).toContain('inner join "projects"');
     expect(query.sql).toContain('"projects"."name"');
-    expect(query.sql).toContain('"projects"."code"');
   });
 });
 

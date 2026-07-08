@@ -117,7 +117,6 @@ export function getReportByIdQuery(id: string) {
     .select({
       ...getTableColumns(weeklyReports),
       projectName: projects.name,
-      projectCode: projects.code,
     })
     .from(weeklyReports)
     .innerJoin(projects, eq(weeklyReports.projectId, projects.id))

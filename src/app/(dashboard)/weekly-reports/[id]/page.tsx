@@ -102,7 +102,6 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
   const showApprove = canApproveAsCoAuthor(report.status, userIsCoAuthor, userHasApproved);
   const showRevoke = canRevokeApproval(report.status, userIsCoAuthor, userHasApproved);
   const canReview = isReviewer && canReviewReport(report.status);
-  const showProjectCode = report.projectCode.toLowerCase() !== report.projectName.toLowerCase();
 
   const stageDescription = reportStageDescription(report.status, {
     reviewerName,
@@ -142,17 +141,7 @@ export default async function WeeklyReportDetailPage({ params }: { params: Promi
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Weekly report</h2>
-          <div className="mt-2 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Project</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-lg font-semibold leading-tight text-foreground">{report.projectName}</p>
-              {showProjectCode ? (
-                <span className="rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {report.projectCode}
-                </span>
-              ) : null}
-            </div>
-          </div>
+          <p className="mt-1 text-lg font-semibold leading-tight text-foreground">{report.projectName}</p>
           <p className="text-muted-foreground">
             {formatDate(report.weekStartDate)} → {formatDate(report.weekEndDate)}
           </p>
