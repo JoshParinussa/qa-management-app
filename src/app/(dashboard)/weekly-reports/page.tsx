@@ -9,6 +9,7 @@ import { checkExistingWeeklyReportAction, createInitialWeeklyReportDraftAction }
 import { listAllReports, listReportsByCoAuthor } from "@/lib/weekly-reports/queries";
 import { canEditReport } from "@/lib/weekly-reports/rules";
 import { defaultDashboardDateValues } from "@/lib/dashboard/date-range";
+import { bulkApproveReportsAction } from "@/lib/reviews/actions";
 import { redirect } from "next/navigation";
 
 export default async function WeeklyReportsPage() {
@@ -52,7 +53,13 @@ export default async function WeeklyReportsPage() {
           <CardTitle>{isReviewer ? "All reports" : "My reports"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <WeeklyReportsDataTable reports={reportRows} canExport={canExport} dateDefaults={dateDefaults} />
+          <WeeklyReportsDataTable
+            approveReports={bulkApproveReportsAction}
+            canBulkApprove={isReviewer}
+            canExport={canExport}
+            dateDefaults={dateDefaults}
+            reports={reportRows}
+          />
         </CardContent>
       </Card>
     </div>

@@ -11,6 +11,7 @@ import { defaultDashboardDateValues, parseDashboardDateRange } from "@/lib/dashb
 import { can } from "@/lib/permissions/roles";
 import { listWeeklyReportChecklist } from "@/lib/weekly-reports/checklist";
 import { createInitialWeeklyReportDraftAction } from "@/lib/weekly-reports/actions";
+import { bulkApproveReportsAction } from "@/lib/reviews/actions";
 import {
   getDashboardSummary,
   getIncidentTotal,
@@ -61,6 +62,8 @@ export default async function DashboardPage({
           ]}
         />
         <WeeklyReportChecklistCard
+          approveReports={bulkApproveReportsAction}
+          canBulkApprove={can(user.role, "report:review")}
           currentUserId={user.id}
           createInitialDraft={createInitialWeeklyReportDraftAction}
           items={checklist}

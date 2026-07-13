@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { ChevronDown, Download, FileText } from "lucide-react";
+import { useCallback, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { ColumnDef } from "@tanstack/react-table";
+import { CheckCircle2, ChevronDown, Download, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,21 +33,37 @@ function toDateValue(date: Date): string {
   return new Date(date).toISOString().slice(0, 10);
 }
 
+function canBulkApproveReport(report: WeeklyReportRow) {
+  return report.status === "SUBMITTED";
+}
+
 export function WeeklyReportsDataTable({
+  approveReports,
+  canBulkApprove = false,
   reports,
   canExport = false,
   dateDefaults,
 }: {
+  approveReports?: (reportIds: string[]) => Promise<{
+    error?: string;
+    success?: string;
+    approvedCount?: number;
+    skippedCount?: number;
+  }>;
+  canBulkApprove?: boolean;
   reports: WeeklyReportRow[];
   canExport?: boolean;
   dateDefaults: DateDefaults;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState<string>(ALL_STATUS);
   const [search, setSearch] = useState("");
   const [from, setFrom] = useState(dateDefaults.from);
   const [to, setTo] = useState(dateDefaults.to);
   const [filteredRows, setFilteredRows] = useState<WeeklyReportRow[]>([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedApprovalIds, setSelectedApprovalIds] = useState<string[]>([]);
+  const [isBulkApproving, startBulkApprove] = useTransition();
 
   const preFiltered = useMemo(() => {
     return reports.filter((report) => {
@@ -59,6 +78,97 @@ export function WeeklyReportsDataTable({
   const handleFilteredDataChange = useCallback((rows: WeeklyReportRow[]) => {
     setFilteredRows(rows);
   }, []);
+
+  const selectedApprovalIdSet = useMemo(() => new Set(selectedApprovalIds), [selectedApprovalIds]);
+  const approvableFilteredIds = useMemo(
+    () => filteredRows.filter((report) => canBulkApproveReport(report)).map((report) => report.id),
+    [filteredRows],
+  );
+  const allFilteredSubmittedSelected =
+    approvableFilteredIds.length > 0 && approvableFilteredIds.every((id) => selectedApprovalIdSet.has(id));
+  const hasFilteredSubmittedSelected = approvableFilteredIds.some((id) => selectedApprovalIdSet.has(id));
+
+  const toggleApprovalSelection = useCallback((reportId: string, checked: boolean) => {
+    setSelectedApprovalIds((current) => {
+      if (checked) return current.includes(reportId) ? current : [...current, reportId];
+      return current.filter((id) => id !== reportId);
+    });
+  }, []);
+
+  const toggleFilteredSubmittedSelection = useCallback((checked: boolean) => {
+    setSelectedApprovalIds((current) => {
+      const next = new Set(current);
+      for (const reportId of approvableFilteredIds) {
+        if (checked) {
+          next.add(reportId);
+        } else {
+          next.delete(reportId);
+        }
+      }
+      return [...next];
+    });
+  }, [approvableFilteredIds]);
+
+  function handleBulkApprove() {
+    if (!approveReports || selectedApprovalIds.length === 0 || isBulkApproving) return;
+
+    startBulkApprove(() => {
+      void (async () => {
+        const result = await approveReports(selectedApprovalIds);
+
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+
+        toast.success(result.success ?? "Report berhasil di-approve.");
+        setSelectedApprovalIds([]);
+        router.refresh();
+      })();
+    });
+  }
+
+  const columns = useMemo<ColumnDef<WeeklyReportRow>[]>(() => {
+    if (!canBulkApprove) return weeklyReportColumns;
+
+    return [
+      {
+        id: "bulkApprove",
+        enableSorting: false,
+        header: () => (
+          <Checkbox
+            aria-label="Select all submitted reports in current filters"
+            checked={allFilteredSubmittedSelected ? true : hasFilteredSubmittedSelected ? "indeterminate" : false}
+            disabled={approvableFilteredIds.length === 0 || isBulkApproving}
+            onCheckedChange={(checked) => toggleFilteredSubmittedSelection(checked === true)}
+          />
+        ),
+        cell: ({ row }) => {
+          const report = row.original;
+          const canSelect = canBulkApproveReport(report);
+
+          return (
+            <Checkbox
+              aria-label={`Select ${report.projectName} for bulk approve`}
+              checked={selectedApprovalIdSet.has(report.id)}
+              disabled={!canSelect || isBulkApproving}
+              onCheckedChange={(checked) => toggleApprovalSelection(report.id, checked === true)}
+            />
+          );
+        },
+      },
+      ...weeklyReportColumns,
+    ];
+  }, [
+    allFilteredSubmittedSelected,
+    approvableFilteredIds,
+    canBulkApprove,
+    hasFilteredSubmittedSelected,
+    isBulkApproving,
+    selectedApprovalIdSet,
+    toggleApprovalSelection,
+    toggleFilteredSubmittedSelection,
+  ]);
 
   function handleRangeChange(nextFrom: string, nextTo: string) {
     setFrom(nextFrom);
@@ -115,7 +225,7 @@ export function WeeklyReportsDataTable({
 
   return (
     <DataTable
-      columns={weeklyReportColumns}
+      columns={columns}
       data={preFiltered}
       emptyLabel="Belum ada report."
       searchPlaceholder="Search project..."
@@ -145,6 +255,18 @@ export function WeeklyReportsDataTable({
             defaultTo={dateDefaults.to}
             onChange={handleRangeChange}
           />
+          {canBulkApprove ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10"
+              disabled={selectedApprovalIds.length === 0 || isBulkApproving || !approveReports}
+              onClick={handleBulkApprove}
+            >
+              {isBulkApproving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+              {isBulkApproving ? "Approving..." : `Approve selected (${selectedApprovalIds.length})`}
+            </Button>
+          ) : null}
           {canExport ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
 import { reportFeedbacks, reportQaApprovals, weeklyReports } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
@@ -11,6 +12,11 @@ import { canReviewReport, nextStatusForAction, type ReviewAction } from "@/lib/w
 import { validateReviewFeedback } from "@/lib/reviews/review-rules";
 import { ACTIVITY_ACTIONS, insertActivity, type ActivityAction } from "@/lib/weekly-reports/activity";
 import type { ActionState } from "@/types";
+
+type BulkApproveState = ActionState & {
+  approvedCount?: number;
+  skippedCount?: number;
+};
 
 async function requireReviewer() {
   const user = await requireUser();
@@ -102,4 +108,59 @@ export async function requestRevisionAction(id: string, _state: ActionState, for
 
 export async function approveReportAction(id: string, _state: ActionState, formData: FormData): Promise<ActionState> {
   return applyReview(id, "APPROVED", String(formData.get("feedback") ?? ""));
+}
+
+export async function bulkApproveReportsAction(reportIds: string[]): Promise<BulkApproveState> {
+  const reviewer = await requireReviewer();
+  const uniqueIds = [...new Set(reportIds.map((id) => id.trim()).filter(Boolean))];
+
+  if (uniqueIds.length === 0) {
+    return { error: "Pilih minimal satu report untuk di-approve.", approvedCount: 0, skippedCount: 0 };
+  }
+
+  const now = new Date();
+  const approvedReports = await db
+    .update(weeklyReports)
+    .set({
+      status: "APPROVED",
+      reviewedAt: now,
+      reviewedBy: reviewer.id,
+      approvedAt: now,
+      approvedBy: reviewer.id,
+      updatedAt: now,
+    })
+    .where(and(inArray(weeklyReports.id, uniqueIds), eq(weeklyReports.status, "SUBMITTED")))
+    .returning({ id: weeklyReports.id });
+
+  await Promise.all(
+    approvedReports.map((report) =>
+      insertActivity({
+        weeklyReportId: report.id,
+        actorId: reviewer.id,
+        action: ACTIVITY_ACTIONS.APPROVED,
+      }),
+    ),
+  );
+
+  revalidatePath("/dashboard");
+  revalidatePath("/weekly-reports");
+
+  const approvedCount = approvedReports.length;
+  const skippedCount = uniqueIds.length - approvedCount;
+
+  if (approvedCount === 0) {
+    return {
+      error: "Tidak ada report Submitted yang bisa di-approve.",
+      approvedCount,
+      skippedCount,
+    };
+  }
+
+  return {
+    success: skippedCount > 0
+      ? `${approvedCount} report berhasil di-approve. ${skippedCount} report dilewati karena bukan Submitted.`
+      : `${approvedCount} report berhasil di-approve.`,
+    approvedCount,
+    skippedCount,
+  };
 }
